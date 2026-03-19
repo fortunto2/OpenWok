@@ -1,3 +1,48 @@
+# OpenWok
+
+Federated food delivery platform with open-book pricing. $1 federal fee per order.
+
+## Tech Stack
+
+- **Core:** Rust — domain logic, pricing calculator, order state machine
+- **API:** Rust (axum) — REST server
+- **Storage:** In-memory (PostgreSQL planned)
+
+## Quick Start
+
+```bash
+# Build & test
+make check           # test + clippy + fmt
+
+# Run server
+cargo run -p openwok-api   # http://localhost:3000
+```
+
+## Workspace
+
+| Crate | Path | Description |
+|-------|------|-------------|
+| openwok-core | crates/core/ | Domain types, Money, PricingBreakdown, Order state machine |
+| openwok-api | crates/api/ | axum REST API with in-memory state |
+
+## API Endpoints
+
+```
+GET    /health                 → Health check
+GET    /restaurants            → List restaurants (3 seeded)
+GET    /restaurants/{id}       → Get restaurant
+POST   /restaurants            → Create restaurant
+POST   /orders                 → Create order (returns 6-line pricing)
+GET    /orders/{id}            → Get order
+PATCH  /orders/{id}/status     → Transition order status
+POST   /orders/{id}/assign     → Assign courier
+GET    /couriers               → List available couriers
+POST   /couriers               → Register courier
+PATCH  /couriers/{id}/available → Toggle availability
+```
+
+---
+
 # OpenDelivery (рабочее название)
 
 OpenDelivery — честный сервис доставки еды с открытой бухгалтерией, фиксированной платой платформы `$1` за заказ и максимально прозрачной отчетностью. Это локально масштабируемый marketplace, который не гонится за сверхприбылью и не прячет экономику: каждый участник видит, куда уходят деньги и за что платит.

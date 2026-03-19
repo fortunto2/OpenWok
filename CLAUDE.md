@@ -51,9 +51,49 @@ GitHub: https://github.com/fortunto2/OpenWok
 - Build robot integration — that's wave 2
 - Over-engineer — focus on order flow + open-book pricing
 
+## Workspace Structure
+
+```
+crates/
+  core/     — openwok-core: domain types, pricing calculator, order state machine
+  api/      — openwok-api: axum REST server with in-memory state
+```
+
+## Run Commands
+
+```bash
+cargo run -p openwok-api       # Start server on http://localhost:3000
+make test                       # Run all tests
+make clippy                     # Lint
+make fmt                        # Check formatting
+make check                      # test + clippy + fmt
+```
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /health | Health check |
+| GET | /restaurants | List restaurants |
+| GET | /restaurants/{id} | Get restaurant |
+| POST | /restaurants | Create restaurant |
+| POST | /orders | Create order (returns pricing breakdown) |
+| GET | /orders/{id} | Get order |
+| PATCH | /orders/{id}/status | Transition order status |
+| POST | /orders/{id}/assign | Assign courier to order |
+| GET | /couriers | List available couriers |
+| POST | /couriers | Register courier |
+| PATCH | /couriers/{id}/available | Toggle availability |
+
+## Key Documents
+
+- `docs/mvp-deck.pdf` — full MVP concept deck
+- `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
+- `docs/plan/mvp-core_20260320/` — implementation plan + spec
+- `planning/ROADMAP.md` — project roadmap
+
 ## Do
 
-- Start with domain types in Rust (Order, Restaurant, Courier, Node, PricingBreakdown)
-- TDD for pricing calculator (the 6-line receipt is the core innovation)
+- TDD for all business logic
 - Read docs/mvp-deck.pdf for full context
-- Let bighead handle research, planning, and scaffolding
+- Keep pricing calculator as the core innovation (6-line receipt)
