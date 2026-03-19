@@ -19,6 +19,9 @@ pub fn app(state: SharedState) -> Router {
         .route("/orders", post(routes::orders::create))
         .route("/orders/{id}", get(routes::orders::get))
         .route("/orders/{id}/status", patch(routes::orders::transition))
+        .route("/orders/{id}/assign", post(routes::couriers::assign_to_order))
+        .route("/couriers", get(routes::couriers::list).post(routes::couriers::create))
+        .route("/couriers/{id}/available", patch(routes::couriers::toggle_available))
         .with_state(state)
 }
 
