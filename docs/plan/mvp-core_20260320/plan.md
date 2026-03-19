@@ -25,20 +25,20 @@ Set up the Cargo workspace and define all domain types with serialization.
 - [x] `make check` passes (test + clippy + fmt)
 - [x] All types serialize/deserialize with serde
 
-## Phase 2: Pricing Calculator & Order State Machine
+## Phase 2: Pricing Calculator & Order State Machine <!-- checkpoint:466b151 -->
 Implement the core business logic with TDD (tests first, then implementation).
 
 ### Tasks
-- [ ] Task 2.1: Write pricing calculator tests in `crates/core/src/pricing.rs` — test cases: basic order ($25 food, $5 delivery, $3 tip, $2.50 local ops), zero tip, zero delivery fee, large order ($200+), rounding to cents. Verify federal fee always $1.00, processing = subtotal * 2.9% + $0.30.
-- [ ] Task 2.2: Implement `calculate_pricing()` function — inputs: food_total, delivery_fee, tip, local_ops_fee. Returns `PricingBreakdown`. Federal fee hardcoded. Processing = (food + delivery + tip + federal + local_ops) * 0.029 + 0.30. All math via `Decimal`.
-- [ ] Task 2.3: Write order state machine tests in `crates/core/src/order.rs` — valid transitions: Created→Confirmed→Preparing→ReadyForPickup→InDelivery→Delivered. Cancel allowed from Created/Confirmed/Preparing. Invalid transitions return error.
-- [ ] Task 2.4: Implement `Order::transition(&mut self, new_status)` — validates transition, updates status + updated_at. Returns `Result<(), OrderError>`. Add `OrderError` enum via thiserror.
-- [ ] Task 2.5: Implement `Order::new()` constructor — takes items, restaurant_id, address, zone_id, calculates pricing via `calculate_pricing()`. Status starts as Created.
+- [x] Task 2.1: Write pricing calculator tests in `crates/core/src/pricing.rs` — test cases: basic order ($25 food, $5 delivery, $3 tip, $2.50 local ops), zero tip, zero delivery fee, large order ($200+), rounding to cents. Verify federal fee always $1.00, processing = subtotal * 2.9% + $0.30. <!-- sha:e546869 -->
+- [x] Task 2.2: Implement `calculate_pricing()` function — inputs: food_total, delivery_fee, tip, local_ops_fee. Returns `PricingBreakdown`. Federal fee hardcoded. Processing = (food + delivery + tip + federal + local_ops) * 0.029 + 0.30. All math via `Decimal`. <!-- sha:e546869 -->
+- [x] Task 2.3: Write order state machine tests in `crates/core/src/order.rs` — valid transitions: Created→Confirmed→Preparing→ReadyForPickup→InDelivery→Delivered. Cancel allowed from Created/Confirmed/Preparing. Invalid transitions return error. <!-- sha:466b151 -->
+- [x] Task 2.4: Implement `Order::transition(&mut self, new_status)` — validates transition, updates status + updated_at. Returns `Result<(), OrderError>`. Add `OrderError` enum via thiserror. <!-- sha:466b151 -->
+- [x] Task 2.5: Implement `Order::new()` constructor — takes items, restaurant_id, address, zone_id, calculates pricing via `calculate_pricing()`. Status starts as Created. <!-- sha:466b151 -->
 
 ### Verification
-- [ ] `make test` — all pricing tests pass (edge cases, rounding)
-- [ ] `make test` — all state machine tests pass (valid + invalid transitions)
-- [ ] `make clippy` — zero warnings
+- [x] `make test` — all pricing tests pass (edge cases, rounding)
+- [x] `make test` — all state machine tests pass (valid + invalid transitions)
+- [x] `make clippy` — zero warnings
 
 ## Phase 3: REST API (axum)
 HTTP server with in-memory state, exposing order flow and restaurant catalog.
