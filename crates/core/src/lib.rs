@@ -1,4 +1,4 @@
 pub mod money;
-pub mod types;
-pub mod pricing;
 pub mod order;
+pub mod pricing;
+pub mod types;
