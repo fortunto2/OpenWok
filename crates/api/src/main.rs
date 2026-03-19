@@ -1,7 +1,7 @@
 mod routes;
 mod state;
 
-use axum::routing::get;
+use axum::routing::{get, patch, post};
 use axum::Router;
 use state::{AppState, SharedState};
 use std::sync::Arc;
@@ -16,6 +16,9 @@ pub fn app(state: SharedState) -> Router {
         .route("/health", get(health))
         .route("/restaurants", get(routes::restaurants::list).post(routes::restaurants::create))
         .route("/restaurants/{id}", get(routes::restaurants::get))
+        .route("/orders", post(routes::orders::create))
+        .route("/orders/{id}", get(routes::orders::get))
+        .route("/orders/{id}/status", patch(routes::orders::transition))
         .with_state(state)
 }
 
