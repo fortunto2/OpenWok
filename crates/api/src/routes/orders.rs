@@ -40,10 +40,7 @@ pub async fn create(
     {
         let s = state.read().await;
         if !s.restaurants.contains_key(&body.restaurant_id) {
-            return Err((
-                StatusCode::NOT_FOUND,
-                "restaurant not found".into(),
-            ));
+            return Err((StatusCode::NOT_FOUND, "restaurant not found".into()));
         }
     }
 
@@ -79,7 +76,11 @@ pub async fn get(
     Path(id): Path<OrderId>,
 ) -> Result<Json<Order>, StatusCode> {
     let s = state.read().await;
-    s.orders.get(&id).cloned().map(Json).ok_or(StatusCode::NOT_FOUND)
+    s.orders
+        .get(&id)
+        .cloned()
+        .map(Json)
+        .ok_or(StatusCode::NOT_FOUND)
 }
 
 pub async fn transition(

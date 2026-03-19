@@ -70,9 +70,30 @@ pub fn seed_restaurants(state: &mut crate::state::AppState) {
     let zone = ZoneId::new();
 
     let restaurants = vec![
-        ("Pad Thai Palace", vec![("Pad Thai", "12.99"), ("Tom Yum Soup", "8.99"), ("Green Curry", "14.99")]),
-        ("Sushi Wave", vec![("California Roll", "10.99"), ("Salmon Nigiri", "13.99"), ("Miso Soup", "4.99")]),
-        ("Taco Libre", vec![("Street Tacos", "9.99"), ("Burrito Bowl", "11.99"), ("Churros", "5.99")]),
+        (
+            "Pad Thai Palace",
+            vec![
+                ("Pad Thai", "12.99"),
+                ("Tom Yum Soup", "8.99"),
+                ("Green Curry", "14.99"),
+            ],
+        ),
+        (
+            "Sushi Wave",
+            vec![
+                ("California Roll", "10.99"),
+                ("Salmon Nigiri", "13.99"),
+                ("Miso Soup", "4.99"),
+            ],
+        ),
+        (
+            "Taco Libre",
+            vec![
+                ("Street Tacos", "9.99"),
+                ("Burrito Bowl", "11.99"),
+                ("Churros", "5.99"),
+            ],
+        ),
     ];
 
     for (name, items) in restaurants {
