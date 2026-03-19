@@ -40,21 +40,21 @@ Implement the core business logic with TDD (tests first, then implementation).
 - [x] `make test` — all state machine tests pass (valid + invalid transitions)
 - [x] `make clippy` — zero warnings
 
-## Phase 3: REST API (axum)
+## Phase 3: REST API (axum) <!-- checkpoint:1ba7ebc -->
 HTTP server with in-memory state, exposing order flow and restaurant catalog.
 
 ### Tasks
-- [ ] Task 3.1: Set up axum app skeleton in `crates/api/src/main.rs` — tokio runtime, Router, shared state (`Arc<RwLock<AppState>>`). `AppState` holds `HashMap` collections for restaurants, orders, couriers. Health endpoint: `GET /health`.
-- [ ] Task 3.2: Restaurant endpoints in `crates/api/src/routes/restaurants.rs` — `GET /restaurants` (list), `GET /restaurants/:id`, `POST /restaurants` (create). Seed 3 sample LA restaurants on startup.
-- [ ] Task 3.3: Order endpoints in `crates/api/src/routes/orders.rs` — `POST /orders` (create with items + address, returns order with pricing breakdown), `GET /orders/:id`, `PATCH /orders/:id/status` (transition). Validate restaurant exists, items exist.
-- [ ] Task 3.4: Courier endpoints in `crates/api/src/routes/couriers.rs` — `GET /couriers` (list available), `POST /couriers` (register), `PATCH /couriers/:id/available` (toggle). `POST /orders/:id/assign` (assign courier).
-- [ ] Task 3.5: Integration tests in `tests/api_tests.rs` — full flow: create restaurant, create order, see pricing breakdown in response, confirm order, assign courier, transition through states to delivered.
+- [x] Task 3.1: Set up axum app skeleton in `crates/api/src/main.rs` — tokio runtime, Router, shared state (`Arc<RwLock<AppState>>`). `AppState` holds `HashMap` collections for restaurants, orders, couriers. Health endpoint: `GET /health`. <!-- sha:653bb24 -->
+- [x] Task 3.2: Restaurant endpoints in `crates/api/src/routes/restaurants.rs` — `GET /restaurants` (list), `GET /restaurants/:id`, `POST /restaurants` (create). Seed 3 sample LA restaurants on startup. <!-- sha:4115a4b -->
+- [x] Task 3.3: Order endpoints in `crates/api/src/routes/orders.rs` — `POST /orders` (create with items + address, returns order with pricing breakdown), `GET /orders/:id`, `PATCH /orders/:id/status` (transition). Validate restaurant exists, items exist. <!-- sha:4712f41 -->
+- [x] Task 3.4: Courier endpoints in `crates/api/src/routes/couriers.rs` — `GET /couriers` (list available), `POST /couriers` (register), `PATCH /couriers/:id/available` (toggle). `POST /orders/:id/assign` (assign courier). <!-- sha:7e15cdc -->
+- [x] Task 3.5: Integration tests in `tests/api_tests.rs` — full flow: create restaurant, create order, see pricing breakdown in response, confirm order, assign courier, transition through states to delivered. <!-- sha:1ba7ebc -->
 
 ### Verification
-- [ ] `cargo run -p openwok-api` starts server on port 3000
-- [ ] `curl localhost:3000/health` returns 200
-- [ ] Full order flow works via curl/httpie
-- [ ] Integration tests pass
+- [x] `cargo run -p openwok-api` starts server on port 3000
+- [x] `curl localhost:3000/health` returns 200
+- [x] Full order flow works via curl/httpie
+- [x] Integration tests pass
 
 ## Phase 4: Docs & Cleanup
 
