@@ -1,4 +1,5 @@
 use crate::money::Money;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -43,6 +44,8 @@ id_newtype!(OrderId);
 id_newtype!(NodeId);
 id_newtype!(ZoneId);
 id_newtype!(MenuItemId);
+id_newtype!(UserId);
+id_newtype!(PaymentId);
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct MenuItem {
@@ -88,6 +91,126 @@ pub struct Courier {
     pub kind: CourierKind,
     pub zone_id: ZoneId,
     pub available: bool,
+}
+
+// --- Auth & Payments ---
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
+pub enum UserRole {
+    Customer,
+    RestaurantOwner,
+    Courier,
+    NodeOperator,
+}
+
+impl std::fmt::Display for UserRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UserRole::Customer => write!(f, "Customer"),
+            UserRole::RestaurantOwner => write!(f, "RestaurantOwner"),
+            UserRole::Courier => write!(f, "Courier"),
+            UserRole::NodeOperator => write!(f, "NodeOperator"),
+        }
+    }
+}
+
+impl std::str::FromStr for UserRole {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Customer" => Ok(UserRole::Customer),
+            "RestaurantOwner" => Ok(UserRole::RestaurantOwner),
+            "Courier" => Ok(UserRole::Courier),
+            "NodeOperator" => Ok(UserRole::NodeOperator),
+            _ => Err(format!("unknown role: {s}")),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct User {
+    pub id: UserId,
+    pub supabase_user_id: String,
+    pub email: String,
+    pub name: Option<String>,
+    pub role: UserRole,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
+pub enum PaymentStatus {
+    Pending,
+    Succeeded,
+    Failed,
+    Refunded,
+}
+
+impl std::fmt::Display for PaymentStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PaymentStatus::Pending => write!(f, "Pending"),
+            PaymentStatus::Succeeded => write!(f, "Succeeded"),
+            PaymentStatus::Failed => write!(f, "Failed"),
+            PaymentStatus::Refunded => write!(f, "Refunded"),
+        }
+    }
+}
+
+impl std::str::FromStr for PaymentStatus {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Pending" => Ok(PaymentStatus::Pending),
+            "Succeeded" => Ok(PaymentStatus::Succeeded),
+            "Failed" => Ok(PaymentStatus::Failed),
+            "Refunded" => Ok(PaymentStatus::Refunded),
+            _ => Err(format!("unknown payment status: {s}")),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct Payment {
+    pub id: PaymentId,
+    pub order_id: OrderId,
+    pub stripe_payment_intent_id: Option<String>,
+    pub stripe_checkout_session_id: Option<String>,
+    pub status: PaymentStatus,
+    pub amount_total: Money,
+    pub restaurant_amount: Money,
+    pub courier_amount: Money,
+    pub federal_amount: Money,
+    pub local_ops_amount: Money,
+    pub processing_amount: Money,
+    pub created_at: DateTime<Utc>,
+}
+
+// --- Request types ---
+
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct CreateUserRequest {
+    pub supabase_user_id: String,
+    pub email: String,
+    pub name: Option<String>,
+    pub role: Option<UserRole>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct CreatePaymentRequest {
+    pub order_id: OrderId,
+    pub stripe_checkout_session_id: Option<String>,
+    pub amount_total: Money,
+    pub restaurant_amount: Money,
+    pub courier_amount: Money,
+    pub federal_amount: Money,
+    pub local_ops_amount: Money,
+    pub processing_amount: Money,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct UpdatePaymentStatusRequest {
+    pub status: PaymentStatus,
+    pub stripe_payment_intent_id: Option<String>,
 }
 
 #[cfg(test)]
@@ -147,5 +270,76 @@ mod tests {
         let json = serde_json::to_string(&n).unwrap();
         let back: Node = serde_json::from_str(&json).unwrap();
         assert_eq!(back.name, "LA Node");
+    }
+
+    #[test]
+    fn user_serde_roundtrip() {
+        let u = User {
+            id: UserId::new(),
+            supabase_user_id: "sub_123".into(),
+            email: "test@example.com".into(),
+            name: Some("Test User".into()),
+            role: UserRole::Customer,
+            created_at: chrono::Utc::now(),
+        };
+        let json = serde_json::to_string(&u).unwrap();
+        let back: User = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.email, "test@example.com");
+        assert_eq!(back.role, UserRole::Customer);
+    }
+
+    #[test]
+    fn user_role_display_and_parse() {
+        assert_eq!(UserRole::Customer.to_string(), "Customer");
+        assert_eq!(UserRole::RestaurantOwner.to_string(), "RestaurantOwner");
+        assert_eq!("Customer".parse::<UserRole>().unwrap(), UserRole::Customer);
+        assert_eq!(
+            "RestaurantOwner".parse::<UserRole>().unwrap(),
+            UserRole::RestaurantOwner
+        );
+        assert!("Unknown".parse::<UserRole>().is_err());
+    }
+
+    #[test]
+    fn payment_serde_roundtrip() {
+        let p = Payment {
+            id: PaymentId::new(),
+            order_id: OrderId::new(),
+            stripe_payment_intent_id: None,
+            stripe_checkout_session_id: Some("cs_test_123".into()),
+            status: PaymentStatus::Pending,
+            amount_total: Money::from("37.86"),
+            restaurant_amount: Money::from("25.00"),
+            courier_amount: Money::from("8.00"),
+            federal_amount: Money::from("1.00"),
+            local_ops_amount: Money::from("2.50"),
+            processing_amount: Money::from("1.36"),
+            created_at: chrono::Utc::now(),
+        };
+        let json = serde_json::to_string(&p).unwrap();
+        let back: Payment = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.status, PaymentStatus::Pending);
+        assert_eq!(back.amount_total, Money::from("37.86"));
+    }
+
+    #[test]
+    fn payment_status_display_and_parse() {
+        assert_eq!(PaymentStatus::Pending.to_string(), "Pending");
+        assert_eq!(PaymentStatus::Succeeded.to_string(), "Succeeded");
+        assert_eq!(
+            "Failed".parse::<PaymentStatus>().unwrap(),
+            PaymentStatus::Failed
+        );
+        assert!("Invalid".parse::<PaymentStatus>().is_err());
+    }
+
+    #[test]
+    fn user_id_and_payment_id_unique() {
+        let a = UserId::new();
+        let b = UserId::new();
+        assert_ne!(a, b);
+        let c = PaymentId::new();
+        let d = PaymentId::new();
+        assert_ne!(c, d);
     }
 }
