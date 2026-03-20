@@ -16,13 +16,13 @@ Federated food delivery platform. $1 federal fee + local node operators. Open-bo
 ## Tech Stack
 
 - **Core (Rust):** domain logic, order engine, pricing calculator, federation protocol
-- **API:** Cloudflare Workers (worker-rs with axum compat) — migrating from standalone axum
-- **Frontend:** Dioxus static SPA → Cloudflare Pages
-- **Database:** Cloudflare D1 (SQLite) — migrating from in-memory HashMap
+- **Runtime:** Single Cloudflare Worker = API (worker-rs, `/api/*`) + static assets (Dioxus WASM SPA, `/*`)
+- **Database:** SQLite (rusqlite) locally, Cloudflare D1 in production — migrated from in-memory HashMap
+- **Frontend:** Dioxus 0.6 web SPA (WASM) — migrating from fullstack mode (remove `#[server]`, use reqwest directly)
 - **Payments:** Stripe Connect (split payments: restaurant + courier + federal + local)
 - **Auth:** Supabase Auth (Google OAuth)
 - **Geo:** zone-based (no PostGIS for MVP)
-- **Deploy:** `wrangler deploy` (API Worker) + CF Pages (frontend)
+- **Deploy:** `dx build --platform web --release` → `wrangler deploy` (one Worker, one domain, zero CORS)
 
 ## Federation Stack (Phase 4)
 
@@ -70,13 +70,15 @@ GitHub: https://github.com/fortunto2/OpenWok
 ```
 crates/
   core/     — openwok-core: domain types, pricing calculator, order state machine
-  api/      — openwok-api: axum REST server with in-memory state
+  api/      — openwok-api: axum REST server with SQLite (D1-compatible)
+migrations/ — D1-compatible SQL migrations (shared with rusqlite)
 ```
 
 ## Run Commands
 
 ```bash
-cargo run -p openwok-api       # Start server on http://localhost:3000
+cargo run -p openwok-api       # Start server on http://localhost:3000/api
+DATABASE_PATH=data/openwok.db cargo run -p openwok-api  # With custom DB path
 make test                       # Run all tests
 make clippy                     # Lint
 make fmt                        # Check formatting
@@ -87,17 +89,18 @@ make check                      # test + clippy + fmt
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | /health | Health check |
-| GET | /restaurants | List restaurants |
-| GET | /restaurants/{id} | Get restaurant |
-| POST | /restaurants | Create restaurant |
-| POST | /orders | Create order (returns pricing breakdown) |
-| GET | /orders/{id} | Get order |
-| PATCH | /orders/{id}/status | Transition order status |
-| POST | /orders/{id}/assign | Assign courier to order |
-| GET | /couriers | List available couriers |
-| POST | /couriers | Register courier |
-| PATCH | /couriers/{id}/available | Toggle availability |
+| GET | /api/health | Health check |
+| GET | /api/restaurants | List restaurants |
+| GET | /api/restaurants/{id} | Get restaurant |
+| POST | /api/restaurants | Create restaurant |
+| POST | /api/orders | Create order (returns pricing breakdown) |
+| GET | /api/orders/{id} | Get order |
+| PATCH | /api/orders/{id}/status | Transition order status |
+| POST | /api/orders/{id}/assign | Assign courier to order |
+| GET | /api/couriers | List available couriers |
+| POST | /api/couriers | Register courier |
+| PATCH | /api/couriers/{id}/available | Toggle availability |
+| WS | /api/ws/orders/{id} | Real-time order status updates |
 
 ## Key Documents
 

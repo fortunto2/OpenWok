@@ -23,9 +23,9 @@ Platform as federation (like US states):
 ## Tech Stack
 
 - **Core:** Rust — domain logic, pricing calculator, order state machine
-- **API:** Cloudflare Workers (worker-rs with axum compatibility)
+- **Runtime:** Single Cloudflare Worker = API (worker-rs) + static assets (Dioxus WASM SPA)
 - **Database:** Cloudflare D1 (SQLite-based, per-node)
-- **Frontend:** Dioxus static build → Cloudflare Pages (SPA)
+- **Frontend:** Dioxus 0.6 web SPA (WASM), built with `dx build --platform web --release`, served as static assets from the same Worker
 - **Payments:** Stripe Connect (split payments)
 - **Auth:** Supabase Auth (Google OAuth)
 - **Geo:** zone-based (no PostGIS needed for MVP)
@@ -50,33 +50,38 @@ Platform as federation (like US states):
 ## What's Next
 
 ### Phase 5: Cloudflare Workers Migration
-Port from axum in-memory to CF Workers + D1.
+Port from axum in-memory to single CF Worker (API + static frontend) with D1.
+
+**Architecture:** One Worker serves everything — API routes (`/api/*`) via worker-rs, all other paths via `[assets]` binding (Dioxus WASM SPA). Zero CORS, one domain, one deploy.
 
 **Why CF Workers:**
 - Edge deployment (low latency for LA users)
 - D1 = SQLite (simpler than PostgreSQL for MVP)
 - Free tier generous for pilot (100K requests/day)
-- wrangler CLI already configured locally
+- Single deployment unit (API + frontend together)
+- wrangler 4.60.0 already configured locally
 
 **Tasks:**
-1. Create `wrangler.toml` with D1 binding, Workers config
-2. Add `worker` crate dependency with axum feature to `crates/api/`
-3. Create D1 schema migrations (restaurants, menu_items, orders, order_items, couriers, zones)
-4. Replace in-memory `AppState` (HashMap) with D1 queries via `worker::d1`
-5. Adapt `main.rs` entry point: `worker::event!` macro instead of `tokio::main`
-6. Build Dioxus frontend as static SPA (`dx build --release`)
-7. Create CF Pages config for static frontend
-8. Deploy API Worker + Pages frontend
-9. Seed LA test data (3 restaurants, 2 zones)
-10. Verify end-to-end: browse restaurants → place order → track status
+1. ~~Create `wrangler.toml`~~ ✅ Worker config + `[assets]` binding + D1 database binding
+2. Add `worker` crate to `crates/api/`, adapt entry point from `tokio::main` to `worker::event!` macro (future: runtime swap)
+3. ~~Create D1 schema migrations~~ ✅ `migrations/0001_init.sql` + `migrations/0002_seed_la.sql`
+4. ~~Replace in-memory `AppState` (HashMap) with SQLite queries~~ ✅ rusqlite locally, D1-compatible schema
+5. ~~Move all API routes under `/api/` prefix~~ ✅
+6. Convert Dioxus frontend from fullstack to web SPA: remove `#[server]` functions, use reqwest directly (WASM-compatible), API_BASE = "/api" (same origin)
+7. Optimize Dioxus.toml: `wasm_opt.level = "z"`, `pre_compress = true`, `index_on_404 = true`
+8. ~~Add WASM release profile to workspace Cargo.toml~~ ✅ `opt-level = "z"`, `lto = true`, `panic = "abort"`, `strip = true`
+9. Build pipeline: `dx build --platform web --release` → copy output to Worker's `public/` dir → `wrangler deploy`
+10. ~~Seed LA test data (3 restaurants, 2 zones) via D1 migration~~ ✅
+11. Verify end-to-end: browse restaurants → place order → track status on live URL
 
 **Acceptance criteria:**
-- [ ] `wrangler dev` starts API locally with D1
-- [ ] All 11 API endpoints work against D1
-- [ ] Frontend loads from CF Pages, calls API Worker
-- [ ] Order flow works end-to-end (create → assign → deliver)
-- [ ] `make check` passes (existing tests adapted)
-- [ ] Deployed to CF Workers (API) + CF Pages (frontend)
+- [ ] `wrangler dev` starts locally: API on `/api/*`, SPA on `/*`
+- [x] All 12 API endpoints work under `/api/` prefix against SQLite
+- [ ] Dioxus SPA loads, all 6 routes work (client-side routing, 404 → index.html)
+- [x] Order flow works end-to-end (create → assign → deliver) — integration test passes
+- [ ] WASM bundle < 500KB (release + wasm-opt z)
+- [x] `make check` passes (45 tests, clippy clean, fmt clean)
+- [ ] Deployed: single `wrangler deploy`, live URL returns HTTP 200
 
 ### Phase 6: Auth + Stripe Payments
 Real payments and user accounts.
@@ -162,12 +167,12 @@ programs/
 
 ## Deploy
 
-- **API:** Cloudflare Workers (wrangler deploy)
-- **Frontend:** Cloudflare Pages (static SPA)
-- **Database:** Cloudflare D1
+- **All-in-one:** Single Cloudflare Worker (`wrangler deploy`) — API routes + static SPA assets
+- **Database:** Cloudflare D1 (SQLite, edge)
 - **Auth:** Supabase (external)
 - **Payments:** Stripe Connect (external)
 - **Analytics:** PostHog EU
+- **Build:** `dx build --platform web --release` → `wrangler deploy`
 
 ## KPIs (Pilot)
 

@@ -1,0 +1,26 @@
+name = "openwok"
+main = "build/worker/shim.mjs"
+compatibility_date = "2024-12-01"
+
+[assets]
+directory = "public"
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "openwok-db"
+database_id = "" # Set after `wrangler d1 create openwok-db`
+migrations_dir = "migrations"
+
+[vars]
+ENVIRONMENT = "production"
+
+# Dev overrides
+[env.dev]
+name = "openwok-dev"
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "openwok-db-dev"
+database_id = "" # Set after `wrangler d1 create openwok-db-dev`
+migrations_dir = "migrations"
