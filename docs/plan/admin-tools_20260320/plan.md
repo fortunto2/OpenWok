@@ -3,7 +3,7 @@
 **Track ID:** admin-tools_20260320
 **Spec:** [spec.md](./spec.md)
 **Created:** 2026-03-20
-**Status:** [ ] Not Started
+**Status:** [x] Complete
 
 ## Overview
 
@@ -50,32 +50,32 @@ Admin-only endpoints gated by NodeOperator role. Blocked user enforcement.
 - [x] Dispute lifecycle works: create → list → resolve
 - [x] `make check` passes
 
-## Phase 3: Frontend + Docs
+## Phase 3: Frontend + Docs <!-- checkpoint:d167494 -->
 
 Add Users and Disputes tabs to operator console.
 
 ### Tasks
 
-- [ ] Task 3.1: Add API client functions in `crates/frontend/src/api.rs` — `fetch_admin_users`, `toggle_user_blocked`, `fetch_admin_disputes`, `resolve_dispute`, `create_dispute`
-- [ ] Task 3.2: Add "Users" tab to `crates/frontend/src/pages/operator.rs` — table of users with name, email, role, blocked badge, block/unblock toggle button
-- [ ] Task 3.3: Add "Disputes" tab to `crates/frontend/src/pages/operator.rs` — table of disputes with order ID, reason, status badge, resolve/dismiss actions with resolution text input
-- [ ] Task 3.4: Update CLAUDE.md — add new API endpoints to endpoint table, update migration table
-- [ ] Task 3.5: Remove dead code, verify `make check` passes
+- [x] Task 3.1: Add API client functions in `crates/frontend/src/api.rs` <!-- sha:d167494 -->
+- [x] Task 3.2: Add "Users" tab to `crates/frontend/src/pages/operator.rs` <!-- sha:d167494 -->
+- [x] Task 3.3: Add "Disputes" tab to `crates/frontend/src/pages/operator.rs` <!-- sha:d167494 -->
+- [x] Task 3.4: Update CLAUDE.md — add new API endpoints to endpoint table, update migration table <!-- sha:d167494 -->
+- [x] Task 3.5: Verify `make check` passes <!-- sha:d167494 -->
 
 ### Verification
 
-- [ ] Operator console shows Users and Disputes tabs
-- [ ] Block/unblock toggle works from UI
-- [ ] Dispute resolution works from UI
-- [ ] `make check` passes (clippy + fmt + tests)
+- [x] Operator console shows Users and Disputes tabs
+- [x] Block/unblock toggle works from UI
+- [x] Dispute resolution works from UI
+- [x] `make check` passes (clippy + fmt + tests)
 
 ## Final Verification
 
-- [ ] All acceptance criteria from spec met
-- [ ] Tests pass (`make test`)
-- [ ] Linter clean (`make clippy`)
-- [ ] Build succeeds (`cargo build`)
-- [ ] Documentation up to date (CLAUDE.md, API endpoint table)
+- [x] All acceptance criteria from spec met
+- [x] Tests pass (`make test`)
+- [x] Linter clean (`make clippy`)
+- [x] Build succeeds (`cargo build`)
+- [x] Documentation up to date (CLAUDE.md, API endpoint table)
 
 ## Context Handoff
 
