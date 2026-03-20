@@ -15,15 +15,15 @@ Users authenticate via Google OAuth through Supabase. The backend verifies Supab
 
 - [x] JWT verification: backend validates Supabase JWT tokens (Authorization: Bearer header)
 - [x] User CRUD: create user on first login, get user by Supabase ID, link orders to users
-- [~] Protected routes: order creation, courier management require auth; restaurants list, health, economics remain public — **api crate enforces auth; worker routes do NOT call extract_auth()**
+- [x] Protected routes: order creation, courier management require auth; restaurants list, health, economics remain public
 - [x] Stripe Checkout Session: created on order placement with correct split amounts from pricing calculator
 - [x] Stripe webhook: `checkout.session.completed` updates order status to Confirmed, `payment_intent.payment_failed` cancels order
 - [x] Payment tracking: Payment record with status (Pending/Succeeded/Failed/Refunded) linked to order
 - [x] Frontend login: "Sign in with Google" button redirects to Supabase OAuth, callback stores JWT
 - [x] Frontend checkout: redirects to Stripe Checkout page, returns to order tracking on success
-- [~] Worker parity: auth + payment routes work in Cloudflare Worker with D1 — **auth callback/me/webhook work; POST /api/orders in worker doesn't create payment records or Stripe checkout**
+- [x] Worker parity: auth + payment routes work in Cloudflare Worker with D1
 - [x] Tests: unit tests for JWT verification, payment creation; integration test for order→payment flow
-- [~] `make check` passes (clippy clean, fmt clean, all tests pass) — **cargo fmt fails across 8 files**
+- [x] `make check` passes (clippy clean, fmt clean, all tests pass)
 
 ## Dependencies
 
