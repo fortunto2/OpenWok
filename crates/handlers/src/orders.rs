@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use openwok_core::dispatch::OrderEvent;
+use openwok_core::dispatch::{OrderEvent, auto_dispatch};
 use openwok_core::money::Money;
 use openwok_core::order::{Order, OrderStatus};
 use openwok_core::repo::{CreateOrderItemRequest, CreateOrderRequest, Repository};
@@ -97,12 +97,40 @@ pub async fn transition<R: Repository>(
         .await
         .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
 
+    let sender = tx.map(|axum::Extension(s)| s);
+
     // Broadcast order event via WebSocket channel
-    if let Some(axum::Extension(sender)) = tx {
-        let _ = sender.send(OrderEvent {
+    if let Some(ref s) = sender {
+        let _ = s.send(OrderEvent {
             order_id: order.id.to_string(),
             status: format!("{:?}", order.status),
         });
+    }
+
+    // Auto-dispatch: when order reaches ReadyForPickup, assign a courier
+    if order.status == OrderStatus::ReadyForPickup {
+        if let Ok(Some(result)) = auto_dispatch(repo.as_ref(), order.id).await {
+            // Transition to InDelivery since courier is assigned
+            let _ = repo
+                .update_order_status(order.id, OrderStatus::InDelivery)
+                .await;
+
+            if let Some(ref s) = sender {
+                let _ = s.send(OrderEvent {
+                    order_id: result.order_id.clone(),
+                    status: "CourierAssigned".into(),
+                });
+                let _ = s.send(OrderEvent {
+                    order_id: result.order_id,
+                    status: "InDelivery".into(),
+                });
+            }
+
+            // Return updated order with InDelivery status
+            if let Ok(updated) = repo.get_order(order.id).await {
+                return Ok(Json(updated));
+            }
+        }
     }
 
     Ok(Json(order))
