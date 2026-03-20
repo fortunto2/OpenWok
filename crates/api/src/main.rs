@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use axum::Router;
 use axum::routing::any;
+use openwok_handlers::auth::JwtConfig;
 use sqlite_repo::SqliteRepo;
 use state::AppState;
 use tokio::sync::Mutex;
@@ -28,6 +29,10 @@ use utoipa_swagger_ui::SwaggerUi;
         openwok_core::types::Courier,
         openwok_core::types::CourierKind,
         openwok_core::types::Zone,
+        openwok_core::types::User,
+        openwok_core::types::UserRole,
+        openwok_core::types::Payment,
+        openwok_core::types::PaymentStatus,
         openwok_core::order::Order,
         openwok_core::order::OrderItem,
         openwok_core::order::OrderStatus,
@@ -38,11 +43,19 @@ use utoipa_swagger_ui::SwaggerUi;
 struct ApiDoc;
 
 pub fn app(state: AppState) -> Router {
+    let jwt_config = JwtConfig {
+        secret: std::env::var("SUPABASE_JWT_SECRET")
+            .unwrap_or_else(|_| "super-secret-jwt-token-for-testing-only".into()),
+        issuer: std::env::var("SUPABASE_JWT_ISSUER").ok(),
+    };
+
     let (api_handlers, openapi) =
         openwok_handlers::api_routes_with_openapi::<SqliteRepo>(ApiDoc::openapi());
 
-    // Shared handlers use Arc<SqliteRepo> state
-    let api_handlers = api_handlers.with_state(state.repo.clone());
+    // Shared handlers use Arc<SqliteRepo> state + JwtConfig extension
+    let api_handlers = api_handlers
+        .with_state(state.repo.clone())
+        .layer(axum::Extension(jwt_config));
 
     // WS route uses full AppState (needs broadcast channel)
     let ws_route = Router::new()

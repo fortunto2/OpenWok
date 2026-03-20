@@ -1,4 +1,4 @@
-use axum::extract::FromRequestParts;
+use axum::extract::{Extension, FromRequestParts};
 use axum::http::StatusCode;
 use axum::http::request::Parts;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
@@ -89,12 +89,15 @@ fn extract_bearer(header_value: &str) -> Result<&str, AuthError> {
 impl<S> FromRequestParts<S> for AuthUser
 where
     S: Send + Sync,
-    JwtConfig: FromRef<S>,
 {
     type Rejection = AuthError;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let config = JwtConfig::from_ref(state);
+        // Extract JwtConfig from Extension (set by the api/worker layer)
+        let Extension(config) =
+            axum::extract::Extension::<JwtConfig>::from_request_parts(parts, state)
+                .await
+                .map_err(|_| AuthError::InvalidToken("JWT config not available".into()))?;
 
         let auth_header = parts
             .headers
@@ -110,12 +113,6 @@ where
             email: claims.email,
         })
     }
-}
-
-/// Trait for extracting JwtConfig from app state.
-/// Implement this for your AppState struct.
-pub trait FromRef<T> {
-    fn from_ref(input: &T) -> Self;
 }
 
 #[cfg(test)]

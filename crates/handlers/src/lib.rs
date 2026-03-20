@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod auth_handlers;
 pub mod couriers;
 pub mod economics;
 pub mod metrics;
@@ -27,6 +28,8 @@ pub fn api_routes<R: Repository>() -> Router<Arc<R>> {
         .routes(routes!(couriers::toggle_available))
         .routes(routes!(economics::get))
         .routes(routes!(metrics::get))
+        .routes(routes!(auth_handlers::callback))
+        .routes(routes!(auth_handlers::me))
         .split_for_parts();
     router
 }
@@ -47,6 +50,8 @@ pub fn api_routes_with_openapi<R: Repository>(
         .routes(routes!(couriers::toggle_available))
         .routes(routes!(economics::get))
         .routes(routes!(metrics::get))
+        .routes(routes!(auth_handlers::callback))
+        .routes(routes!(auth_handlers::me))
         .split_for_parts()
 }
 
