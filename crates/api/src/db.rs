@@ -26,10 +26,16 @@ fn migrate(conn: &Connection) {
         );
 
         CREATE TABLE IF NOT EXISTS restaurants (
-            id      TEXT PRIMARY KEY,
-            name    TEXT NOT NULL,
-            zone_id TEXT NOT NULL REFERENCES zones(id),
-            active  INTEGER NOT NULL DEFAULT 1
+            id          TEXT PRIMARY KEY,
+            name        TEXT NOT NULL,
+            zone_id     TEXT NOT NULL REFERENCES zones(id),
+            active      INTEGER NOT NULL DEFAULT 1,
+            owner_id    TEXT REFERENCES users(id),
+            description TEXT,
+            address     TEXT,
+            phone       TEXT,
+            created_at  TEXT,
+            updated_at  TEXT
         );
 
         CREATE TABLE IF NOT EXISTS menu_items (
@@ -107,6 +113,22 @@ fn migrate(conn: &Connection) {
     if !has_user_id {
         conn.execute_batch("ALTER TABLE orders ADD COLUMN user_id TEXT REFERENCES users(id);")
             .expect("failed to add user_id to orders");
+    }
+
+    // Add ownership columns to restaurants if not present (migration 0008)
+    let has_owner_id: bool = conn
+        .prepare("SELECT owner_id FROM restaurants LIMIT 0")
+        .is_ok();
+    if !has_owner_id {
+        conn.execute_batch(
+            "ALTER TABLE restaurants ADD COLUMN owner_id TEXT REFERENCES users(id);
+             ALTER TABLE restaurants ADD COLUMN description TEXT;
+             ALTER TABLE restaurants ADD COLUMN address TEXT;
+             ALTER TABLE restaurants ADD COLUMN phone TEXT;
+             ALTER TABLE restaurants ADD COLUMN created_at TEXT;
+             ALTER TABLE restaurants ADD COLUMN updated_at TEXT;",
+        )
+        .expect("failed to add ownership columns to restaurants");
     }
 }
 
