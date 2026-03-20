@@ -35,6 +35,7 @@ pub async fn create<R: Repository>(
     let req = CreateCourierRequest {
         name: body.name,
         zone_id: body.zone_id,
+        user_id: None,
     };
     match repo.create_courier(req).await {
         Ok(courier) => Ok((StatusCode::CREATED, Json(courier))),

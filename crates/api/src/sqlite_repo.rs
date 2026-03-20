@@ -182,7 +182,14 @@ fn load_order(conn: &rusqlite::Connection, order_id: &str) -> Option<Order> {
     })
 }
 
-fn row_to_courier(id: &str, name: String, kind: &str, zone_id: &str, available: bool) -> Courier {
+fn row_to_courier(
+    id: &str,
+    name: String,
+    kind: &str,
+    zone_id: &str,
+    available: bool,
+    user_id: Option<String>,
+) -> Courier {
     Courier {
         id: CourierId::from_uuid(uuid::Uuid::parse_str(id).unwrap()),
         name,
@@ -192,6 +199,7 @@ fn row_to_courier(id: &str, name: String, kind: &str, zone_id: &str, available: 
         },
         zone_id: ZoneId::from_uuid(uuid::Uuid::parse_str(zone_id).unwrap()),
         available,
+        user_id,
     }
 }
 
@@ -503,7 +511,7 @@ impl Repository for SqliteRepo {
     async fn list_couriers(&self) -> Result<Vec<Courier>, RepoError> {
         let conn = self.conn.lock().await;
         let mut stmt = conn
-            .prepare("SELECT id, name, kind, zone_id, available FROM couriers WHERE available = 1")
+            .prepare("SELECT id, name, kind, zone_id, available, user_id FROM couriers WHERE available = 1")
             .map_err(|e| RepoError::Internal(e.to_string()))?;
         let couriers: Vec<Courier> = stmt
             .query_map([], |row| {
@@ -513,6 +521,7 @@ impl Repository for SqliteRepo {
                     &row.get::<_, String>(2)?,
                     &row.get::<_, String>(3)?,
                     row.get(4)?,
+                    row.get(5)?,
                 ))
             })
             .map_err(|e| RepoError::Internal(e.to_string()))?
@@ -534,8 +543,8 @@ impl Repository for SqliteRepo {
         .map_err(|e| RepoError::Internal(e.to_string()))?;
 
         conn.execute(
-            "INSERT INTO couriers (id, name, kind, zone_id, available) VALUES (?1, ?2, ?3, ?4, 1)",
-            params![id_str, req.name, "Human", zone_str],
+            "INSERT INTO couriers (id, name, kind, zone_id, available, user_id) VALUES (?1, ?2, ?3, ?4, 1, ?5)",
+            params![id_str, req.name, "Human", zone_str, req.user_id],
         )
         .map_err(|e| RepoError::Internal(e.to_string()))?;
 
@@ -545,6 +554,7 @@ impl Repository for SqliteRepo {
             kind: CourierKind::Human,
             zone_id: req.zone_id,
             available: true,
+            user_id: req.user_id,
         })
     }
 
@@ -568,7 +578,7 @@ impl Repository for SqliteRepo {
         }
 
         conn.query_row(
-            "SELECT id, name, kind, zone_id, available FROM couriers WHERE id = ?1",
+            "SELECT id, name, kind, zone_id, available, user_id FROM couriers WHERE id = ?1",
             params![id_str],
             |row| {
                 Ok(row_to_courier(
@@ -577,6 +587,7 @@ impl Repository for SqliteRepo {
                     &row.get::<_, String>(2)?,
                     &row.get::<_, String>(3)?,
                     row.get(4)?,
+                    row.get(5)?,
                 ))
             },
         )

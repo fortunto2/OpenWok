@@ -64,6 +64,7 @@ pub struct CreateOrderItemRequest {
 pub struct CreateCourierRequest {
     pub name: String,
     pub zone_id: ZoneId,
+    pub user_id: Option<String>,
 }
 
 /// Public economics aggregation.

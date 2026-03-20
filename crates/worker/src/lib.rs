@@ -607,6 +607,7 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                 .create_courier(CreateCourierRequest {
                     name: body.name,
                     zone_id: ZoneId::from_uuid(parse_uuid(&body.zone_id)),
+                    user_id: None,
                 })
                 .await;
             match result {

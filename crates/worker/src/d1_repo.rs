@@ -54,6 +54,7 @@ struct CourierRow {
     kind: String,
     zone_id: String,
     available: i64,
+    user_id: Option<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -182,6 +183,7 @@ fn row_to_courier(row: CourierRow) -> Courier {
         },
         zone_id: ZoneId::from_uuid(parse_uuid(&row.zone_id)),
         available: row.available != 0,
+        user_id: row.user_id,
     }
 }
 
@@ -625,6 +627,7 @@ impl D1Repo {
             kind: CourierKind::Human,
             zone_id: req.zone_id,
             available: true,
+            user_id: req.user_id,
         })
     }
 

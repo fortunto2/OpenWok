@@ -95,6 +95,7 @@ pub struct Courier {
     pub kind: CourierKind,
     pub zone_id: ZoneId,
     pub available: bool,
+    pub user_id: Option<String>,
 }
 
 // --- Auth & Payments ---
@@ -274,6 +275,7 @@ mod tests {
             kind: CourierKind::Human,
             zone_id: ZoneId::new(),
             available: true,
+            user_id: None,
         };
         let json = serde_json::to_string(&c).unwrap();
         let back: Courier = serde_json::from_str(&json).unwrap();
