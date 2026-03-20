@@ -12,3 +12,6 @@ chrono = { workspace = true }
 async-trait = { workspace = true }
 thiserror = { workspace = true }
 utoipa = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }

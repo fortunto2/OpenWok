@@ -1,3 +1,4 @@
+pub mod dispatch;
 pub mod money;
 pub mod order;
 pub mod pricing;
