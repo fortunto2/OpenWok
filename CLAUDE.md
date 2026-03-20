@@ -16,13 +16,13 @@ Federated food delivery platform. $1 federal fee + local node operators. Open-bo
 ## Tech Stack
 
 - **Core (Rust):** domain logic, order engine, pricing calculator, federation protocol
-- **Server:** Rust (axum) — REST API + WebSocket for real-time
-- **Frontend (v1):** Dioxus (Rust fullstack) — customer web app + node operator console
-- **Frontend (v2, future):** Next.js with Rust core via uniffi/WASM
-- **Database:** PostgreSQL (sqlx) per-node + event log
+- **API:** Cloudflare Workers (worker-rs with axum compat) — migrating from standalone axum
+- **Frontend:** Dioxus static SPA → Cloudflare Pages
+- **Database:** Cloudflare D1 (SQLite) — migrating from in-memory HashMap
 - **Payments:** Stripe Connect (split payments: restaurant + courier + federal + local)
-- **Auth:** Supabase Auth or custom JWT
-- **Geo:** PostGIS for zone management, ETA calculation
+- **Auth:** Supabase Auth (Google OAuth)
+- **Geo:** zone-based (no PostGIS for MVP)
+- **Deploy:** `wrangler deploy` (API Worker) + CF Pages (frontend)
 
 ## Federation Stack (Phase 4)
 
@@ -101,10 +101,11 @@ make check                      # test + clippy + fmt
 
 ## Key Documents
 
+- `docs/prd.md` — PRD: vision, phases, what's built, what's next
 - `docs/mvp-deck.pdf` — full MVP concept deck
 - `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
-- `docs/plan/mvp-core_20260320/` — implementation plan + spec
-- `planning/ROADMAP.md` — project roadmap
+- `planning/ROADMAP.md` — 12-month roadmap with decision gates
+- `docs/plan-done/` — completed phase specs (mvp-core, phase2-frontend, phase3-payments, phase4-federation)
 
 ## Do
 
