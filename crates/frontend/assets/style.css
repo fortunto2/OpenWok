@@ -437,6 +437,73 @@ a:hover { color: var(--primary-hover); }
     flex-shrink: 0;
 }
 
+/* Tab navigation */
+.tab-nav {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border);
+}
+
+.tab {
+    padding: 0.6rem 1.2rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+    position: relative;
+}
+
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+.new-badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.3rem;
+    background: var(--error);
+    color: white;
+    vertical-align: super;
+}
+
+/* Settings sections */
+.settings-section { margin-bottom: 2rem; }
+.status-section { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+/* Order cards */
+.order-card { position: relative; }
+.order-items { margin: 0.5rem 0; padding-left: 1.2rem; font-size: 0.875rem; }
+.order-items li { margin-bottom: 0.15rem; }
+.order-address { font-size: 0.85rem; color: var(--text-muted); }
+.order-time { font-size: 0.75rem; color: var(--text-muted); }
+.order-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+/* Status badges */
+.badge.confirmed { background: #fef3c7; color: #92400e; }
+.badge.preparing { background: #dbeafe; color: #1e40af; }
+.badge.ready { background: #d1fae5; color: #065f46; }
+.badge.active { background: #e0e7ff; color: #3730a3; }
+.badge.delivered { background: #d1fae5; color: #065f46; }
+.badge.cancelled { background: #fee2e2; color: #991b1b; }
+
+/* Danger button */
+.btn-danger {
+    padding: 0.5rem 1rem;
+    background: var(--error);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.btn-danger:hover { opacity: 0.9; }
+
+.btn-small { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+
 .error { color: var(--error); }
 
 /* Mobile responsive */

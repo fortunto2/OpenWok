@@ -110,6 +110,10 @@ pub async fn fetch_admin_metrics() -> Result<serde_json::Value, String> {
     api_get("/admin/metrics").await
 }
 
+pub async fn fetch_my_orders() -> Result<Vec<serde_json::Value>, String> {
+    api_get("/my/orders").await
+}
+
 pub async fn fetch_all_orders() -> Result<Vec<serde_json::Value>, String> {
     api_get("/orders").await
 }
