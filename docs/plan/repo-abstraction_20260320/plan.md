@@ -9,19 +9,19 @@
 
 Extract duplicated SQL logic behind a Repository trait, share route handlers between api and worker via a handlers crate. TDD: write Repository trait tests first, then implement.
 
-## Phase 1: Repository Trait
+## Phase 1: Repository Trait <!-- checkpoint:c9abea7 -->
 
 Define the data access abstraction in core. TDD: write trait + error types, add test helpers.
 
 ### Tasks
 
-- [x] Task 1.1: Create `crates/core/src/repo.rs` — define `Repository` trait with `#[async_trait]` and `RepoError` enum. Methods: `list_restaurants`, `get_restaurant`, `create_restaurant`, `list_orders`, `get_order`, `create_order`, `update_order_status`, `assign_courier`, `list_couriers`, `create_courier`, `toggle_courier_available`, `get_economics`, `get_metrics`. Export from `crates/core/src/lib.rs`. Add `async-trait` to workspace deps.
-- [x] Task 1.2: Add `RepoError` variants: `NotFound`, `InvalidTransition`, `Conflict`, `Internal(String)`. Derive `Debug`, impl `Display` + `std::error::Error` via `thiserror`.
+- [x] Task 1.1: Create `crates/core/src/repo.rs` <!-- sha:c9abea7 --> — define `Repository` trait with `#[async_trait]` and `RepoError` enum. Methods: `list_restaurants`, `get_restaurant`, `create_restaurant`, `list_orders`, `get_order`, `create_order`, `update_order_status`, `assign_courier`, `list_couriers`, `create_courier`, `toggle_courier_available`, `get_economics`, `get_metrics`. Export from `crates/core/src/lib.rs`. Add `async-trait` to workspace deps.
+- [x] Task 1.2: Add `RepoError` variants <!-- sha:c9abea7 -->: `NotFound`, `InvalidTransition`, `Conflict`, `Internal(String)`. Derive `Debug`, impl `Display` + `std::error::Error` via `thiserror`.
 
 ### Verification
 
-- [ ] `cargo check -p openwok-core` compiles
-- [ ] Repository trait is exported from `openwok_core`
+- [x] `cargo check -p openwok-core` compiles
+- [x] Repository trait is exported from `openwok_core`
 
 ## Phase 2: SqliteRepo + API Refactor
 
@@ -29,7 +29,7 @@ Implement SqliteRepo and refactor api handlers to use Repository trait. Existing
 
 ### Tasks
 
-- [ ] Task 2.1: Create `crates/api/src/sqlite_repo.rs` — `SqliteRepo` struct wrapping `Arc<Mutex<rusqlite::Connection>>`. Implement all `Repository` trait methods by extracting SQL queries from existing `routes/*.rs` files. Keep exact same SQL and row-mapping logic.
+- [x] Task 2.1: Create `crates/api/src/sqlite_repo.rs` — `SqliteRepo` struct wrapping `Arc<Mutex<rusqlite::Connection>>`. Implement all `Repository` trait methods by extracting SQL queries from existing `routes/*.rs` files. Keep exact same SQL and row-mapping logic.
 - [ ] Task 2.2: Write unit tests for `SqliteRepo` — test each Repository method against an in-memory SQLite database with seeded test data. At minimum: list_restaurants (returns seeded), create_order (returns pricing breakdown), update_order_status (valid + invalid transitions), get_economics (aggregation).
 - [ ] Task 2.3: Create `crates/handlers/` crate (`openwok-handlers`). Add to workspace members. Dependencies: `openwok-core`, `axum` (workspace), `serde`, `serde_json`, `uuid`, `chrono`, `async-trait`. Move route handler functions from `crates/api/src/routes/{restaurants,orders,couriers,economics,metrics}.rs` into handlers — make them generic: `async fn list_restaurants<R: Repository>(State(repo): State<Arc<R>>) -> ...`. Export `pub fn api_routes<R>() -> Router<Arc<R>>` that builds the shared router.
 - [ ] Task 2.4: Refactor `crates/api/` — depend on `openwok-handlers`. In `main.rs`: create `SqliteRepo`, wrap in `Arc`, call `openwok_handlers::api_routes::<SqliteRepo>()`, merge with WebSocket route (stays in api). Remove old route modules (restaurants.rs, orders.rs, couriers.rs, economics.rs, metrics.rs) — keep only ws.rs and db.rs.
