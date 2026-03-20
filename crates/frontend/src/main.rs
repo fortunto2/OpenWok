@@ -745,6 +745,7 @@ fn PublicEconomicsPage() -> Element {
 #[component]
 fn OperatorConsole() -> Element {
     let mut refresh = use_signal(|| 0u32);
+    let mut active_tab = use_signal(|| "overview".to_string());
     let dashboard = use_resource(move || {
         let _ = refresh();
         fetch_dashboard()
@@ -805,11 +806,29 @@ fn OperatorConsole() -> Element {
         div { class: "operator-console",
             h1 { "Node Operator Console" }
 
-            button {
-                class: "refresh-btn",
-                onclick: move |_| refresh += 1,
-                "Refresh"
+            div { class: "tab-bar",
+                button {
+                    class: if *active_tab.read() == "overview" { "tab-btn active" } else { "tab-btn" },
+                    onclick: move |_| active_tab.set("overview".to_string()),
+                    "Overview"
+                }
+                button {
+                    class: if *active_tab.read() == "metrics" { "tab-btn active" } else { "tab-btn" },
+                    onclick: move |_| active_tab.set("metrics".to_string()),
+                    "Metrics"
+                }
+                button {
+                    class: "refresh-btn",
+                    onclick: move |_| refresh += 1,
+                    "Refresh"
+                }
             }
+
+            if *active_tab.read() == "metrics" {
+                MetricsPanel {}
+            }
+
+            if *active_tab.read() == "overview" {
 
             // Stats
             div { class: "stats-grid",
@@ -868,7 +887,100 @@ fn OperatorConsole() -> Element {
                     }
                 }
             }
+
+            } // end overview tab
         }
+    }
+}
+
+#[component]
+fn MetricsPanel() -> Element {
+    let metrics = use_resource(fetch_admin_metrics);
+
+    match &*metrics.read_unchecked() {
+        Some(Ok(data)) => {
+            let order_count = data["order_count"].as_i64().unwrap_or(0);
+            let on_time_rate = data["on_time_delivery_rate"].as_f64().unwrap_or(0.0);
+            let eta_error = data["avg_eta_error_minutes"].as_f64().unwrap_or(0.0);
+            let revenue = &data["revenue_breakdown"];
+            let food_rev = revenue["total_food_revenue"].as_str().unwrap_or("0.00").to_string();
+            let delivery_rev = revenue["total_delivery_fees"].as_str().unwrap_or("0.00").to_string();
+            let federal_rev = revenue["total_federal_fees"].as_str().unwrap_or("0.00").to_string();
+            let courier_util = &data["courier_utilization"];
+            let avail = courier_util["available"].as_i64().unwrap_or(0);
+            let total_couriers = courier_util["total"].as_i64().unwrap_or(0);
+            let util_pct = if total_couriers > 0 {
+                format!("{:.0}%", (avail as f64 / total_couriers as f64) * 100.0)
+            } else {
+                "N/A".to_string()
+            };
+
+            let zones: Vec<(String, i64)> = data["orders_by_zone"]
+                .as_object()
+                .map(|obj| {
+                    obj.iter()
+                        .map(|(k, v)| (k.clone(), v.as_i64().unwrap_or(0)))
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            rsx! {
+                div { class: "metrics-panel",
+                    div { class: "stats-grid",
+                        div { class: "stat-card",
+                            h3 { "{order_count}" }
+                            p { "Total Orders" }
+                        }
+                        div { class: "stat-card",
+                            h3 { "{on_time_rate:.1}%" }
+                            p { "On-Time Rate" }
+                        }
+                        div { class: "stat-card",
+                            h3 { "{eta_error:.1} min" }
+                            p { "Avg ETA Error" }
+                        }
+                        div { class: "stat-card",
+                            h3 { "{util_pct}" }
+                            p { "Courier Availability" }
+                        }
+                    }
+
+                    div { class: "console-section",
+                        h2 { "Revenue Breakdown" }
+                        div { class: "price-line",
+                            span { "Food Revenue" }
+                            span { "${food_rev}" }
+                        }
+                        div { class: "price-line",
+                            span { "Delivery Fees" }
+                            span { "${delivery_rev}" }
+                        }
+                        div { class: "price-line",
+                            span { "Federal Fees" }
+                            span { "${federal_rev}" }
+                        }
+                    }
+
+                    if !zones.is_empty() {
+                        div { class: "console-section",
+                            h2 { "Orders by Zone" }
+                            for (zone_name, count) in zones {
+                                div { class: "console-row",
+                                    span { "{zone_name}" }
+                                    span { "{count} orders" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        Some(Err(e)) => rsx! {
+            p { class: "error", "Failed to load metrics: {e}" }
+        },
+        None => rsx! {
+            p { "Loading metrics..." }
+        },
     }
 }
 
