@@ -2,22 +2,13 @@
 #![allow(dead_code)]
 
 mod api;
+mod app;
 mod auth;
 mod config;
+mod pages;
 mod state;
 mod storage;
 
-use dioxus::prelude::*;
-
 fn main() {
-    dioxus::launch(App);
-}
-
-fn App() -> Element {
-    rsx! {
-        div {
-            style: "display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui;",
-            h1 { "OpenWok" }
-        }
-    }
+    dioxus::launch(app::App);
 }
