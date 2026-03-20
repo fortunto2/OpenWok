@@ -1,0 +1,132 @@
+  [2msession: 13df8615  model: claude-opus-4-6[1m][0m
+Let me research the project to find the next highest-priority item.
+  [36m**[0m [36mGlob[0m [2m"docs/backlog*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/retro/2026-03-20-retro*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"planning/ROADMAP*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan-done/*/plan.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/planning/ROADMAP.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+
+Let me check what was built in the courier-dispatch track and what's still missing.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/courier-dispatch_20260320/spec.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-admin-tools.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-courier-dispatch.md[0m
+
+Let me explore the current state of the codebase to identify gaps for pilot readiness.
+  [2m--[0m [36mAgent[0m [2mExplore restaurant order flow[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/pages/owner.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+  [36m// [36mGrep[0m [2m"orders.*restaurant|restaurant.*orders" ~/startups/active/openwok[0m
+  [2m--[0m [36mAgent[0m [2mCheck current test coverage gaps[0m
+  [36m// [36mGrep[0m [2m"GET.*restaurants.*orders|restaurant_id" ~/startups/active/openwok/crates[0m
+  [32m$ [0m [33mBash[0m [2mFind API route definitions in handlers[0m
+  [32m$ [0m [33mBash[0m [2mCount total number of tests[0m
+  [36m**[0m [36mGlob[0m [2m"**/tests/**/*.rs" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m**[0m [36mGlob[0m [2m"**/*test*.rs" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mList all files in handlers crate[0m
+  [32m$ [0m [33mBash[0m [2mFind API route definitions[0m
+  [36m// [36mGrep[0m [2m"pub async fn.*order" ~/startups/active/openwok/crates/handlers/src[0m
+  [36m// [36mGrep[0m [2m"#\[cfg\(test\)\]" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"#\[test\]" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck for integration test directories[0m
+  [32m$ [0m [33mBash[0m [2mFind order and restaurant route definitions[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/auth.rs[0m
+  [32m$ [0m [33mBash[0m [2mSearch for test modules in handlers[0m
+  [36m// [36mGrep[0m [2m"list_orders|get_orders|orders_for_restaurant" ~/startups/active/openwok/crates[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m// [36mGrep[0m [2m"order.*flow|create.*confirm.*prepare|OrderStatus::Pending.*Confirmed" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mFind order-related repository methods[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+  [32m$ [0m [33mBash[0m [2mFind all test-related files[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+  [32m$ [0m [33mBash[0m [2mList handlers modules[0m
+  [32m$ [0m [33mBash[0m [2mList tests in core crate[0m
+  [32m$ [0m [33mBash[0m [2mList tests in handlers crate[0m
+  [32m$ [0m [33mBash[0m [2mSearch for restaurant orders endpoint[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/pages/courier.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck API endpoints table in CLAUDE.md[0m
+  [32m$ [0m [33mBash[0m [2mFind courier deliveries endpoint in docs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck courier orders method in Repository trait[0m
+  [32m$ [0m [33mBash[0m [2mCheck if there's a method to list orders by restaurant[0m
+  [32m$ [0m [33mBash[0m [2mReview order status transitions again[0m
+  [32m$ [0m [33mBash[0m [2mList tests in api crate[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-frontend-split.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck for integration tests in api[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [32m$ [0m [33mBash[0m [2mList all frontend page modules[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-frontend-split.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/app.rs[0m
+  [32m$ [0m [33mBash[0m [2mList all routes in the frontend app[0m
+  [36m// [36mGrep[0m [2m"handler.*test|integration.*test|e2e.*test" ~/startups/active/openwok/docs/retro[0m
+  [32m$ [0m [33mBash[0m [2mGet test summary across all crates[0m
+  [32m$ [0m [33mBash[0m [2mCheck orders table info in CLAUDE.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0001_init.sql[0m
+  [32m$ [0m [33mBash[0m [2mCheck user_id references in schema[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
+  [32m$ [0m [33mBash[0m [2mCount total lines in handlers crate[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0006_auth_users.sql[0m
+  [32m$ [0m [33mBash[0m [2mCompare size of owner and courier pages[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/pages/courier.rs[0m
+
+Now I have a clear picture. The **critical gap** for pilot readiness is: **restaurants cannot see or manage incoming orders**. Let me research the specific files that need changes.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/pages/owner.rs[0m
+
+Now I have the full picture. Let me create the plan.
+  [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Research codebase for restaurant order managem[0m
+  [32m$ [0m [33mBash[0m [2mCreate plan directory for restaurant-orders track[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/restaurant-orders_20260320/spec.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Research codebase for restaurant order managem[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/restaurant-orders_20260320/plan.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Research codebase for restaurant order managem[0m
+  [2m--[0m [36mToolSearch[0m [2mselect:AskUserQuestion[0m
+  [2m--[0m [36mAskUserQuestion[0m [2m[{'question': "Restaurant Order Management — the critical ga[0m
+
+```
+Track created: restaurant-orders_20260320
+
+  Type:   Feature
+  Phases: 3 (Backend → Frontend → Deploy)
+  Tasks:  12
+  Spec:   docs/plan/restaurant-orders_20260320/spec.md
+  Plan:   docs/plan/restaurant-orders_20260320/plan.md
+
+Research findings:
+  - CRITICAL GAP: restaurants have zero order visibility — can't see, accept, or manage orders
+  - Order state machine already supports all needed transitions (Confirmed→Preparing→ReadyForPickup)
+  - Exact pattern exists to follow: courier dispatch (list_courier_orders → /my/deliveries → MyDeliveries page)
+  - Auto-dispatch fires on ReadyForPickup — completing this track connects the full pilot flow
+  - 106 tests passing, pre-commit hooks active
+
+Next: /build restaurant-orders_20260320
+``````
+Track created: restaurant-orders_20260320
+
+  Type:   Feature
+  Phases: 3 (Backend → Frontend → Deploy)
+  Tasks:  12
+  Spec:   docs/plan/restaurant-orders_20260320/spec.md
+  Plan:   docs/plan/restaurant-orders_20260320/plan.md
+
+Research findings:
+  - CRITICAL GAP: restaurants have zero order visibility — can't see, accept, or manage orders
+  - Order state machine already supports all needed transitions (Confirmed→Preparing→ReadyForPickup)
+  - Exact pattern exists to follow: courier dispatch (list_courier_orders → /my/deliveries → MyDeliveries page)
+  - Auto-dispatch fires on ReadyForPickup — completing this track connects the full pilot flow
+  - 106 tests passing, pre-commit hooks active
+
+Next: /build restaurant-orders_20260320
+```

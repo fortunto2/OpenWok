@@ -1,161 +1,80 @@
-  [2msession: f7a0de39  model: claude-opus-4-6[1m][0m
-  [35m=>[0m [35msolo:deploy[0m
-
-
-
-## Deploy Stage — OpenWok (Iteration 6)
-
-Last build commit: `00a73b2` — review fixes applied (auth enforcement, payment flow, fmt fixes). Need to rebuild and redeploy worker.
+  [2msession: d2643e16  model: claude-opus-4-6[1m][0m
   [32m$ [0m [33mBash[0m [2mCheck recent commits[0m
-  [32m$ [0m [33mBash[0m [2mCheck working tree status[0m
-  [32m$ [0m [33mBash[0m [2mDetect wrangler CLI[0m
+  [32m$ [0m [33mBash[0m [2mCheck changes since last deploy[0m
+  [32m$ [0m [33mBash[0m [2mCheck Makefile for deploy commands[0m
+  [32m$ [0m [33mBash[0m [2mRun tests before deploy[0m
 
-Good. Wrangler 4.60.0 available. 4 commits since last deploy with auth fixes and payment flow. Let me check configs and build.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/wrangler.toml[0m
-  [32m$ [0m [33mBash[0m [2mCheck current frontend assets in worker[0m
-  [32m$ [0m [33mBash[0m [2mCheck Makefile deploy targets[0m
-  [36m**[0m [36mGlob[0m [2m"**/wrangler.toml"[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/wrangler.toml[0m
-  [32m$ [0m [33mBash[0m [2mCheck all migrations[0m
+Tests pass. Let me run clippy and check wrangler availability.
+  [32m$ [0m [33mBash[0m [2mRun clippy before deploy[0m
+  [32m$ [0m [33mBash[0m [2mCheck wrangler availability[0m
+  [32m$ [0m [33mBash[0m [2mCheck worker-build availability[0m
 
-No new migrations since last deploy (0001-0007 all applied). Let me build and deploy.
-
-### Step 1: Build Frontend (Tailwind + Dioxus WASM)
+All checks pass, tools available. Let me build the frontend first, then the worker, then deploy.
   [32m$ [0m [33mBash[0m [2mBuild Tailwind CSS[0m
-  [32m$ [0m [33mBash[0m [2mBuild Dioxus frontend WASM release[0m
+  [32m$ [0m [33mBash[0m [2mBuild Dioxus frontend (release)[0m
 
-Frontend built. Now the worker.
+Frontend built. Now copy to public/ and build the worker.
+  [32m$ [0m [33mBash[0m [2mCopy frontend assets to public/[0m
+  [32m$ [0m [33mBash[0m [2mBuild Cloudflare Worker (release)[0m
 
-### Step 2: Build Worker (WASM32)
-  [32m$ [0m [33mBash[0m [2mBuild Cloudflare Worker WASM[0m
-
-Worker built with just 1 minor warning (unused `mut`). Now deploy.
-
-### Step 3: Deploy via Wrangler
+Worker built successfully. Now deploy.
   [32m$ [0m [33mBash[0m [2mDeploy to Cloudflare Workers[0m
 
-Deployed successfully. Version `69c9aa93-3983-4945-9792-3ae277730e53`. Now verify.
+Deployed. Let me verify the live deployment.
+  [32m$ [0m [33mBash[0m [2mCheck API health endpoint[0m
+  [32m$ [0m [33mBash[0m [2mCheck SPA frontend[0m
+  [32m$ [0m [33mBash[0m [2mGet health response body[0m
 
-### Step 4: Verify Deployment
-  [32m$ [0m [33mBash[0m [2mHealth check[0m
-  [32m$ [0m [33mBash[0m [2mHealth check body[0m
-  [32m$ [0m [33mBash[0m [2mSPA root status[0m
-  [32m$ [0m [33mBash[0m [2mCheck restaurants API[0m
-  [32m$ [0m [33mBash[0m [2mCheck admin metrics[0m
-  [32m$ [0m [33mBash[0m [2mCheck public economics[0m
-  [32m$ [0m [33mBash[0m [2mAuth endpoint rejects unauth[0m
-  [32m$ [0m [33mBash[0m [2mOrders POST rejects unauth[0m
-  [32m$ [0m [33mBash[0m [2mCheck SPA HTML loads[0m
+Let me verify the new admin endpoints are responding.
+  [32m$ [0m [33mBash[0m [2mCheck restaurants endpoint[0m
+  [32m$ [0m [33mBash[0m [2mCheck admin users endpoint (should 401 without auth)[0m
+  [32m$ [0m [33mBash[0m [2mCheck admin disputes endpoint (should 401 without auth)[0m
 
-The `/api/auth/me` returns 500 instead of 401. Let me check the handler.
-  [32m$ [0m [33mBash[0m [2mGet error body from auth/me[0m
-  [36m// [36mGrep[0m [2m"auth/me" ~/startups/active/openwok/crates/worker/src[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [36m// [36mGrep[0m [2m"fn extract_auth"" ~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [36m// [36mGrep[0m [2m"extract_auth" ~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+All endpoints responding correctly. Let me also run the D1 migration to ensure the disputes table exists in production.
+  [32m$ [0m [33mBash[0m [2mApply D1 migrations to production[0m
 
-The `/api/auth/me` handler uses `?` on `extract_auth` which propagates as a 500 (worker Error). Other protected routes use `if let Err(e)` pattern to return 401. Let me fix this.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [36m// [36mGrep[0m [2m"fn auth_err_to_response" ~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Now fix the `/api/auth/me` handler to return 401 instead of 500:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Now rebuild worker and redeploy:
-  [32m$ [0m [33mBash[0m [2mRebuild worker with auth fix[0m
-  [32m$ [0m [33mBash[0m [2mRedeploy with auth fix[0m
-
-### Step 5: Final Verification
-  [32m$ [0m [33mBash[0m [2mFull endpoint verification[0m
-
-All endpoints verified. The auth/me fix works — returns 401 now. Let me commit and push.
-
-### Step 6: Commit & Push
-  [32m$ [0m [33mBash[0m [2mCheck the auth fix diff[0m
-  [32m$ [0m [33mBash[0m [2mCommit auth fix[0m
-  [32m$ [0m [33mBash[0m [2mPush to GitHub[0m
-
-### Step 7: Update Pipeline State
-  [32m$ [0m [33mBash[0m [2mCheck states directory[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/.solo/states/deploy[0m
+Migrations already applied. Deployment is complete and verified.
 
 ---
 
-## Deployment Report
+**Deploy summary:**
 
-```
-Deployment: openwok
+| Check | Result |
+|-------|--------|
+| Tests | All pass |
+| Clippy | Clean |
+| Frontend build | Dioxus WASM release |
+| Worker build | wasm-opt optimized |
+| Wrangler deploy | 8 new assets uploaded |
+| `/api/health` | 200 `ok` |
+| `/` (SPA) | 200 |
+| `/api/restaurants` | 200 |
+| `/api/admin/users` | 401 (auth guard working) |
+| `/api/admin/disputes` | 401 (auth guard working) |
+| D1 migrations | All applied |
 
-  Platform:  Cloudflare Workers
-  URL:       https://openwok.superduperai.co
-  Worker:    https://openwok.nameless-sunset-8f24.workers.dev
-  Branch:    main
-  Commit:    6e2fe59
-  Version:   ed483aa9-6a8a-4a60-9ee6-845955c99460
+New features live: admin user management (block/unblock), disputes (create/list/resolve), blocked-user enforcement on all auth endpoints, operator console UI tabs.
 
-  Verified endpoints:
-    - [x] GET  /api/health         → 200 ok
-    - [x] GET  /                   → 200 (SPA)
-    - [x] GET  /api/restaurants    → 200 (18 restaurants)
-    - [x] GET  /api/auth/me        → 401 (rejects unauth) ← FIXED this deploy
-    - [x] POST /api/orders         → 401 (rejects unauth)
-    - [x] GET  /api/admin/metrics  → 200
-    - [x] GET  /api/public/economics → 200
+<solo:done/>Migrations already applied. Deployment is complete and verified.
 
-  What was deployed:
-    - [x] Auth enforcement on protected routes (from build iteration 5)
-    - [x] Payment flow in POST /api/orders (Stripe Checkout Session creation)
-    - [x] Fix: /api/auth/me now returns 401 (was 500)
-    - [x] cargo fmt fixes across all crates
-    - [x] Frontend rebuilt (Tailwind + Dioxus WASM)
-    - [x] Code pushed to GitHub
+---
 
-  Secrets (manual — still needed):
-    - [ ] `wrangler secret put SUPABASE_JWT_SECRET`
-    - [ ] `wrangler secret put STRIPE_SECRET_KEY`
-    - [ ] `wrangler secret put STRIPE_WEBHOOK_SECRET`
+**Deploy summary:**
 
-  Next: /review — final quality gate
-```
+| Check | Result |
+|-------|--------|
+| Tests | All pass |
+| Clippy | Clean |
+| Frontend build | Dioxus WASM release |
+| Worker build | wasm-opt optimized |
+| Wrangler deploy | 8 new assets uploaded |
+| `/api/health` | 200 `ok` |
+| `/` (SPA) | 200 |
+| `/api/restaurants` | 200 |
+| `/api/admin/users` | 401 (auth guard working) |
+| `/api/admin/disputes` | 401 (auth guard working) |
+| D1 migrations | All applied |
 
-<solo:done/>---
-
-## Deployment Report
-
-```
-Deployment: openwok
-
-  Platform:  Cloudflare Workers
-  URL:       https://openwok.superduperai.co
-  Worker:    https://openwok.nameless-sunset-8f24.workers.dev
-  Branch:    main
-  Commit:    6e2fe59
-  Version:   ed483aa9-6a8a-4a60-9ee6-845955c99460
-
-  Verified endpoints:
-    - [x] GET  /api/health         → 200 ok
-    - [x] GET  /                   → 200 (SPA)
-    - [x] GET  /api/restaurants    → 200 (18 restaurants)
-    - [x] GET  /api/auth/me        → 401 (rejects unauth) ← FIXED this deploy
-    - [x] POST /api/orders         → 401 (rejects unauth)
-    - [x] GET  /api/admin/metrics  → 200
-    - [x] GET  /api/public/economics → 200
-
-  What was deployed:
-    - [x] Auth enforcement on protected routes (from build iteration 5)
-    - [x] Payment flow in POST /api/orders (Stripe Checkout Session creation)
-    - [x] Fix: /api/auth/me now returns 401 (was 500)
-    - [x] cargo fmt fixes across all crates
-    - [x] Frontend rebuilt (Tailwind + Dioxus WASM)
-    - [x] Code pushed to GitHub
-
-  Secrets (manual — still needed):
-    - [ ] `wrangler secret put SUPABASE_JWT_SECRET`
-    - [ ] `wrangler secret put STRIPE_SECRET_KEY`
-    - [ ] `wrangler secret put STRIPE_WEBHOOK_SECRET`
-
-  Next: /review — final quality gate
-```
+New features live: admin user management (block/unblock), disputes (create/list/resolve), blocked-user enforcement on all auth endpoints, operator console UI tabs.
 
 <solo:done/>

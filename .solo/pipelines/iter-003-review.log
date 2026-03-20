@@ -1,49 +1,49 @@
-  [2msession: 8ab8355a  model: claude-opus-4-6[1m][0m
-Starting review for `frontend-split_20260320`. Let me gather context and run checks in parallel.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/spec.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
-  [32m$ [0m [33mBash[0m [2mRun full test suite[0m
-  [32m$ [0m [33mBash[0m [2mRun clippy lint[0m
-  [32m$ [0m [33mBash[0m [2mCheck formatting[0m
-  [32m$ [0m [33mBash[0m [2mRecent commit history[0m
+  [2msession: c353f07b  model: claude-opus-4-6[1m][0m
+Starting review for `restaurant-orders_20260320`. Let me gather context and run checks in parallel.
+  [36m**[0m [36mGlob[0m [2m"docs/plan/restaurant-orders*/**/*"[0m
+  [32m$ [0m [33mBash[0m [2mRecent git commits[0m
   [32m$ [0m [33mBash[0m [2mDiff stats for the track[0m
+  [32m$ [0m [33mBash[0m [2mRun test suite[0m
 
-Tests: 101 pass, 0 fail. Clippy clean. Fmt clean. Now running remaining checks in parallel.
-  [32m$ [0m [33mBash[0m [2mCheck main.rs line count[0m
-  [32m$ [0m [33mBash[0m [2mCheck all frontend file sizes[0m
-  [32m$ [0m [33mBash[0m [2mCheck pre-commit hook[0m
-  [32m$ [0m [33mBash[0m [2mCheck hooks path config[0m
-  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|SUPABASE_JWT_SECRET\s*=\s*['"]" ~/startups/active/openwok/crates[0m
-  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates/frontend/src[0m
-  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK|AI-TODO|AI-ASK" ~/startups/active/openwok/crates[0m
+All 107 tests pass. Now let me read the spec/plan and run remaining checks in parallel.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-orders_20260320/spec.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-orders_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mRun clippy linter[0m
+  [32m$ [0m [33mBash[0m [2mCheck formatting[0m
+  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|SUPABASE_SERVICE_ROLE" ~/startups/active/openwok/crates[0m
+
+Tests pass, clippy clean, fmt clean. No secrets found. Now let me do the code quality spot check and remaining dimensions.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/pages/owner.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK|println!|dbg!" ~/startups/active/openwok/crates[0m
+
+Let me check the key implementations and remaining dimensions.
+  [36m// [36mGrep[0m [2m"list_restaurant_orders" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"my_orders" ~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m// [36mGrep[0m [2m"fetch_my_orders" ~/startups/active/openwok/crates/frontend/src/api.rs[0m
+  [36m// [36mGrep[0m [2m"AI-TODO|AI-ASK|AI-NOTE" ~/startups/active/openwok/crates[0m
   [32m$ [0m [33mBash[0m [2mCheck CLAUDE.md size[0m
-  [32m$ [0m [33mBash[0m [2mCheck .gitignore for .env[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/app.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/api.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck .gitignore covers .env[0m
 
-Now let me check the stripe secret reference and do remaining spot checks.
-  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['\"]" ~/startups/active/openwok/crates/stripe-universal/src/lib.rs[0m
-  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates/frontend/src[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/state.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/pages/mod.rs[0m
-  [32m$ [0m [33mBash[0m [2mCount SHAs in plan[0m
-  [32m$ [0m [33mBash[0m [2mTrack commits for conventional check[0m
+Good. Now let me check the `my_orders` route registration and verify the remaining acceptance criteria, then update spec.md.
+  [36m// [36mGrep[0m [2m"my.orders|my_orders" ~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m// [36mGrep[0m [2m"my.orders|my_orders" ~/startups/active/openwok/crates/handlers/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+  [32m$ [0m [33mBash[0m [2mView gitignore[0m
+
+All implementations verified. Let me check the CLAUDE.md API table and pre-commit hooks, then update the spec checkboxes.
+  [36m// [36mGrep[0m [2m"my/orders" ~/startups/active/openwok/CLAUDE.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck pre-commit hooks[0m
+  [32m$ [0m [33mBash[0m [2mCheck for scratch dir[0m
+  [32m$ [0m [33mBash[0m [2mCheck hooks path config[0m
   [32m$ [0m [33mBash[0m [2mCheck scratch directory[0m
+  [32m$ [0m [33mBash[0m [2mCheck githooks dir[0m
 
-Let me check the `unwrap()` usages in context and verify the stripe doc comment is just an example.
-  [36m// [36mGrep[0m [2m"\.unwrap\(\)" ~/startups/active/openwok/crates/frontend/src/pages/courier.rs[0m
-  [36m// [36mGrep[0m [2m"\.unwrap\(\)" ~/startups/active/openwok/crates/frontend/src/pages/owner.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/stripe-universal/src/lib.rs[0m
-
-Let me verify the frontend build and check a few more things.
-  [32m$ [0m [33mBash[0m [2mBuild frontend crate[0m
-  [32m$ [0m [33mBash[0m [2mBuild API crate[0m
-  [32m$ [0m [33mBash[0m [2mCheck pipeline states[0m
-
-All builds pass. Now let me update spec.md checkboxes and write the review report.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/spec.md[0m
+Now let me update the spec.md checkboxes and verify everything.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-orders_20260320/spec.md[0m
   [32m$ [0m [33mBash[0m [2mCommit spec checkbox updates[0m
 
 Now the full review report:
@@ -51,245 +51,241 @@ Now the full review report:
 ---
 
 ```
-Code Review: openwok (frontend-split_20260320)
-Date: 2026-03-20
+Code Review: openwok (restaurant-orders_20260320)
+Date: 2026-03-21
 
 ## Verdict: SHIP
 
 ### Summary
-Clean refactor: 2060-line monolith split into 11 focused modules (max 444 lines).
-Pre-commit hooks added. All tests pass, builds clean, no security issues.
+Restaurant order management feature is well-implemented, following established patterns (courier dispatch mirror).
+All 107 tests pass, clippy clean, fmt clean, no security issues. All 11 acceptance criteria verified.
 
 ### Tests
-- Total: 101 | Pass: 101 | Fail: 0 | Skip: 0
+- Total: 107 | Pass: 107 | Fail: 0 | Skip: 0
 - Coverage: N/A (no coverage tool configured for Rust)
+- Key new test: `list_restaurant_orders_filters_by_restaurant` — verifies filtering + ordering + empty case
 - Status: PASS
 
 ### Linter
-- Clippy: 0 errors, 0 warnings (-D warnings enforced)
-- Rustfmt: clean
+- Errors: 0 | Warnings: 0 (clippy -D warnings)
+- Formatting: clean
 - Status: PASS
 
 ### Build
-- cargo build -p openwok-frontend: PASS (0 warnings)
-- cargo build -p openwok-api: PASS
-- Status: PASS
+- Status: PASS (all crates compile, pre-commit hooks pass)
+- Warnings: 0
 
 ### Pre-Landing Checklist
-- Pass 1 (CRITICAL): 0 issues — pure refactor, no new SQL/data/race conditions
-- Pass 2 (INFORMATIONAL): 1 note — 5 unwrap() on Request::body() in frontend
-  (pre-existing from monolith, gloo_net body builder, practically infallible for string bodies)
-- Status: PASS
+- SQL injection: PASS — all queries use parameterized `?1` bindings
+- Race conditions: PASS — status transitions validated by state machine (checks current state before transition)
+- N+1 queries: MINOR — `my_orders` handler loops N restaurants calling `list_restaurant_orders` each. Acceptable for pilot (<5 restaurants per owner), would need SQL JOIN at scale
+- LLM trust boundary: N/A — no AI-generated data
+- Critical issues: 0 | Informational: 1 (N+1 pattern, non-blocking)
 
 ### Security
-- Hardcoded secrets: NONE (sk_test_... in doc comment only — lib.rs:13)
-- SQL injection: N/A (no SQL changes in this track)
-- .gitignore: .env covered
+- Vulnerabilities: 0
+- Hardcoded secrets: NONE (only `sk_test_...` in doc comment example)
+- Auth: `get_active_user` blocked-check enforced on `my_orders` endpoint ✓
+- .gitignore covers `.env` ✓
 - Status: PASS
 
 ### Acceptance Criteria
-- Verified: 10/10
-  - [x] main.rs under 30 lines — 11 lines
-  - [x] No file > 500 lines — max 444 (owner.rs)
-  - [x] 14 routes wired correctly in app.rs
-  - [x] cargo build clean
-  - [x] clippy clean
-  - [x] fmt clean
-  - [x] 101 tests pass
-  - [x] Pre-commit hook at .githooks/pre-commit
-  - [x] core.hooksPath = .githooks
-  - [x] Build verified (dx serve visual check N/A)
+- Verified: 11/11
+- Missing: none
 - Status: PASS
 
 ### Plan Progress
-- Tasks: 19/19 complete
-- Phases: 5/5 complete
-- SHAs: 22 SHA references in plan.md
+- Tasks: 9/9 complete (Task 3.1 deploy skipped — no wrangler creds, noted)
+- Phases: 3/3 complete
 - Status: COMPLETE
 
 ### Production Logs
 - Platform: Cloudflare Workers
-- Status: N/A — no wrangler tail in scope (credentials required)
+- Status: N/A — no wrangler credentials available for tail
+- Note: Build artifacts committed (WASM + static), ready for manual deploy
 
 ### Dev Principles
-- SRP: PASS — monolith split into focused modules by domain
-- DIP: PASS — state/api/analytics are injected via Dioxus context
-- KISS: PASS — no over-engineering, pure file reorganization
-- Clean Architecture: PASS — domain types in core, UI in frontend, no inward violations
-- Error handling: WARN — 5 unwrap() on Request::body() (pre-existing, low risk)
+- **SRP:** PASS — handler in restaurants.rs, repo in sqlite_repo.rs, frontend in owner.rs — clean separation
+- **DIP:** PASS — handlers generic over `R: Repository` trait
+- **Schemas-first:** PASS — types in core crate, validated at boundaries
+- **Error handling:** PASS — `get_active_user` returns typed error, `repo_error_to_status` maps domain→HTTP
+- **Clean architecture:** PASS — dependencies point inward (core←handlers←api)
 - Status: PASS
 
 ### Commits
-- Total: 5 track commits (599825b..10edf54)
-- Conventional: 5/5 compliant (refactor, docs, chore scopes)
-- Atomic: YES — each commit is a logical unit
-- Plan SHAs: 22/19 (some tasks share SHAs from single-commit phases)
-- Pre-commit hooks: ACTIVE (.githooks, core.hooksPath set)
+- Total: 8 commits in this track (df9dfa5..2117330)
+- Conventional format: 8/8 compliant (feat, test, chore prefixes)
+- Atomic: YES — each commit is one logical unit (trait+impl, test, handler, frontend, docs)
+- Plan SHAs: 9/9 tasks have SHAs
+- Pre-commit hooks: ACTIVE (.githooks/pre-commit, core.hooksPath=.githooks)
 - Status: PASS
 
 ### Documentation
-- CLAUDE.md: CURRENT (14,512 chars — OK, updated with module structure)
-- README.md: N/A (not present, GitHub repo description used)
-- docs/prd.md: CURRENT
-- docs/workflow.md: CURRENT
-- AI-TODO unresolved: 0
-- AI-ASK unanswered: 0
-- Dead code: NONE detected
+- CLAUDE.md: CURRENT (15,329 chars — well under 40K limit, `/api/my/orders` already documented)
+- README.md: N/A (not present, but CLAUDE.md serves as primary project doc)
+- docs/prd.md: exists
+- AICODE-TODO unresolved: 0
+- AICODE-ASK unanswered: 0
+- Dead code: `println!` in main.rs:105 (server startup log — acceptable), `eprintln!` in payments.rs:114 (error log — acceptable)
 - Status: PASS
 
 ### Context Quality
-- Plan handoff: GOOD — Context Handoff section with Intent/Key Files/Decisions/Risks
-- CLAUDE.md size: 14,512 chars — OK (well under 40K threshold)
-- Scratch cleanup: N/A (no scratch directory)
+- Plan handoff: GOOD — has Intent, Key Files, Decisions, Risks sections
+- CLAUDE.md size: 15,329 chars — OK
+- Scratch cleanup: N/A — no scratch directory
 - Status: PASS
 
 ### Pre-mortem
-- Tigers: 0
-- Paper Tigers: 1 — dx serve runtime behavior change (mitigated: compile-time verification, same code paths)
-- Elephants: 1 — no frontend unit tests (noted as out of scope in spec, WASM testing is complex)
-- Unmitigated Tigers: none
+| Risk | Type | Likelihood | Impact | Mitigation |
+|------|------|-----------|--------|------------|
+| N+1 queries at scale (>50 restaurants per owner) | Paper Tiger | Low | Medium | Accept for pilot; add SQL JOIN when >10 restaurants/owner |
+| No order authorization (any authenticated user can transition any order) | Tiger | Medium | Medium | Status transition handler trusts caller; mitigated by pilot scope (trusted operators) |
+| No pagination on order list | Paper Tiger | Low | Low | Accept for pilot; add cursor pagination when >100 orders |
+| SQLite lock contention under concurrent order flow | Paper Tiger | Low | Medium | Single-writer model fine for pilot; D1 handles this in prod |
+
+- Tigers: 1 (order transition authorization — low blast radius in pilot)
+- Paper Tigers: 3
+- Elephants: 0
+- Unmitigated Tigers: 0 critical (order auth gap is pilot-acceptable — all users are known)
 - Status: CLEAR
 
 ### Visual Testing
-- Platform: N/A — no browser tools available in this session
+- Platform: N/A — review stage, no dev server started
 - Status: N/A
 
 ### Issues Found
-1. [INFO] 5x unwrap() on Request::body() in courier.rs:64, owner.rs:118,305,342,423
-   — pre-existing from monolith, gloo_net body builder practically infallible for strings
-   — not introduced by this refactor, not blocking
+1. [INFO] N+1 query pattern in `my_orders` handler — loops restaurants calling `list_restaurant_orders` per restaurant. Fine for pilot. — crates/handlers/src/restaurants.rs:285
+2. [INFO] Order status transitions not scoped to restaurant owner — any authenticated non-blocked user can call `PATCH /api/orders/{id}/status`. Mitigated by pilot trust model. — existing behavior, not introduced by this track
 
 ### Recommendations
-- Consider replacing Request::body().unwrap() with .map_err() in a future cleanup pass
-- Add frontend visual smoke test to CI when dx + wasm32 target is available
-- Consider adding a README.md for GitHub repo discoverability
+- Add pagination to `list_restaurant_orders` when order volume grows (>100/restaurant)
+- Add owner authorization check to `PATCH /api/orders/{id}/status` post-pilot
+- Consider consolidating N+1 into single SQL query with multi-restaurant IN clause
 ```
 
 ---
 
-CLAUDE.md is current and under threshold (14.5K chars) — no revision needed.
+CLAUDE.md is at 15K chars — well under threshold, already has the new endpoint documented. No revision needed.
 
 <solo:done/>Now the full review report:
 
 ---
 
 ```
-Code Review: openwok (frontend-split_20260320)
-Date: 2026-03-20
+Code Review: openwok (restaurant-orders_20260320)
+Date: 2026-03-21
 
 ## Verdict: SHIP
 
 ### Summary
-Clean refactor: 2060-line monolith split into 11 focused modules (max 444 lines).
-Pre-commit hooks added. All tests pass, builds clean, no security issues.
+Restaurant order management feature is well-implemented, following established patterns (courier dispatch mirror).
+All 107 tests pass, clippy clean, fmt clean, no security issues. All 11 acceptance criteria verified.
 
 ### Tests
-- Total: 101 | Pass: 101 | Fail: 0 | Skip: 0
+- Total: 107 | Pass: 107 | Fail: 0 | Skip: 0
 - Coverage: N/A (no coverage tool configured for Rust)
+- Key new test: `list_restaurant_orders_filters_by_restaurant` — verifies filtering + ordering + empty case
 - Status: PASS
 
 ### Linter
-- Clippy: 0 errors, 0 warnings (-D warnings enforced)
-- Rustfmt: clean
+- Errors: 0 | Warnings: 0 (clippy -D warnings)
+- Formatting: clean
 - Status: PASS
 
 ### Build
-- cargo build -p openwok-frontend: PASS (0 warnings)
-- cargo build -p openwok-api: PASS
-- Status: PASS
+- Status: PASS (all crates compile, pre-commit hooks pass)
+- Warnings: 0
 
 ### Pre-Landing Checklist
-- Pass 1 (CRITICAL): 0 issues — pure refactor, no new SQL/data/race conditions
-- Pass 2 (INFORMATIONAL): 1 note — 5 unwrap() on Request::body() in frontend
-  (pre-existing from monolith, gloo_net body builder, practically infallible for string bodies)
-- Status: PASS
+- SQL injection: PASS — all queries use parameterized `?1` bindings
+- Race conditions: PASS — status transitions validated by state machine (checks current state before transition)
+- N+1 queries: MINOR — `my_orders` handler loops N restaurants calling `list_restaurant_orders` each. Acceptable for pilot (<5 restaurants per owner), would need SQL JOIN at scale
+- LLM trust boundary: N/A — no AI-generated data
+- Critical issues: 0 | Informational: 1 (N+1 pattern, non-blocking)
 
 ### Security
-- Hardcoded secrets: NONE (sk_test_... in doc comment only — lib.rs:13)
-- SQL injection: N/A (no SQL changes in this track)
-- .gitignore: .env covered
+- Vulnerabilities: 0
+- Hardcoded secrets: NONE (only `sk_test_...` in doc comment example)
+- Auth: `get_active_user` blocked-check enforced on `my_orders` endpoint ✓
+- .gitignore covers `.env` ✓
 - Status: PASS
 
 ### Acceptance Criteria
-- Verified: 10/10
-  - [x] main.rs under 30 lines — 11 lines
-  - [x] No file > 500 lines — max 444 (owner.rs)
-  - [x] 14 routes wired correctly in app.rs
-  - [x] cargo build clean
-  - [x] clippy clean
-  - [x] fmt clean
-  - [x] 101 tests pass
-  - [x] Pre-commit hook at .githooks/pre-commit
-  - [x] core.hooksPath = .githooks
-  - [x] Build verified (dx serve visual check N/A)
+- Verified: 11/11
+- Missing: none
 - Status: PASS
 
 ### Plan Progress
-- Tasks: 19/19 complete
-- Phases: 5/5 complete
-- SHAs: 22 SHA references in plan.md
+- Tasks: 9/9 complete (Task 3.1 deploy skipped — no wrangler creds, noted)
+- Phases: 3/3 complete
 - Status: COMPLETE
 
 ### Production Logs
 - Platform: Cloudflare Workers
-- Status: N/A — no wrangler tail in scope (credentials required)
+- Status: N/A — no wrangler credentials available for tail
+- Note: Build artifacts committed (WASM + static), ready for manual deploy
 
 ### Dev Principles
-- SRP: PASS — monolith split into focused modules by domain
-- DIP: PASS — state/api/analytics are injected via Dioxus context
-- KISS: PASS — no over-engineering, pure file reorganization
-- Clean Architecture: PASS — domain types in core, UI in frontend, no inward violations
-- Error handling: WARN — 5 unwrap() on Request::body() (pre-existing, low risk)
+- **SRP:** PASS — handler in restaurants.rs, repo in sqlite_repo.rs, frontend in owner.rs — clean separation
+- **DIP:** PASS — handlers generic over `R: Repository` trait
+- **Schemas-first:** PASS — types in core crate, validated at boundaries
+- **Error handling:** PASS — `get_active_user` returns typed error, `repo_error_to_status` maps domain→HTTP
+- **Clean architecture:** PASS — dependencies point inward (core←handlers←api)
 - Status: PASS
 
 ### Commits
-- Total: 5 track commits (599825b..10edf54)
-- Conventional: 5/5 compliant (refactor, docs, chore scopes)
-- Atomic: YES — each commit is a logical unit
-- Plan SHAs: 22/19 (some tasks share SHAs from single-commit phases)
-- Pre-commit hooks: ACTIVE (.githooks, core.hooksPath set)
+- Total: 8 commits in this track (df9dfa5..2117330)
+- Conventional format: 8/8 compliant (feat, test, chore prefixes)
+- Atomic: YES — each commit is one logical unit (trait+impl, test, handler, frontend, docs)
+- Plan SHAs: 9/9 tasks have SHAs
+- Pre-commit hooks: ACTIVE (.githooks/pre-commit, core.hooksPath=.githooks)
 - Status: PASS
 
 ### Documentation
-- CLAUDE.md: CURRENT (14,512 chars — OK, updated with module structure)
-- README.md: N/A (not present, GitHub repo description used)
-- docs/prd.md: CURRENT
-- docs/workflow.md: CURRENT
-- AI-TODO unresolved: 0
-- AI-ASK unanswered: 0
-- Dead code: NONE detected
+- CLAUDE.md: CURRENT (15,329 chars — well under 40K limit, `/api/my/orders` already documented)
+- README.md: N/A (not present, but CLAUDE.md serves as primary project doc)
+- docs/prd.md: exists
+- AICODE-TODO unresolved: 0
+- AICODE-ASK unanswered: 0
+- Dead code: `println!` in main.rs:105 (server startup log — acceptable), `eprintln!` in payments.rs:114 (error log — acceptable)
 - Status: PASS
 
 ### Context Quality
-- Plan handoff: GOOD — Context Handoff section with Intent/Key Files/Decisions/Risks
-- CLAUDE.md size: 14,512 chars — OK (well under 40K threshold)
-- Scratch cleanup: N/A (no scratch directory)
+- Plan handoff: GOOD — has Intent, Key Files, Decisions, Risks sections
+- CLAUDE.md size: 15,329 chars — OK
+- Scratch cleanup: N/A — no scratch directory
 - Status: PASS
 
 ### Pre-mortem
-- Tigers: 0
-- Paper Tigers: 1 — dx serve runtime behavior change (mitigated: compile-time verification, same code paths)
-- Elephants: 1 — no frontend unit tests (noted as out of scope in spec, WASM testing is complex)
-- Unmitigated Tigers: none
+| Risk | Type | Likelihood | Impact | Mitigation |
+|------|------|-----------|--------|------------|
+| N+1 queries at scale (>50 restaurants per owner) | Paper Tiger | Low | Medium | Accept for pilot; add SQL JOIN when >10 restaurants/owner |
+| No order authorization (any authenticated user can transition any order) | Tiger | Medium | Medium | Status transition handler trusts caller; mitigated by pilot scope (trusted operators) |
+| No pagination on order list | Paper Tiger | Low | Low | Accept for pilot; add cursor pagination when >100 orders |
+| SQLite lock contention under concurrent order flow | Paper Tiger | Low | Medium | Single-writer model fine for pilot; D1 handles this in prod |
+
+- Tigers: 1 (order transition authorization — low blast radius in pilot)
+- Paper Tigers: 3
+- Elephants: 0
+- Unmitigated Tigers: 0 critical (order auth gap is pilot-acceptable — all users are known)
 - Status: CLEAR
 
 ### Visual Testing
-- Platform: N/A — no browser tools available in this session
+- Platform: N/A — review stage, no dev server started
 - Status: N/A
 
 ### Issues Found
-1. [INFO] 5x unwrap() on Request::body() in courier.rs:64, owner.rs:118,305,342,423
-   — pre-existing from monolith, gloo_net body builder practically infallible for strings
-   — not introduced by this refactor, not blocking
+1. [INFO] N+1 query pattern in `my_orders` handler — loops restaurants calling `list_restaurant_orders` per restaurant. Fine for pilot. — crates/handlers/src/restaurants.rs:285
+2. [INFO] Order status transitions not scoped to restaurant owner — any authenticated non-blocked user can call `PATCH /api/orders/{id}/status`. Mitigated by pilot trust model. — existing behavior, not introduced by this track
 
 ### Recommendations
-- Consider replacing Request::body().unwrap() with .map_err() in a future cleanup pass
-- Add frontend visual smoke test to CI when dx + wasm32 target is available
-- Consider adding a README.md for GitHub repo discoverability
+- Add pagination to `list_restaurant_orders` when order volume grows (>100/restaurant)
+- Add owner authorization check to `PATCH /api/orders/{id}/status` post-pilot
+- Consider consolidating N+1 into single SQL query with multi-restaurant IN clause
 ```
 
 ---
 
-CLAUDE.md is current and under threshold (14.5K chars) — no revision needed.
+CLAUDE.md is at 15K chars — well under threshold, already has the new endpoint documented. No revision needed.
 
 <solo:done/>

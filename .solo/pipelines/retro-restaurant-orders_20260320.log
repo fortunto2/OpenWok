@@ -1,0 +1,88 @@
+  [2msession: 724cd82e  model: claude-opus-4-6[1m][0m
+Starting retro for OpenWok. Let me gather all artifacts first.
+  [36m**[0m [36mGlob[0m [2m".solo/pipelines/*.log" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m".solo/pipelines/progress.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan-done/*/plan.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/*/plan.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m".solo/pipelines/solo-pipeline-*.local.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/retro/references/eval-dimensions.md[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/retro/references/failure-catalog.md[0m
+
+Found 44 log files, 13 completed plans, 1 active plan. Now reading core artifacts.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/pipeline.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-orders_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck CLAUDE.md size[0m
+
+Now let me gather git history, specs, and run tests in parallel.
+  [32m$ [0m [33mBash[0m [2mRecent commit history[0m
+  [32m$ [0m [33mBash[0m [2mTotal commit count[0m
+  [32m$ [0m [33mBash[0m [2mCount conventional commits[0m
+  [32m$ [0m [33mBash[0m [2mCommitter breakdown[0m
+  [32m$ [0m [33mBash[0m [2mRun test suite[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan-done/*/spec.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/*/spec.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+
+Let me check the spec and the full test output for quality metrics.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-orders_20260320/spec.md[0m
+  [32m$ [0m [33mBash[0m [2mTest suite summary[0m
+  [32m$ [0m [33mBash[0m [2mPlan fidelity check across all tracks[0m
+  [32m$ [0m [33mBash[0m [2mCheck observation masking[0m
+  [32m$ [0m [33mBash[0m [2mPlan fidelity check across all tracks[0m
+
+Now let me gather the last few data points for the factory critic.
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/scripts/solo-dev.sh[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-001-build.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-003-review.log[0m
+  [32m$ [0m [33mBash[0m [2mCheck for AskUserQuestion in iter logs[0m
+
+I have all the data. Let me write the retro report and check the evolution log.
+  [32m$ [0m [33mBash[0m [2mCheck retro directory[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/retro/2026-03-21-retro-restaurant-orders.md[0m
+
+Now updating the evolution log.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+
+Now the summary and interactive patching phase.
+
+**Retro #10 Summary — OpenWok: 7.6/10**
+
+**Top 3 Findings:**
+1. **Ghost runs are the #1 waste source** — 2 abandoned sessions (112 min) with zero output recovery. Real-time log streaming (`tee`) recommended for 4th consecutive retro.
+2. **Well-scoped plans = zero waste** — Tracks with 12-15 tasks completed in single iterations. auth-payments (48 tasks) was the only track with restarts and wasted iters.
+3. **100% spec criteria met** — 82/82 acceptance criteria across all 8 tracks. 107 tests, 0 failures. Plan fidelity outstanding.
+
+**Top 3 Recommendations:**
+1. `[CRITICAL]` Real-time log streaming in `solo-dev.sh` (4th retro)
+2. `[HIGH]` Plan size guard >30 tasks in plan skill (3rd retro)
+3. `[HIGH]` Scope signal grep to `tail -20` in `solo-lib.sh` (from retro #9)
+
+**restaurant-orders track:** Cleanest run — 3 iters, 28 min, 0 waste. All 11 criteria met, 26/26 tasks done with SHAs.
+
+The two suggested patches are in factory scripts (`solo-dev.sh` and `solo-lib.sh`) outside this repo. Want me to apply them?
+
+Report saved to `docs/retro/2026-03-21-retro-restaurant-orders.md`, evolution log updated.
+
+<solo:done/>Now the summary and interactive patching phase.
+
+**Retro #10 Summary — OpenWok: 7.6/10**
+
+**Top 3 Findings:**
+1. **Ghost runs are the #1 waste source** — 2 abandoned sessions (112 min) with zero output recovery. Real-time log streaming (`tee`) recommended for 4th consecutive retro.
+2. **Well-scoped plans = zero waste** — Tracks with 12-15 tasks completed in single iterations. auth-payments (48 tasks) was the only track with restarts and wasted iters.
+3. **100% spec criteria met** — 82/82 acceptance criteria across all 8 tracks. 107 tests, 0 failures. Plan fidelity outstanding.
+
+**Top 3 Recommendations:**
+1. `[CRITICAL]` Real-time log streaming in `solo-dev.sh` (4th retro)
+2. `[HIGH]` Plan size guard >30 tasks in plan skill (3rd retro)
+3. `[HIGH]` Scope signal grep to `tail -20` in `solo-lib.sh` (from retro #9)
+
+**restaurant-orders track:** Cleanest run — 3 iters, 28 min, 0 waste. All 11 criteria met, 26/26 tasks done with SHAs.
+
+The two suggested patches are in factory scripts (`solo-dev.sh` and `solo-lib.sh`) outside this repo. Want me to apply them?
+
+Report saved to `docs/retro/2026-03-21-retro-restaurant-orders.md`, evolution log updated.
+
+<solo:done/>

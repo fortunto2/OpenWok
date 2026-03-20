@@ -308,3 +308,51 @@ Deployed: CF Workers updated, 106 tests passing
 - 363 min effective, ~6 hours total
 - 106 tests, 158 commits, 12 completed plan tracks
 - Factory improving: pre-commit hooks closed (retro #5-7), signal detection new finding
+
+## 2026-03-21 | openwok | Factory Score: 8/10 | Retro #10 (restaurant-orders + Full Session)
+
+Pipeline: 12 STARTs (8 tracks), 36 iters, 5.6% waste | Iters: 36 | Waste: 5.6%
+Track completed: restaurant-orders_20260320 (Repository + API + frontend Orders tab, 12 tasks, 3 phases)
+Full session: 8 tracks, 36 iters, ~404 min active, 107 tests, 168 commits
+
+### Defects
+- **CRITICAL** | Real-time log streaming still unimplemented — 4th consecutive retro
+  - 2 ghost runs (112 min) lost with zero output recovery
+  - Fix: `scripts/solo-dev.sh` — `claude ... 2>&1 | tee "$OUTFILE"` instead of redirect-on-completion
+- **HIGH** | Signal grep scoping still unimplemented — from retro #9
+  - False redo in admin-tools caused 1 extra build iteration
+  - Fix: `scripts/solo-lib.sh:89` — `tail -20 "$OUTFILE" | grep -q`
+- **HIGH** | Plan size guard still unimplemented — 3rd consecutive retro
+  - auth-payments (48 tasks) was the only track with restarts and waste
+  - Fix: `skills/plan/SKILL.md` — auto-split when >30 tasks
+
+### Harness Gaps
+- **Context:** Excellent — CLAUDE.md 15.3KB (well under 40K), plan Context Handoff consistent, all plans have key files + decisions + risks
+- **Constraints:** Clean — Repository pattern maintained, blocked-user enforcement, ownership guards, money as Decimal
+- **Precedents:**
+  - GOOD: Build skill 10th track, restaurant-orders completed in single iteration (20 min, 12 tasks)
+  - GOOD: Deploy 9th consecutive 0-waste deploy
+  - GOOD: Review SHIP first pass — clean for well-scoped tracks
+  - GOOD: Auto-plan feedback loop continues working (8 tracks auto-cycled)
+  - GOOD: 100% spec criteria met across all 8 tracks (82/82)
+  - BAD: 3 recurring issues unresolved across 4+ retros (log streaming, plan guard, restart recovery)
+  - LESSON: Well-scoped plans (12-15 tasks) = 0 waste. Large plans (48 tasks) = all the waste.
+  - LESSON: Ghost runs are the #1 waste source, not bad signals or logic errors
+
+### Missing
+- Real-time iter log streaming (CRITICAL — 4th retro)
+- Plan size guard >30 tasks (HIGH — 3rd retro)
+- Signal grep scoping (HIGH — from retro #9)
+- Partial progress recovery on restart (MEDIUM — 4th retro)
+- Handler-level tests (LOW)
+
+### What worked well
+- Build skill: 10th track, single-iteration completion for well-scoped plans
+- Deploy: 9th consecutive 0-waste deploy
+- Review: SHIP first pass, 107 tests verified
+- Plan fidelity: 100% criteria, 95% tasks, 120 SHAs across 8 tracks
+- Auto-plan cycling: 8 tracks auto-generated and executed without manual intervention
+- CLAUDE.md discipline: 15.3KB, lean and current
+- Commit discipline: 92.9% conventional (156/168)
+- Test growth: 0 → 107 across full session
+- restaurant-orders: cleanest track — 3 iters, 28 min, 0 waste

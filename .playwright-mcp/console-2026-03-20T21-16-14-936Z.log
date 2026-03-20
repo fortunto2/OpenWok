@@ -1,0 +1,1 @@
+[     287ms] [ERROR] Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html". Strict MIME type checking is enforced for module scripts per HTML spec. @ https://openwok.superduperai.co/assets/openwok-frontend-dxhaca0917efd888fab.js:0

@@ -1,167 +1,54 @@
-  [2msession: 2ac27b58  model: claude-opus-4-6[1m][0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/spec.md[0m
+  [2msession: de801c27  model: claude-opus-4-6[1m][0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-pwa_20260321/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-pwa_20260321/spec.md[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
+
+Task 1.1 done. Next: Task 1.2 (icons). Let me load the key files I'll need.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/public/index.html[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/pages/courier.rs[0m
+  [36m**[0m [36mGlob[0m [2m"crates/frontend/public/*" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/assets/style.css[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Let me read the remaining sections in parallel.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
   [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Extract state.rs, analytics.rs, api.r[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create manifest.json', 'status': 'co[0m
 
-Starting the frontend module split. I'll create all Phase 1 files first, then wire them up.
+**Starting Task 1.2: Create PWA icon files**
 
-**Starting Phase 1: Extract Shared Modules**
+Let me check what tools are available for generating PNGs.
+  [32m$ [0m [33mBash[0m [2mCheck if Python + Pillow available for icon generation[0m
+  [32m$ [0m [33mBash[0m [2mCheck if ImageMagick available[0m
 
-Let me mark Task 1.1 as in-progress in plan.md and create all three shared modules in parallel.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/state.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/analytics.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/api.rs[0m
+Pillow is available. Let me generate the icons.
+  [32m$ [0m [33mBash[0m [2mGenerate PWA icons using Pillow[0m
+  [32m$ [0m [33mBash[0m [2mVerify icon files were created[0m
 
-Now create all 8 page modules + pages/mod.rs in parallel. This covers Phase 2 tasks 2.1-2.10.
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/mod.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/home.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/auth.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/restaurants.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/checkout.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/order.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/economics.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/operator.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/owner.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/courier.rs[0m
+Good. Now update manifest.json to ensure icon paths match, then commit.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/public/manifest.json[0m
 
-Now I need to create `app.rs` and rewrite `main.rs`. The `API_BASE` constant needs to be `pub` in api.rs. Let me also create app.rs and the new slim main.rs.
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/app.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+Manifest already references the correct icon paths. Let me commit the icons.
+  [32m$ [0m [33mBash[0m [2mCommit PWA icon files[0m
+  [32m$ [0m [33mBash[0m [2mGet commit SHA[0m
 
-Now I need to make `API_BASE` pub in api.rs. Let me fix that and try building.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/api.rs[0m
-  [32m$ [0m [33mBash[0m [2mBuild frontend crate to check compilation[0m
+Now update plan.md and move to next task.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-pwa_20260321/plan.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create manifest.json', 'status': 'co[0m
 
-Build passes. Now let me run clippy and fmt.
-  [32m$ [0m [33mBash[0m [2mRun clippy on frontend crate[0m
-  [32m$ [0m [33mBash[0m [2mCheck formatting of frontend crate[0m
+**Starting Task 1.3: Create service worker (sw.js)**
 
-Minor import ordering. Let me run fmt to fix automatically.
-  [32m$ [0m [33mBash[0m [2mAuto-format frontend crate[0m
+Cache-first for static assets, network-first for API calls.
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/public/sw.js[0m
+  [32m$ [0m [33mBash[0m [2mCommit service worker[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-pwa_20260321/plan.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create manifest.json', 'status': 'co[0m
 
-Now let me run full workspace tests and verify `main.rs` line count.
-  [32m$ [0m [33mBash[0m [2mCount lines in main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCount lines in all frontend source files[0m
-  [32m$ [0m [33mBash[0m [2mRun workspace tests[0m
+**Starting Task 1.4: Update index.html with PWA meta tags + SW registration**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/public/index.html[0m
+  [32m$ [0m [33mBash[0m [2mCommit index.html PWA updates[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-pwa_20260321/plan.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create manifest.json', 'status': 'co[0m
 
-All checks pass:
-- `main.rs` = 11 lines (under 30)
-- No file exceeds 500 lines (max is `owner.rs` at 444)
-- Build + clippy + fmt clean
-- All tests pass
+**Starting Task 1.5: Add install prompt component in courier.rs**
 
-Now let me commit phases 1-3 (they were done together as a single refactor), then move to Phase 4.
-  [32m$ [0m [33mBash[0m [2mStage all refactored frontend files[0m
-  [32m$ [0m [33mBash[0m [2mCommit frontend module split[0m
-
-Now update plan.md with SHAs and mark phases 1-3 complete. Then proceed to Phase 4.
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Extract state.rs, analytics.rs, api.r[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
-
-**Starting Phase 4: Pre-commit Hooks**
-  [32m$ [0m [33mBash[0m [2mCheck if .githooks directory exists[0m
-  [32m$ [0m [33mBash[0m [2mCreate .githooks directory[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/.githooks/pre-commit[0m
-  [32m$ [0m [33mBash[0m [2mMake pre-commit hook executable[0m
-
-Now add the `setup-hooks` target to the Makefile.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/Makefile[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/Makefile[0m
-
-Set up hooks and test them.
-  [32m$ [0m [33mBash[0m [2mConfigure git to use .githooks directory[0m
-
-Now commit Phase 4.
-  [32m$ [0m [33mBash[0m [2mStage hook files[0m
-  [32m$ [0m [33mBash[0m [2mCommit pre-commit hooks[0m
-
-Pre-commit hooks are working — they ran during the commit and passed. Now Phase 5.
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Extract state.rs, analytics.rs, api.r[0m
-
-**Starting Phase 5: Docs & Cleanup**
-
-Update CLAUDE.md with the new frontend module structure and setup-hooks command.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-  [36m// [36mGrep[0m [2m"## Workspace Structure" ~/startups/active/openwok/CLAUDE.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-
-Now run final verification (Task 5.3).
-  [32m$ [0m [33mBash[0m [2mFinal verification: tests + clippy + fmt[0m
-
-All clean. Commit Phase 5.
-  [32m$ [0m [33mBash[0m [2mStage docs updates[0m
-  [32m$ [0m [33mBash[0m [2mCommit docs update[0m
-
-Now mark the plan as complete and finalize.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mCommit plan completion[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Extract state.rs, analytics.rs, api.r[0m
-
-Track complete: **frontend-split_20260320**
-
-```
-Phases: 5/5
-Tasks:  20/20
-Tests:  All passing
-Lint:   Clean (fmt + clippy)
-
-Phase checkpoints:
-  Phase 1-3: 599825b (module split)
-  Phase 4:   c9840c3 (pre-commit hooks)
-  Phase 5:   a470b1b (docs + verification)
-  Completion: e69806f
-
-Results:
-  main.rs: 2060 → 11 lines
-  Modules: 11 files (state, analytics, api, app + 8 pages)
-  Max file: 444 lines (owner.rs) — all under 500
-  Pre-commit: .githooks/pre-commit (fmt + clippy)
-
-Revert entire track: git revert 599825b..HEAD
-```
-
-<solo:done/>Track complete: **frontend-split_20260320**
-
-```
-Phases: 5/5
-Tasks:  20/20
-Tests:  All passing
-Lint:   Clean (fmt + clippy)
-
-Phase checkpoints:
-  Phase 1-3: 599825b (module split)
-  Phase 4:   c9840c3 (pre-commit hooks)
-  Phase 5:   a470b1b (docs + verification)
-  Completion: e69806f
-
-Results:
-  main.rs: 2060 → 11 lines
-  Modules: 11 files (state, analytics, api, app + 8 pages)
-  Max file: 444 lines (owner.rs) — all under 500
-  Pre-commit: .githooks/pre-commit (fmt + clippy)
-
-Revert entire track: git revert 599825b..HEAD
-```
-
-<solo:done/>
+Need to detect `beforeinstallprompt` via JS interop and show an install banner. Let me check what web-sys/wasm-bindgen features are available.
+  [36m// [36mGrep[0m [2m"web-sys|wasm-bindgen|js_sys" ~/startups/active/openwok/crates/frontend[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/Cargo.toml[0m

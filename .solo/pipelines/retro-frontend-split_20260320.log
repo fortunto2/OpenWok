@@ -1,0 +1,140 @@
+  [2msession: 0251820a  model: claude-opus-4-6[1m][0m
+Starting retro for OpenWok. Let me gather all artifacts first.
+  [36m**[0m [36mGlob[0m [2m".solo/pipelines/*.log" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m".solo/pipelines/*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan-done/*/plan.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/*/plan.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m".solo/pipelines/solo-pipeline-*.local.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/retro/references/eval-dimensions.md[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/retro/references/failure-catalog.md[0m
+
+Found 42 log files across multiple pipeline runs. Let me read the current pipeline's key artifacts.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/pipeline.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/autoplan-20260320-222310.log[0m
+  [32m$ [0m [33mBash[0m [2mShow last 50 commits[0m
+  [32m$ [0m [33mBash[0m [2mCheck CLAUDE.md size[0m
+
+Now let me gather plan fidelity data, tests, and sample iter logs in parallel.
+  [32m$ [0m [33mBash[0m [2mCount checked/unchecked checkboxes in all specs[0m
+  [32m$ [0m [33mBash[0m [2mCount checked/unchecked tasks in all plans[0m
+  [32m$ [0m [33mBash[0m [2mTotal commit count[0m
+  [32m$ [0m [33mBash[0m [2mCount conventional commits[0m
+  [32m$ [0m [33mBash[0m [2mCommitter breakdown[0m
+  [32m$ [0m [33mBash[0m [2mRun tests and get results[0m
+  [32m$ [0m [33mBash[0m [2mRun clippy check[0m
+  [36m**[0m [36mGlob[0m [2m"docs/retro/*.md" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mGet full test listing[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/courier-dispatch_20260320/spec.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/spec.md[0m
+
+Now I have all data. Let me check for scratch/ dir and read factory skills for the critic phase.
+  [32m$ [0m [33mBash[0m [2mCheck if scratch/ dir exists[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/build/SKILL.md[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/deploy/SKILL.md[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/review/SKILL.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck retro dir exists[0m
+
+All data collected. Writing the retro report now.
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-frontend-split.md[0m
+
+Now let me update the evolution log and check the factory skills.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+
+Now let me present the summary. The CLAUDE.md is 14.5KB — well under the 40K threshold, so no trimming needed.
+
+---
+
+## Retro Summary: OpenWok Full Pipeline Session
+
+### Overall Score: 7.4/10
+
+**6 tracks completed in 316 minutes (~5h16m):**
+
+| Track | Iters | Waste | Duration |
+|-------|-------|-------|----------|
+| pilot-infra | 3 | 0% | 62m |
+| repo-abstraction | 3 | 0% | 42m |
+| auth-payments | 8 | 37.5% | 83m |
+| restaurant-onboarding | 6 | 16.7% | 58m |
+| courier-dispatch | 3 | 0% | 55m |
+| frontend-split | 3 | 0% | 16m |
+
+### Top 3 Failure Patterns
+
+1. **Large plan overwhelm** (auth-payments, 48 tasks) — 3 restarts, 37% waste. Plans >30 tasks need auto-splitting.
+2. **Preventable redo** (auth-payments) — `cargo fmt` failures caused redo cycle. Now fixed by pre-commit hooks.
+3. **Silent session abort** (repo-abstraction) — 92 min of wall-clock lost, no partial recovery.
+
+### Top 3 Strengths
+
+1. **Build skill:** 8 consecutive 0-waste runs across all 6 tracks
+2. **Deploy skill:** 6 consecutive 0-waste deploys
+3. **Retro feedback loop:** 3 retros recommending pre-commit hooks → auto-plan generated frontend-split track → hooks implemented
+
+### Key Numbers
+
+- **101 tests**, 0 failures, clippy clean
+- **94%** conventional commits (142/151)
+- **CLAUDE.md:** 14.5KB (healthy)
+- **Criteria met:** 100% across all tracks
+
+### Top Recommendations
+
+1. **CRITICAL:** Partial progress recovery on restart (`solo-dev.sh`)
+2. **HIGH:** Auto-split plans >30 tasks (`plan/SKILL.md`)
+3. **MEDIUM:** Real-time iter log streaming via `tee`
+
+Report: `docs/retro/2026-03-20-retro-frontend-split.md`
+Evolution: `docs/evolution.md` (updated with retro #8)
+
+<solo:done/>Now let me present the summary. The CLAUDE.md is 14.5KB — well under the 40K threshold, so no trimming needed.
+
+---
+
+## Retro Summary: OpenWok Full Pipeline Session
+
+### Overall Score: 7.4/10
+
+**6 tracks completed in 316 minutes (~5h16m):**
+
+| Track | Iters | Waste | Duration |
+|-------|-------|-------|----------|
+| pilot-infra | 3 | 0% | 62m |
+| repo-abstraction | 3 | 0% | 42m |
+| auth-payments | 8 | 37.5% | 83m |
+| restaurant-onboarding | 6 | 16.7% | 58m |
+| courier-dispatch | 3 | 0% | 55m |
+| frontend-split | 3 | 0% | 16m |
+
+### Top 3 Failure Patterns
+
+1. **Large plan overwhelm** (auth-payments, 48 tasks) — 3 restarts, 37% waste. Plans >30 tasks need auto-splitting.
+2. **Preventable redo** (auth-payments) — `cargo fmt` failures caused redo cycle. Now fixed by pre-commit hooks.
+3. **Silent session abort** (repo-abstraction) — 92 min of wall-clock lost, no partial recovery.
+
+### Top 3 Strengths
+
+1. **Build skill:** 8 consecutive 0-waste runs across all 6 tracks
+2. **Deploy skill:** 6 consecutive 0-waste deploys
+3. **Retro feedback loop:** 3 retros recommending pre-commit hooks → auto-plan generated frontend-split track → hooks implemented
+
+### Key Numbers
+
+- **101 tests**, 0 failures, clippy clean
+- **94%** conventional commits (142/151)
+- **CLAUDE.md:** 14.5KB (healthy)
+- **Criteria met:** 100% across all tracks
+
+### Top Recommendations
+
+1. **CRITICAL:** Partial progress recovery on restart (`solo-dev.sh`)
+2. **HIGH:** Auto-split plans >30 tasks (`plan/SKILL.md`)
+3. **MEDIUM:** Real-time iter log streaming via `tee`
+
+Report: `docs/retro/2026-03-20-retro-frontend-split.md`
+Evolution: `docs/evolution.md` (updated with retro #8)
+
+<solo:done/>

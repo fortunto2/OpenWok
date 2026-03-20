@@ -1,125 +1,284 @@
-  [2msession: 4716373c  model: claude-opus-4-6[1m][0m
-  [36m**[0m [36mGlob[0m [2m"docs/plan/*/plan.md"[0m
+  [2msession: 69778c25  model: claude-opus-4-6[1m][0m
+The review returned `<solo:redo/>`, so I need to find and fix the issues it flagged. Let me load context.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/plan.md[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-003-review.log[0m
 
-Phase 5 has 4 fix tasks from review. Let me read the affected files.
+Review found blocked-user enforcement gap — `get_active_user` only called in admin + dispute endpoints. Phase 4 added with 5 tasks. Let me read the handler files to implement the fix.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/admin.rs[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+
+Let me also check the handler routing to understand how auth is wired.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
 
-I see the issues clearly. Let me fix them systematically.
 
-**Starting Task 5.1: Fix TOCTOU in handlers**
 
-The core problem: `update_menu_item` and `delete_menu_item` modify data BEFORE checking ownership. I need to add a `get_menu_item` method to the Repository trait to look up the item's restaurant_id first.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [36m// [36mGrep[0m [2m"get_menu_item"[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
-  [36m// [36mGrep[0m [2m"pub struct MenuItem" ~/startups/active/openwok/crates/core/src/types.rs[0m
-  [36m// [36mGrep[0m [2m"fn update_menu_item|fn delete_menu_item" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+**Starting Phase 4: Review Fixes — blocked-user enforcement gap**
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 4.1: Add blocked check to restaurant hand[0m
 
-Now I'll add `get_menu_item` to the Repository trait, implement it in both repos, and fix the TOCTOU in both handlers and worker.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+**Task 4.1: Add blocked check to restaurant handlers**
 
-Now implement `get_menu_item` in SqliteRepo.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+Mark task in plan.md and implement changes to restaurants.rs. The approach: add blocked check to `verify_ownership` (covers 5 handlers) and replace `get_user_by_supabase_id` with `get_active_user` in `create` and `my_restaurants`.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/plan.md[0m
 
-Now fix the TOCTOU in handlers — rewrite `update_menu_item` and `delete_menu_item`:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+Now edit restaurants.rs — import `get_active_user` and add blocked check to `verify_ownership`, `create`, `my_restaurants`.
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
 
-Now remove the unused `uuid` import since we no longer use `uuid::Uuid::nil()`:
-  [36m// [36mGrep[0m [2m"uuid::" ~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+Add blocked check to `verify_ownership`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
 
-Good, no remaining uuid references. Task 5.1 handlers fix is done. Now **Task 5.2: Fix TOCTOU in worker**.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+Replace `get_user_by_supabase_id` with `get_active_user` in `create`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
 
-Now add `get_menu_item` to D1Repo and fix the worker routes.
-  [36m// [36mGrep[0m [2m"fn update_menu_item|fn delete_menu_item" ~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+Replace in `my_restaurants`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
 
-Now add `get_menu_item` to D1Repo:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+Now remove unused import `UserRole` from restaurants.rs since we no longer directly reference it (it was used with the old user lookup). Let me check if it's still needed.
+  [36m// [36mGrep[0m [2m"UserRole" ~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
 
-Now fix the worker routes — PATCH and DELETE menu-items need to verify ownership BEFORE modifying:
+Good, `UserRole` is still used. Now Task 4.2 — couriers.rs.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 4.1: Add blocked check to restaurant hand[0m
+
+**Task 4.2: Add blocked check to courier handlers**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+
+Replace `get_user_by_supabase_id` in `create`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+
+Add blocked check to `toggle_available` (currently uses `_auth`):
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+
+Now I need to fix the return type — the old version returned `Result<Json<Courier>, StatusCode>` and the error mapping was `.map_err(|_| StatusCode::NOT_FOUND)`. With the new return type `Result<..., (StatusCode, String)>`, I need to update the error mapping:
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+
+Add blocked check to `assign_to_order`:
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+
+Replace `get_user_by_supabase_id` in `me`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+
+Replace in `my_deliveries`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+
+Now remove unused imports from couriers.rs. Let me check which imports are still needed.
+  [36m// [36mGrep[0m [2m"RepoError" ~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+
+Good, `RepoError` still used. Now Task 4.3 — orders.rs.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 4.1: Add blocked check to restaurant hand[0m
+
+**Task 4.3: Add blocked check to order handlers (create, transition)**
+
+For `orders::create`, it doesn't currently take `AuthUser`. I need to add it. For `transition`, change `_auth` to `auth` and add the check.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+
+Add `AuthUser` to `create` and call `get_active_user`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+
+Add blocked check to `transition`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+
+Now Task 4.4 — worker routes. This is the big one. I need to add blocked checks to all authenticated worker routes. Let me create a helper function in the worker.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 4.1: Add blocked check to restaurant hand[0m
+
+**Task 4.4: Add blocked checks to worker routes**
+
+I'll add a `require_active_user` helper to the worker and use it in all auth'd routes. The worker routes that need blocked check:
+- POST /api/restaurants (create)
+- PATCH /api/restaurants/:id
+- PATCH /api/restaurants/:id/active
+- POST /api/restaurants/:id/menu
+- PATCH /api/menu-items/:id
+- DELETE /api/menu-items/:id
+- GET /api/my/restaurants
+- POST /api/orders
+- PATCH /api/orders/:id/status
+- POST /api/orders/:id/assign
+- POST /api/couriers
+- PATCH /api/couriers/:id/available
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+
+Actually, the string matching approach is fragile. Let me replace it with a cleaner pattern — return `std::result::Result<User, Response>`:
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Now **Task 5.3: Fix clippy errors in frontend**. Let me read the exact lines:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+Now add blocked checks to each authenticated worker route. For routes that already call `get_user_by_supabase_id`, replace with `require_active_user`. For routes that only check auth, add user lookup + blocked check.
 
-Let me run clippy first to see the exact errors before fixing:
-  [32m$ [0m [33mBash[0m [2mRun clippy on frontend to see exact errors[0m
+**POST /api/restaurants** — replace user lookup:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Now I know the exact fixes. Apply both:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+**PATCH /api/restaurants/:id** — replace user lookup:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Now update plan.md and run `make check` (Task 5.4):
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mRun make check (test + clippy + fmt)[0m
+**PATCH /api/restaurants/:id/active** — replace user lookup:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Tests pass, clippy passes, just a formatting issue. Let me fix it:
-  [32m$ [0m [33mBash[0m [2mAuto-format code[0m
+**POST /api/restaurants/:id/menu** — replace user lookup:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Now also check the worker compiles for wasm32:
-  [32m$ [0m [33mBash[0m [2mCheck worker compiles for wasm32 target[0m
-  [32m$ [0m [33mBash[0m [2mCheck worker compiles from its directory[0m
+**PATCH /api/menu-items/:id** — replace user lookup:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Worker compiles. Now run `make check` again to confirm everything passes:
-  [32m$ [0m [33mBash[0m [2mVerify make check passes cleanly[0m
-  [32m$ [0m [33mBash[0m [2mRun make check from project root[0m
+**DELETE /api/menu-items/:id** — replace user lookup:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-All clean — tests pass, clippy clean, fmt clean. Now commit:
-  [32m$ [0m [33mBash[0m [2mCommit TOCTOU fix + clippy fixes[0m
+**GET /api/my/restaurants** — replace user lookup:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Now update the plan with SHA annotations and mark all Phase 5 tasks complete:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mCommit plan progress[0m
+**POST /api/orders** — add user lookup + blocked check (currently only checks auth exists):
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Phase 5 complete. All tasks done:
+**PATCH /api/orders/:id/status** — add blocked check:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+
+Now I need to add the actual blocked check for the status transition route. Let me read the current state around that area:
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+
+**POST /api/orders/:id/assign** — add blocked check:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+
+**POST /api/couriers** — add blocked check:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+
+**PATCH /api/couriers/:id/available** — add blocked check:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+
+Now let me also add courier GET endpoints that need blocked checks. Let me check — `GET /api/couriers/me` and `GET /api/my/deliveries`. Let me look if they exist in the worker:
+  [36m// [36mGrep[0m [2m""couriers/me|my/deliveries"" ~/startups/active/openwok/crates/worker/src/lib.rs[0m
+
+Those routes aren't in the worker — only in the handlers crate. Worker is already complete. Now let me build to check compilation.
+  [32m$ [0m [33mBash[0m [2mBuild workspace (excluding worker) to check compilation[0m
+
+Handlers + API build clean. Let me also build the worker (separate workspace):
+  [32m$ [0m [33mBash[0m [2mBuild worker crate[0m
+
+All builds pass. Now let me run the tests.
+  [32m$ [0m [33mBash[0m [2mRun test suite[0m
+
+All tests pass. Now Task 4.5 — add integration test for blocked user on non-admin endpoint.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 4.1: Add blocked check to restaurant hand[0m
+
+Let me find the existing test file for admin/blocked user tests.
+  [36m// [36mGrep[0m [2m"blocked|block_user|test_blocked"" ~/startups/active/openwok/crates/api/src[0m
+  [36m**[0m [36mGlob[0m [2m"crates/api/tests/**/*.rs"[0m
+  [36m// [36mGrep[0m [2m"#\[cfg\(test\)\]|#\[tokio::test\]"" ~/startups/active/openwok/crates[0m
+
+Let me check the existing admin/blocked tests in the API tests:
+  [36m// [36mGrep[0m [2m"test.*admin|test.*block|test.*dispute"" ~/startups/active/openwok/crates/api/src[0m
+  [36m// [36mGrep[0m [2m""fn test_"" ~/startups/active/openwok/crates/api/src/db.rs[0m
+  [36m// [36mGrep[0m [2m"fn test_|async fn test_"" ~/startups/active/openwok/crates/api/src[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+
+Now I understand the test pattern. I'll add a test that creates a user, blocks them, then verifies they get 403 on a non-admin endpoint (e.g., creating a restaurant). Let me see how the API crate's `app` function works.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+
+Good. Now I need to write a test that:
+1. Creates a seeded state
+2. Registers a user via auth callback
+3. Blocks that user via admin endpoint (or directly via repo)
+4. Tries to create a restaurant (non-admin endpoint) → expects 403
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+
+Now run the tests to verify:
+  [32m$ [0m [33mBash[0m [2mRun blocked user test[0m
+
+Need to import the Repository trait in the test:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mRun blocked user test[0m
+
+Test passes. Now run the full test suite:
+  [32m$ [0m [33mBash[0m [2mRun full check (test + clippy + fmt)[0m
+
+Formatting issue. Let me fix it:
+  [32m$ [0m [33mBash[0m [2mFix formatting[0m
+  [32m$ [0m [33mBash[0m [2mRun full check after formatting fix[0m
+
+All checks pass — tests, clippy, formatting. Now commit and update plan.md.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 4.1: Add blocked check to restaurant hand[0m
+  [32m$ [0m [33mBash[0m [2mCommit blocked-user enforcement fix[0m
+
+Now update plan.md — mark all Phase 4 tasks complete with SHA:
+  [32m$ [0m [33mBash[0m [2mGet commit SHA[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/plan.md[0m
+
+Update the plan status to complete:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/plan.md[0m
+
+Now update spec.md — mark the blocked user criterion as fully met:
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/spec.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/spec.md[0m
+
+Now update plan.md verification checkbox for spec:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/plan.md[0m
+
+Commit the plan/spec updates:
+  [32m$ [0m [33mBash[0m [2mCommit plan completion[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 4.1: Add blocked check to restaurant hand[0m
+
+Track complete: **admin-tools_20260320** (Phase 4: Review Fixes)
 
 ```
-Phase 5 complete! <!-- checkpoint:17fb4be -->
+Phase 4 complete! <!-- checkpoint:cb9c3f8 -->
 
-  Tasks:  4/4
-  Tests:  pass
-  Clippy: pass
-  Fmt:    pass
+  Tasks:  5/5
+  Tests:  106 passed, 0 failed
+  Linter: clean (clippy -D warnings)
+  Fmt:    clean
   Verification:
-    - [x] make check passes cleanly
-    - [x] TOCTOU fixed: non-owner update returns 403 without modifying data
+    - [x] Blocked users receive 403 on ALL authenticated endpoints
+    - [x] make check passes
+    - [x] spec.md criterion updated from [~] to [x]
 
-  Commits:
-    17fb4be — fix(security): TOCTOU in menu item ownership + clippy fixes
-    0642447 — chore(plan): complete phase 5
+  Phase checkpoints:
+    Phase 1: e4fc647  (domain types + migration)
+    Phase 2: 11b6953  (API endpoints + auth guards)
+    Phase 3: d167494  (frontend + docs)
+    Phase 4: cb9c3f8  (review fix — blocked-user enforcement)
+
+  Commits this iteration:
+    cb9c3f8  fix(handlers): enforce blocked-user check on all authenticated endpoints
+    4b1e0f5  chore(plan): complete Phase 4 review fixes
+
+  Revert Phase 4: git revert cb9c3f8..4b1e0f5
+  Revert entire track: git revert e4fc647..HEAD
 ```
 
-<solo:done/>Phase 5 complete. All tasks done:
+<solo:done/>Track complete: **admin-tools_20260320** (Phase 4: Review Fixes)
 
 ```
-Phase 5 complete! <!-- checkpoint:17fb4be -->
+Phase 4 complete! <!-- checkpoint:cb9c3f8 -->
 
-  Tasks:  4/4
-  Tests:  pass
-  Clippy: pass
-  Fmt:    pass
+  Tasks:  5/5
+  Tests:  106 passed, 0 failed
+  Linter: clean (clippy -D warnings)
+  Fmt:    clean
   Verification:
-    - [x] make check passes cleanly
-    - [x] TOCTOU fixed: non-owner update returns 403 without modifying data
+    - [x] Blocked users receive 403 on ALL authenticated endpoints
+    - [x] make check passes
+    - [x] spec.md criterion updated from [~] to [x]
 
-  Commits:
-    17fb4be — fix(security): TOCTOU in menu item ownership + clippy fixes
-    0642447 — chore(plan): complete phase 5
+  Phase checkpoints:
+    Phase 1: e4fc647  (domain types + migration)
+    Phase 2: 11b6953  (API endpoints + auth guards)
+    Phase 3: d167494  (frontend + docs)
+    Phase 4: cb9c3f8  (review fix — blocked-user enforcement)
+
+  Commits this iteration:
+    cb9c3f8  fix(handlers): enforce blocked-user check on all authenticated endpoints
+    4b1e0f5  chore(plan): complete Phase 4 review fixes
+
+  Revert Phase 4: git revert cb9c3f8..4b1e0f5
+  Revert entire track: git revert e4fc647..HEAD
 ```
 
 <solo:done/>

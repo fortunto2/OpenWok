@@ -1,165 +1,51 @@
-  [2msession: 09b0065f  model: claude-opus-4-6[1m][0m
-Let me gather context on what the review flagged and what needs fixing.
-  [32m$ [0m [33mBash[0m [2mRecent commits[0m
+  [2msession: 9c395412  model: claude-opus-4-6[1m][0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/admin-tools_20260320/plan.md[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-004-review.log[0m
+  [32m$ [0m [33mBash[0m [2mShow recent commits[0m
 
-Now let me read the plan with Phase 5 tasks and the worker source files.
-  [36m**[0m [36mGlob[0m [2m"docs/plan-done/auth-payments_20260320/*" ~/startups/active/openwok[0m
-  [36m**[0m [36mGlob[0m [2m"docs/plan/auth-payments_20260320/*" ~/startups/active/openwok[0m
-  [32m$ [0m [33mBash[0m [2mGet plan.md from last commit[0m
-
-Good — Phase 5 has 5 fix tasks from the review. Let me read the files I need to modify.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-Let me check the api payment flow and stripe-universal to understand the pattern for Task 5.3.
-  [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/payments.rs[0m
-  [36m**[0m [36mGlob[0m [2m"crates/stripe-universal/src/**/*.rs" ~/startups/active/openwok[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/stripe-universal/src/client.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/stripe.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/stripe-universal/src/types.rs[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 5.1: Run cargo fmt --all to fix formattin[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/Cargo.toml[0m
-  [36m// [36mGrep[0m [2m"CreateCourierRequest" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m// [36mGrep[0m [2m"CreateCourierRequest" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck if CreateCourierRequest is used in test module beyond the import[0m
-
-Good — `CreateCourierRequest` is only imported at line 899 in tests but never used. Now I have all the context. Let me start implementing.
-
-**Starting Task 5.1: Run `cargo fmt --all`**
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 5.1: Run cargo fmt --all to fix formattin[0m
-  [32m$ [0m [33mBash[0m [2mRun cargo fmt to fix formatting across all workspace crates[0m
-  [32m$ [0m [33mBash[0m [2mVerify formatting is now clean[0m
-
-Formatting fixed. Now also format the worker crate (standalone workspace).
-  [32m$ [0m [33mBash[0m [2mFormat worker crate (standalone workspace)[0m
-  [32m$ [0m [33mBash[0m [2mCommit formatting fix[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 5.1: Run cargo fmt --all to fix formattin[0m
-
-**Starting Task 5.2: Add auth enforcement to worker protected routes**
-
-I need to re-read the worker lib.rs since fmt may have changed line numbers.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Now I'll implement Tasks 5.2 and 5.3 together — adding auth enforcement to protected routes and payment flow to POST /api/orders. Let me make targeted edits.
-
-First, add `origin_url` to the order request DTO and add a helper for cents conversion:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Now add the cents helper function and `auth_err` helper after the existing helpers:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Now add auth enforcement to POST /api/orders AND add payment flow (Tasks 5.2 + 5.3):
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Now add auth to PATCH /api/orders/:id/status:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Add auth to POST /api/orders/:id/assign:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Add auth to POST /api/couriers:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Add auth to PATCH /api/couriers/:id/available:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Now Task 5.4: Fix unused import in sqlite_repo.rs tests:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-Now Task 5.5: Fix `.unwrap()` on date parsing in d1_repo.rs.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-
-Now fix the one at line ~842 in `create_user`:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-
-Also check `create_payment` for the same issue:
-  [36m// [36mGrep[0m [2m"\.unwrap\(\)" ~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-
-Good — all `.unwrap()` on date parsing in d1_repo.rs are now `unwrap_or_default()`. Let me verify the worker builds.
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 5.1: Run cargo fmt --all to fix formattin[0m
-  [32m$ [0m [33mBash[0m [2mRun workspace tests[0m
-  [32m$ [0m [33mBash[0m [2mCheck worker builds for wasm32[0m
-
-The workspace wasm32 check fails because the worker is a standalone workspace. Let me build it correctly.
-  [32m$ [0m [33mBash[0m [2mCheck worker builds for wasm32 from worker directory[0m
-  [32m$ [0m [33mBash[0m [2mRun clippy on workspace[0m
-
-Worker builds for wasm32 successfully. Let me check what make targets are available.
-  [32m$ [0m [33mBash[0m [2mRun clippy on workspace[0m
-  [32m$ [0m [33mBash[0m [2mCheck formatting[0m
-
-Formatting needs a touch-up after the import removal. Let me fix it.
-  [32m$ [0m [33mBash[0m [2mRe-run cargo fmt after import edit[0m
-
-Now run all checks to verify:
-  [32m$ [0m [33mBash[0m [2mRun all tests[0m
+All tasks in plan.md are `[x]` — track already complete. Running final verification.
+  [32m$ [0m [33mBash[0m [2mRun tests[0m
   [32m$ [0m [33mBash[0m [2mRun clippy[0m
   [32m$ [0m [33mBash[0m [2mCheck formatting[0m
 
-All checks pass: tests (91 pass), clippy clean, fmt clean, worker builds for wasm32. Now commit and update plan.md.
-  [32m$ [0m [33mBash[0m [2mCommit all Phase 5 fixes[0m
+Tests pass, clippy clean, formatting clean. Track is fully complete — no remaining tasks, no new code needed.
 
-Now update plan.md with task completions and SHAs:
-  [32m$ [0m [33mBash[0m [2mGet commit SHA[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
+```
+Track complete: Admin Tools — Block/Unblock + Dispute Resolution (admin-tools_20260320)
 
-Also update the plan status to complete:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mCommit plan completion[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 5.1: Run cargo fmt --all to fix formattin[0m
+  Phases: 4/4
+  Tasks:  17/17
+  Tests:  All passing
+  Clippy: Clean
+  Fmt:    Clean
 
-Track complete: **auth-payments_20260320**
+  Phase checkpoints:
+    Phase 1: e4fc647  (domain types, migration, repo)
+    Phase 2: 11b6953  (API endpoints, auth guards, tests)
+    Phase 3: d167494  (frontend tabs, docs)
+    Phase 4: cb9c3f8  (review fixes — blocked-user enforcement)
 
-  Phases: 5/5
-  Tasks:  18/18
-  Tests:  91 passing, 0 failures
-  Clippy: clean (0 warnings)
-  Fmt:    clean
+  Revert entire track: git revert e4fc647..HEAD
+```
 
-  Phase 5 commits:
-    cff69c5 — `cargo fmt --all`
-    f816233 — worker auth enforcement + payment flow + unwrap fixes + unused import
-    00a73b2 — plan complete
+<solo:done/>Tests pass, clippy clean, formatting clean. Track is fully complete — no remaining tasks, no new code needed.
 
-  Key fixes:
-  - **[CRITICAL]** Worker protected routes now enforce JWT auth (return 401 without valid token)
-  - **[CRITICAL]** Worker POST /api/orders creates Payment record + Stripe Checkout Session
-  - **[CRITICAL]** Formatting fixed across all crates
-  - **[MODERATE]** `.unwrap()` on date parsing replaced with `.unwrap_or_default()`
-  - **[MINOR]** Unused import removed
+```
+Track complete: Admin Tools — Block/Unblock + Dispute Resolution (admin-tools_20260320)
 
-<solo:done/>Track complete: **auth-payments_20260320**
+  Phases: 4/4
+  Tasks:  17/17
+  Tests:  All passing
+  Clippy: Clean
+  Fmt:    Clean
 
-  Phases: 5/5
-  Tasks:  18/18
-  Tests:  91 passing, 0 failures
-  Clippy: clean (0 warnings)
-  Fmt:    clean
+  Phase checkpoints:
+    Phase 1: e4fc647  (domain types, migration, repo)
+    Phase 2: 11b6953  (API endpoints, auth guards, tests)
+    Phase 3: d167494  (frontend tabs, docs)
+    Phase 4: cb9c3f8  (review fixes — blocked-user enforcement)
 
-  Phase 5 commits:
-    cff69c5 — `cargo fmt --all`
-    f816233 — worker auth enforcement + payment flow + unwrap fixes + unused import
-    00a73b2 — plan complete
-
-  Key fixes:
-  - **[CRITICAL]** Worker protected routes now enforce JWT auth (return 401 without valid token)
-  - **[CRITICAL]** Worker POST /api/orders creates Payment record + Stripe Checkout Session
-  - **[CRITICAL]** Formatting fixed across all crates
-  - **[MODERATE]** `.unwrap()` on date parsing replaced with `.unwrap_or_default()`
-  - **[MINOR]** Unused import removed
+  Revert entire track: git revert e4fc647..HEAD
+```
 
 <solo:done/>

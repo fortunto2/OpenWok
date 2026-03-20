@@ -1,8 +1,0 @@
-[application]
-name = "openwok-mobile"
-asset_dir = "assets"
-
-[bundle]
-identifier = "co.superduperai.openwok"
-publisher = "SuperDuperAI"
-icon = ["assets/icon.png"]

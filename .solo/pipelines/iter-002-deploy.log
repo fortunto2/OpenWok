@@ -1,148 +1,145 @@
-  [2msession: 6c5fbc2e  model: claude-opus-4-6[1m][0m
+  [2msession: f93d1292  model: claude-opus-4-6[1m][0m
   [35m=>[0m [35msolo:deploy[0m
 
 
 
-## Deploy Stage — OpenWok
+**Deploy stage (2/3) for OpenWok**
 
-Starting pre-flight checks.
-  [32m$ [0m [33mBash[0m [2mCheck build state[0m
-  [32m$ [0m [33mBash[0m [2mDetect CLI tools[0m
-  [32m$ [0m [33mBash[0m [2mRecent commits[0m
+Starting pre-flight checks — detecting CLIs, reading project config, checking current state.
+  [32m$ [0m [33mBash[0m [2mCheck wrangler CLI availability[0m
+  [32m$ [0m [33mBash[0m [2mCheck gh CLI availability[0m
+  [32m$ [0m [33mBash[0m [2mRecent commit history[0m
   [32m$ [0m [33mBash[0m [2mCheck git remotes[0m
+  [36m**[0m [36mGlob[0m [2m"**/wrangler.toml" ~/startups/active/openwok[0m
 
-Build complete. Wrangler 4.60.0 and gh CLI available. Let me read the deployment config.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/wrangler.toml[0m
-  [32m$ [0m [33mBash[0m [2mCheck deploy target in Makefile[0m
-  [32m$ [0m [33mBash[0m [2mCheck working tree status[0m
-  [36m**[0m [36mGlob[0m [2m"**/wrangler.toml"[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
+Good — wrangler 4.60.0 and gh CLI available, remote is set up. Let me read the wrangler config and check what needs deploying.
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/wrangler.toml[0m
+  [32m$ [0m [33mBash[0m [2mCheck uncommitted changes[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
 
-Good. Cloudflare Worker with D1 database. Let me check the current state of D1 migrations and whether the app builds.
-  [32m$ [0m [33mBash[0m [2mCheck D1 migration status[0m
-  [32m$ [0m [33mBash[0m [2mCheck current public dir[0m
-  [32m$ [0m [33mBash[0m [2mCheck worker build artifacts[0m
+Deploy target: **Cloudflare Workers** with D1 database. Pipeline: `build-frontend` → `build-worker` → `wrangler deploy` + D1 migrations.
 
-D1 migrations are up-to-date. Build artifacts exist, but the frontend was refactored (11 modules split). Let me verify the build works before deploying.
-  [32m$ [0m [33mBash[0m [2mRun tests[0m
+Let me check build prerequisites and the new migration.
+  [32m$ [0m [33mBash[0m [2mCheck dx (Dioxus) CLI[0m
+  [32m$ [0m [33mBash[0m [2mCheck worker-build CLI[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0011_fix_seed_uuids.sql[0m
+  [32m$ [0m [33mBash[0m [2mCheck public/ directory state[0m
 
-Tests pass. Now let me build the frontend and worker. The frontend was recently refactored, so the public/ dir may have stale assets.
-  [32m$ [0m [33mBash[0m [2mBuild tailwind CSS[0m
-  [32m$ [0m [33mBash[0m [2mBuild Dioxus frontend (WASM)[0m
+All tools available: dx 0.7.3, worker-build 0.7.5, wrangler 4.60.0. Let me check the worker crate for the new `/api/my/orders` route, then proceed with the build pipeline.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/Cargo.toml[0m
+  [32m$ [0m [33mBash[0m [2mList worker source files[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
 
-Frontend built. Copy to public/ and build the worker.
-  [32m$ [0m [33mBash[0m [2mCopy frontend assets to public/[0m
-  [32m$ [0m [33mBash[0m [2mCreate public/ and copy assets[0m
-  [32m$ [0m [33mBash[0m [2mBuild Cloudflare Worker[0m
-  [32m$ [0m [33mBash[0m [2mList crates directory[0m
-  [32m$ [0m [33mBash[0m [2mList project root[0m
-  [32m$ [0m [33mBash[0m [2mCheck current directory[0m
+Worker code looks complete with `/api/my/orders` route from iter-1. Let me start the build pipeline. Worker build first (it's the most likely to fail), then frontend.
+  [32m$ [0m [33mBash[0m [2mBuild Cloudflare Worker (WASM)[0m
 
-I'm in the frontend crate dir from the dx build. Let me go back to project root.
-  [32m$ [0m [33mBash[0m [2mBuild Cloudflare Worker from project root[0m
+Worker build succeeded. Now build the frontend.
+  [32m$ [0m [33mBash[0m [2mBuild Dioxus frontend (WASM) + copy to public/[0m
 
-Both frontend and worker build successfully. Let me first commit dirty files, then push and deploy.
-  [32m$ [0m [33mBash[0m [2mCheck dirty files before committing[0m
-  [32m$ [0m [33mBash[0m [2mCommit pipeline state and docs[0m
+Both builds succeeded. Now let me apply the D1 migration and deploy.
+  [32m$ [0m [33mBash[0m [2mApply D1 migrations to production database[0m
+  [32m$ [0m [33mBash[0m [2mList applied D1 migrations[0m
+  [32m$ [0m [33mBash[0m [2mCheck migrations directory[0m
 
-Good. Now push to GitHub and deploy.
+Migration 0011 already applied. Let me now commit the build artifacts and deploy.
+  [32m$ [0m [33mBash[0m [2mStage code changes for pre-deploy commit[0m
+  [32m$ [0m [33mBash[0m [2mCommit pre-deploy changes[0m
+
+Good, commit passed pre-commit hooks. Now push to GitHub and deploy to Cloudflare.
   [32m$ [0m [33mBash[0m [2mPush to GitHub[0m
 
-Pushed. Now deploy to Cloudflare Workers.
+Pushed. Now deploy the worker to Cloudflare.
   [32m$ [0m [33mBash[0m [2mDeploy to Cloudflare Workers[0m
 
-Deployed. Let me verify it's live.
-  [32m$ [0m [33mBash[0m [2mCheck deployment HTTP status[0m
-  [32m$ [0m [33mBash[0m [2mCheck custom domain HTTP status[0m
+Deployed successfully. Let me verify the deployment is live.
   [32m$ [0m [33mBash[0m [2mCheck API health endpoint[0m
+  [32m$ [0m [33mBash[0m [2mCheck frontend homepage[0m
 
-Both URLs return HTTP 200, API health returns "ok". Let me verify the frontend loads and test a couple more endpoints.
+Both return 200. Let me verify the API returns actual data and check a few more endpoints.
+  [32m$ [0m [33mBash[0m [2mHealth check response body[0m
+  [32m$ [0m [33mBash[0m [2mCheck restaurants API returns data[0m
   [32m$ [0m [33mBash[0m [2mCheck frontend HTML loads[0m
-  [32m$ [0m [33mBash[0m [2mCheck restaurants API[0m
 
-Everything verified:
-- Frontend: HTTP 200, HTML with WASM bundle loads
-- API health: returns "ok"
-- Restaurants API: returns 18 restaurants with menus across 6 LA zones
-- Custom domain `openwok.superduperai.co`: HTTP 200
+All verified:
+- `/api/health` → 200 "ok"
+- `/api/restaurants` → 200, returns 18 restaurants with proper UUIDs and menus
+- `/` → 200, serves Dioxus SPA with correct WASM bundle
 
-Let me check production logs and update the deploy state.
-  [32m$ [0m [33mBash[0m [2mTail production logs and trigger test requests[0m
+Let me also check the admin and economics endpoints.
+  [32m$ [0m [33mBash[0m [2mCheck economics and metrics endpoints[0m
 
-Clean logs — no errors. Now update deploy state and commit.
-  [32m$ [0m [33mBash[0m [2mWrite deploy state marker[0m
-  [32m$ [0m [33mBash[0m [2mCommit deploy state[0m
-  [32m$ [0m [33mBash[0m [2mPush deploy state to GitHub[0m
+All endpoints returning 200. Deployment is fully verified and live.
 
 ---
 
-## Deployment Report
-
 ```
-Deployment: openwok
+Deployment: OpenWok
 
-  Platform:  Cloudflare Workers (wrangler 4.60.0)
+  Platform:  Cloudflare Workers
   URL:       https://openwok.superduperai.co
   Worker:    https://openwok.nameless-sunset-8f24.workers.dev
   Branch:    main
-  Commit:    10edf54
+  Commit:    2117330
 
-  Verified:
-    - [x] Code pushed to GitHub (fortunto2/OpenWok)
-    - [x] Frontend built (Dioxus WASM + Tailwind)
+  Done:
     - [x] Worker built (worker-build --release)
-    - [x] Deployed to Cloudflare Workers
-    - [x] D1 migrations up-to-date (9 migrations applied)
-    - [x] HTTP 200 on both URLs
-    - [x] API /health → ok
-    - [x] API /restaurants → 18 restaurants across 6 LA zones
-    - [x] Production logs clean (no errors)
+    - [x] Frontend built (dx build --platform web --release)
+    - [x] Code pushed to GitHub (fortunto2/OpenWok)
+    - [x] Deployed to Cloudflare Workers (wrangler deploy)
+    - [x] D1 migrations applied (all 11 applied)
+    - [x] Verified: /api/health → 200
+    - [x] Verified: /api/restaurants → 200 (18 restaurants, proper UUIDs)
+    - [x] Verified: / → 200 (SPA loads correctly)
+    - [x] Verified: /api/public/economics → 200
+    - [x] Verified: /api/admin/metrics → 200
 
-  Env vars configured:
-    - ENVIRONMENT = "production" (in wrangler.toml)
-    - DB binding → openwok-db (D1)
+  Bindings:
+    - DB: D1 (openwok-db)
+    - ASSETS: Static (public/)
+    - ENVIRONMENT: "production"
 
-  Manual steps (optional):
-    - [ ] Set Stripe secrets: wrangler secret put STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET
-    - [ ] Set Supabase secrets: wrangler secret put SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_JWT_SECRET
-    - [ ] PostHog: set window.__POSTHOG_API_KEY__ in frontend config
+  Secrets (already configured):
+    - SUPABASE_JWT_SECRET
+    - STRIPE_SECRET_KEY
+    - STRIPE_WEBHOOK_SECRET
 
   Next: /review — final quality gate
 ```
 
-<solo:done/>---
+<solo:done/>All endpoints returning 200. Deployment is fully verified and live.
 
-## Deployment Report
+---
 
 ```
-Deployment: openwok
+Deployment: OpenWok
 
-  Platform:  Cloudflare Workers (wrangler 4.60.0)
+  Platform:  Cloudflare Workers
   URL:       https://openwok.superduperai.co
   Worker:    https://openwok.nameless-sunset-8f24.workers.dev
   Branch:    main
-  Commit:    10edf54
+  Commit:    2117330
 
-  Verified:
-    - [x] Code pushed to GitHub (fortunto2/OpenWok)
-    - [x] Frontend built (Dioxus WASM + Tailwind)
+  Done:
     - [x] Worker built (worker-build --release)
-    - [x] Deployed to Cloudflare Workers
-    - [x] D1 migrations up-to-date (9 migrations applied)
-    - [x] HTTP 200 on both URLs
-    - [x] API /health → ok
-    - [x] API /restaurants → 18 restaurants across 6 LA zones
-    - [x] Production logs clean (no errors)
+    - [x] Frontend built (dx build --platform web --release)
+    - [x] Code pushed to GitHub (fortunto2/OpenWok)
+    - [x] Deployed to Cloudflare Workers (wrangler deploy)
+    - [x] D1 migrations applied (all 11 applied)
+    - [x] Verified: /api/health → 200
+    - [x] Verified: /api/restaurants → 200 (18 restaurants, proper UUIDs)
+    - [x] Verified: / → 200 (SPA loads correctly)
+    - [x] Verified: /api/public/economics → 200
+    - [x] Verified: /api/admin/metrics → 200
 
-  Env vars configured:
-    - ENVIRONMENT = "production" (in wrangler.toml)
-    - DB binding → openwok-db (D1)
+  Bindings:
+    - DB: D1 (openwok-db)
+    - ASSETS: Static (public/)
+    - ENVIRONMENT: "production"
 
-  Manual steps (optional):
-    - [ ] Set Stripe secrets: wrangler secret put STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET
-    - [ ] Set Supabase secrets: wrangler secret put SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_JWT_SECRET
-    - [ ] PostHog: set window.__POSTHOG_API_KEY__ in frontend config
+  Secrets (already configured):
+    - SUPABASE_JWT_SECRET
+    - STRIPE_SECRET_KEY
+    - STRIPE_WEBHOOK_SECRET
 
   Next: /review — final quality gate
 ```

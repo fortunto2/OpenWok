@@ -269,3 +269,106 @@
 [22:58:23] CWD | /Users/rustam/startups/active/openwok
 [22:58:23] GRAPH | Updating code graph for RepoMap...
 [22:58:23] INVOKE | /solo:build 
+[23:15:37] SIGNAL | <solo:done/> → creating build
+[23:15:37] ITER | saved iter-001-build.log | commit: d42d2d8 | result: stage complete
+[23:15:37] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
+[23:15:39] STAGE | iter 2/10 | stage 2/3: deploy
+[23:15:39] CWD | /Users/rustam/startups/active/openwok
+[23:15:39] INVOKE | /solo:deploy 
+[23:18:19] SIGNAL | <solo:done/> → creating deploy
+[23:18:19] ITER | saved iter-002-deploy.log | commit: d42d2d8 | result: stage complete
+[23:18:19] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
+[23:18:21] STAGE | iter 3/10 | stage 3/3: review
+[23:18:21] PLAN | Active plan track: admin-tools_20260320
+[23:18:21] CWD | /Users/rustam/startups/active/openwok
+[23:18:21] INVOKE | /solo:review 
+[23:21:31] REDO | <solo:redo/> cycle 1/2 — going back to build
+[23:21:31] SIGNAL | <solo:redo/> → removing .solo/states/build
+[23:21:32] SIGNAL | <solo:redo/> → removing .solo/states/deploy
+[23:21:32] ITER | saved iter-003-review.log | commit: 048785e | result: continuing
+[23:21:32] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> NOT FOUND
+[23:21:34] STAGE | iter 4/10 | stage 1/3: build
+[23:21:34] PLAN | Active plan track: admin-tools_20260320
+[23:21:34] CWD | /Users/rustam/startups/active/openwok
+[23:21:34] GRAPH | Updating code graph for RepoMap...
+[23:21:34] INVOKE | /solo:build 
+[23:34:28] REDO | <solo:redo/> cycle 2/2 — going back to build
+[23:34:28] ITER | saved iter-004-build.log | commit: 4b1e0f5 | result: continuing
+[23:34:28] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> NOT FOUND
+[23:34:30] STAGE | iter 5/10 | stage 1/3: build
+[23:34:30] PLAN | Active plan track: admin-tools_20260320
+[23:34:30] CWD | /Users/rustam/startups/active/openwok
+[23:34:30] GRAPH | Updating code graph for RepoMap...
+[23:34:30] INVOKE | /solo:build 
+[23:35:11] SIGNAL | <solo:done/> → creating build
+[23:35:11] ITER | saved iter-005-build.log | commit: 4b1e0f5 | result: stage complete
+[23:35:11] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
+[23:35:13] STAGE | iter 6/10 | stage 2/3: deploy
+[23:35:13] CWD | /Users/rustam/startups/active/openwok
+[23:35:13] INVOKE | /solo:deploy 
+[23:38:47] SIGNAL | <solo:done/> → creating deploy
+[23:38:47] ITER | saved iter-006-deploy.log | commit: 4b1e0f5 | result: stage complete
+[23:38:47] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
+[23:38:49] STAGE | iter 7/10 | stage 3/3: review
+[23:38:49] PLAN | Active plan track: admin-tools_20260320
+[23:38:49] CWD | /Users/rustam/startups/active/openwok
+[23:38:49] INVOKE | /solo:review 
+[23:40:58] SIGNAL | <solo:done/> → creating review
+[23:40:58] ITER | saved iter-007-review.log | commit: 4b1e0f5 | result: stage complete
+[23:40:58] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> FOUND
+[23:40:58] RETRO | Running retro for plan: admin-tools_20260320...
+[23:48:48] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-admin-tools_20260320.log
+[23:48:48] DONE | All stages complete (no more plans in queue)
+[23:48:48] FINISH | Duration: 50m
+[23:48:48] DONE | Pipeline complete! 13 plans cycled.
+[23:48:48] ARCHIVE | Archiving: admin-tools_20260320 → docs/plan-done/
+[23:48:48] POST | Running auto-plan from backlog...
+[23:55:46] POST | Auto-plan complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/autoplan-20260320-234848.log
+[23:55:46] POST | New plan created: restaurant-orders_20260320 — restarting build→deploy→review
+[23:55:46] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[23:55:46] STAGE | iter 1/10 | stage 1/3: build
+[23:55:46] PLAN | Active plan track: restaurant-orders_20260320
+[23:55:46] CWD | /Users/rustam/startups/active/openwok
+[23:55:46] GRAPH | Updating code graph for RepoMap...
+[23:55:46] INVOKE | /solo:build 
+[00:15:35] SIGNAL | <solo:done/> → creating build
+[00:15:35] ITER | saved iter-001-build.log | commit: 3ee0be0 | result: stage complete
+[00:15:35] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
+[00:15:37] STAGE | iter 2/10 | stage 2/3: deploy
+[00:15:37] CWD | /Users/rustam/startups/active/openwok
+[00:15:37] INVOKE | /solo:deploy 
+[00:20:45] SIGNAL | <solo:done/> → creating deploy
+[00:20:45] ITER | saved iter-002-deploy.log | commit: 2117330 | result: stage complete
+[00:20:45] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
+[00:20:47] STAGE | iter 3/10 | stage 3/3: review
+[00:20:47] PLAN | Active plan track: restaurant-orders_20260320
+[00:20:47] CWD | /Users/rustam/startups/active/openwok
+[00:20:47] INVOKE | /solo:review 
+[00:23:05] SIGNAL | <solo:done/> → creating review
+[00:23:05] ITER | saved iter-003-review.log | commit: f91452f | result: stage complete
+[00:23:05] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> FOUND
+[00:23:05] RETRO | Running retro for plan: restaurant-orders_20260320...
+[00:28:37] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-restaurant-orders_20260320.log
+[00:28:37] DONE | All stages complete (no more plans in queue)
+[00:28:37] FINISH | Duration: 32m
+[00:28:37] DONE | Pipeline complete! 14 plans cycled.
+[00:28:37] ARCHIVE | Archiving: restaurant-orders_20260320 → docs/plan-done/
+[00:28:38] POST | Running auto-plan from backlog...
+[00:34:49] POST | Auto-plan complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/autoplan-20260321-002838.log
+[00:34:49] POST | New plan created: courier-pwa_20260321 — restarting build→deploy→review
+[00:34:49] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[00:34:49] STAGE | iter 1/10 | stage 1/3: build
+[00:34:49] PLAN | Active plan track: courier-pwa_20260321
+[00:34:49] CWD | /Users/rustam/startups/active/openwok
+[00:34:49] GRAPH | Updating code graph for RepoMap...
+[00:34:50] INVOKE | /solo:build 
+[00:36:38] ITER | saved iter-001-build.log | commit: 221528f | result: continuing
+[00:36:38] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> NOT FOUND
+[00:48:43] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[00:48:43] STAGE | iter 1/10 | stage 1/3: build
+[00:48:43] PLAN | Active plan track: courier-mobile_20260321
+[00:48:43] CWD | /Users/rustam/startups/active/openwok
+[00:48:43] GRAPH | Updating code graph for RepoMap...
+[00:48:43] INVOKE | /solo:build 
+[00:52:04] ITER | saved iter-001-build.log | commit: 8962ece | result: continuing
+[00:52:04] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> NOT FOUND
