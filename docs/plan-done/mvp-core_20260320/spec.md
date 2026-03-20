@@ -13,16 +13,16 @@ The pricing calculator is the core innovation: every receipt shows exactly 6 lin
 
 ## Acceptance Criteria
 
-- [ ] Cargo workspace compiles, `make check` passes (test + clippy + fmt)
-- [ ] Domain types: `Money`, `Order`, `Restaurant`, `MenuItem`, `Courier`, `DeliveryAgent`, `Node`, `Zone`, `PricingBreakdown`
-- [ ] Pricing calculator produces 6-line breakdown: Food / Delivery / Tip / Federal Fee ($1.00) / Local Ops Fee / Processing (2.9% + $0.30)
-- [ ] Pricing calculator tested: edge cases (zero tip, zero delivery, large orders, rounding)
-- [ ] Order state machine: Created → Confirmed → Preparing → ReadyForPickup → InDelivery → Delivered (+ Cancelled)
-- [ ] Invalid state transitions rejected with errors
-- [ ] axum REST API: health, restaurants CRUD, order create/status/list, courier availability
-- [ ] API returns `PricingBreakdown` in order responses
-- [ ] Integration tests for order flow (create → confirm → deliver)
-- [ ] CLI smoke test: can create order and see pricing breakdown
+- [x] Cargo workspace compiles, `make check` passes (test + clippy + fmt)
+- [x] Domain types: `Money`, `Order`, `Restaurant`, `MenuItem`, `Courier`, `DeliveryAgent`, `Node`, `Zone`, `PricingBreakdown`
+- [x] Pricing calculator produces 6-line breakdown: Food / Delivery / Tip / Federal Fee ($1.00) / Local Ops Fee / Processing (2.9% + $0.30)
+- [x] Pricing calculator tested: edge cases (zero tip, zero delivery, large orders, rounding)
+- [x] Order state machine: Created → Confirmed → Preparing → ReadyForPickup → InDelivery → Delivered (+ Cancelled)
+- [x] Invalid state transitions rejected with errors
+- [x] axum REST API: health, restaurants CRUD, order create/status/list, courier availability
+- [x] API returns `PricingBreakdown` in order responses
+- [x] Integration tests for order flow (create → confirm → deliver)
+- [x] CLI smoke test: can create order and see pricing breakdown
 
 ## Dependencies
 
