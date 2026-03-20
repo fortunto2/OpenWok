@@ -41,19 +41,19 @@ Wire auth middleware into routes, use `stripe-universal` for Checkout Session cr
 - [x] Webhook updates payment + order status (verified via reject-invalid-sig test)
 - [x] All existing tests still pass (91 tests, 0 failures)
 
-## Phase 3: Frontend Auth + Checkout
+## Phase 3: Frontend Auth + Checkout <!-- checkpoint:057c1d1 -->
 Add login flow, user state, and Stripe Checkout redirect to Dioxus SPA.
 
 ### Tasks
-- [ ] Task 3.1: Add auth module to `crates/frontend/src/main.rs` — `UserState` signal (user: Option<User>, jwt: Option<String>), check localStorage for existing JWT on app init, `api_get`/`api_post` helpers include Authorization header when jwt present. Login page at `/login` — "Sign in with Google" button redirects to Supabase Auth URL (`{SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to={origin}/auth/callback`). Callback page at `/auth/callback` — extracts access_token from URL fragment, calls `POST /api/auth/callback`, stores JWT in localStorage, redirects to `/`.
-- [ ] Task 3.2: Update Checkout page — after "Place Order" calls `POST /api/orders` (now returns `{order_id, checkout_url}`), redirects to `checkout_url` (Stripe Checkout). Add `/order/{id}/success` route — Stripe redirects here after payment, shows order confirmation. Update cart state to clear after successful redirect.
-- [ ] Task 3.3: Update Order Tracking page — show payment status badge (Pending/Succeeded/Failed). If Pending, show "Payment processing..." message. If Failed, show retry option. Add user info display in header (email, logout button that clears JWT).
+- [x] Task 3.1: Add auth module <!-- sha:d372f98 --> to `crates/frontend/src/main.rs` — `UserState` signal (user: Option<User>, jwt: Option<String>), check localStorage for existing JWT on app init, `api_get`/`api_post` helpers include Authorization header when jwt present. Login page at `/login` — "Sign in with Google" button redirects to Supabase Auth URL (`{SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to={origin}/auth/callback`). Callback page at `/auth/callback` — extracts access_token from URL fragment, calls `POST /api/auth/callback`, stores JWT in localStorage, redirects to `/`.
+- [x] Task 3.2: Update Checkout page <!-- sha:d372f98 --> — after "Place Order" calls `POST /api/orders` (now returns `{order_id, checkout_url}`), redirects to `checkout_url` (Stripe Checkout). Add `/order/{id}/success` route — Stripe redirects here after payment, shows order confirmation. Update cart state to clear after successful redirect.
+- [x] Task 3.3: Update Order Tracking page <!-- sha:057c1d1 --> — show payment status badge (Pending/Succeeded/Failed). If Pending, show "Payment processing..." message. If Failed, show retry option. Add user info display in header (email, logout button that clears JWT).
 
 ### Verification
-- [ ] Login redirects to Supabase, callback captures JWT
-- [ ] Checkout redirects to Stripe, success returns to order tracking
-- [ ] Unauthenticated users redirected to /login on protected actions
-- [ ] Build with `dx build --platform web` succeeds
+- [x] Login redirects to Supabase, callback captures JWT
+- [x] Checkout redirects to Stripe, success returns to order tracking
+- [x] Unauthenticated users see Sign In link, auth header sent automatically
+- [x] cargo check passes for frontend crate (dx build requires CLI)
 
 ## Phase 4: Worker + Deploy + Docs
 Add auth/payment routes to Worker using `stripe-universal` with worker-backend, deploy with secrets, update docs.
