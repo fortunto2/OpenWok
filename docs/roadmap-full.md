@@ -1,111 +1,111 @@
 # OpenWok — Full Roadmap
 
-> LA узел → федерация → роботы. $1 federal + local ops. Trusted invites.
+> LA node → federation → robots. $1 federal + local ops. Trusted invites.
 
-## 0) Продукт/правила (1–3 дня)
+## 0) Product Rules (1–3 days)
 
-- [x] "Конституция денег" (6 строк чека): Food / Delivery / Tip / Federal $1 / Local Ops / Processing
-- [x] Формула Local Ops Fee для MVP (фикс по зонам)
-- [ ] Минимальные SLA метрики: on-time %, ETA error, cancel rate, refund rate, time-to-resolution
-- [ ] Базовая политика prohibited items + инцидент-флоу (kill switch, freeze payouts)
+- [x] "Money Constitution" (6-line receipt): Food / Delivery / Tip / Federal $1 / Local Ops / Processing
+- [x] Local Ops Fee formula for MVP (fixed per zone)
+- [ ] Minimum SLA metrics: on-time %, ETA error, cancel rate, refund rate, time-to-resolution
+- [ ] Prohibited items policy + incident flow (kill switch, freeze payouts)
 
-## 1) Протокол событий (Event Protocol v0) (3–5 дней)
+## 1) Event Protocol v0 (3–5 days)
 
-- [ ] Схемы событий (JSON): OrderCreated / OrderAccepted / CourierAssigned / PickupConfirmed / DropoffConfirmed
+- [ ] Event schemas (JSON): OrderCreated / OrderAccepted / CourierAssigned / PickupConfirmed / DropoffConfirmed
 - [ ] RefundRequested / RefundResolved
 - [ ] PolicyProposed / PolicyActivated
-- [ ] InviteCreated / InviteAccepted (для trusted invites)
-- [ ] Идентификаторы, идемпотентность, дедупликация
-- [ ] Подписи событий (server signing), версионирование схем
+- [ ] InviteCreated / InviteAccepted (trusted invites)
+- [ ] Identifiers, idempotency, deduplication
+- [ ] Event signing (server signing), schema versioning
 
-## 2) Core backend (LA node) — Rust (2–4 недели)
+## 2) Core Backend (LA node) — Rust (2–4 weeks)
 
-### Сервисный каркас
+### Service Framework
 - [x] HTTP API (axum) + endpoints
-- [ ] OpenAPI спека (utoipa)
+- [ ] OpenAPI spec (utoipa)
 - [ ] Auth: users/roles (customer/merchant/courier/operator/admin)
-- [ ] Storage: Postgres (sqlx), миграции
-- [ ] Очереди/джобы: Redis + background jobs (или NATS)
-- [ ] Observability: logs + tracing + metrics
+- [ ] Storage: Postgres (sqlx), migrations
+- [ ] Job queue: Redis + background jobs (or NATS for event bus)
+- [ ] Observability: logs + tracing + metrics (opentelemetry)
 
-### Домены
-- [x] Каталог: рестораны/меню/цены
-- [x] Заказы: корзина → заказ → статусы (state machine)
-- [x] "Open-book breakdown" вычисление чека (6 строк)
-- [ ] Налоги/время готовки в каталоге
-- [ ] Диспетч v1: rule-based (ETA, расстояние, fairness, нагрузка)
-- [ ] Рефанды/диспуты: флоу + доказательства (фото/гео/таймстемпы)
-- [ ] Event log (append-only таблица + projections)
+### Domains
+- [x] Catalog: restaurants/menu/prices
+- [x] Orders: cart → order → statuses (state machine)
+- [x] Open-book pricing breakdown (6-line receipt)
+- [ ] Tax/prep time in catalog
+- [ ] Dispatch v1: rule-based (ETA, distance, fairness, load)
+- [ ] Refunds/disputes: flow + evidence (photo/geo/timestamps)
+- [ ] Event log (append-only table + projection tables)
 
-## 3) Клиенты (2–6 недель параллельно)
+## 3) Clients (2–6 weeks, parallel)
 
 ### Customer web (Dioxus SPA)
-- [ ] Каталог ресторанов с фильтром по зоне
-- [ ] Меню + корзина + open-book чек
-- [ ] Оформление заказа + real-time трекинг (WebSocket)
-- [ ] Offline-first: локальный кэш каталога, retry queue
+- [ ] Restaurant catalog with zone filter
+- [ ] Menu + cart + open-book receipt preview
+- [ ] Order placement + real-time tracking (WebSocket)
+- [ ] Offline-first: local catalog cache, retry queue
 
-### Courier
-- [ ] Принятие заказа, навигация, чек-лист, статусы
-- [ ] Инцидент кнопки: "не нашёл", "ресторан задерживает", "клиент не отвечает"
-- [ ] Store-and-forward при плохой сети
+### Courier app
+- [ ] Accept order, navigation, checklist, status updates
+- [ ] Incident buttons: "can't find", "restaurant delay", "customer unreachable"
+- [ ] Store-and-forward on poor connectivity
 
 ### Operator console
-- [ ] Дашборд SLA, инциденты, возвраты
-- [ ] Управление Local Ops Fee (правила/лимиты)
-- [ ] Онбординг ресторанов/курьеров (KYB/KYC)
-- [ ] Kill switch: отключение мерчанта/курьера, заморозка выплат
+- [ ] SLA dashboard, incidents, refunds, chargeback queue
+- [ ] Local Ops Fee management (rules/limits/publish aggregates)
+- [ ] Restaurant/courier onboarding (KYB/KYC workflow)
+- [ ] Kill switch: disable merchant/courier, freeze payouts, block category
 
-## 4) Платежи и выплаты (1–3 недели)
+## 4) Payments (1–3 weeks)
 
-- [ ] Payment flow: merchant of record решение
+- [ ] Payment flow: merchant of record decision
 - [ ] Stripe Connect: split payments (restaurant + courier + federal + local)
-- [ ] Процессинг как pass-through строка в чеке
-- [ ] Пэйауты курьерам: расписание, статусы, "не удерживаем деньги курьера"
-- [ ] Anti-fraud базовый: лимиты, velocity checks, подозрительные паттерны
+- [ ] Processing as pass-through line in receipt
+- [ ] Courier payouts: schedule, statuses, "never hold courier money" principle
+- [ ] Basic anti-fraud: limits, velocity checks, suspicious patterns
 
-## 5) Trusted Invites / репутация (1–2 недели)
+## 5) Trusted Invites / Reputation (1–2 weeks)
 
-- [ ] Модель графа приглашений: кто может приглашать кого
-- [ ] Правила влияния: лимиты, depth=2, time-decay, штрафы за плохое поведение
-- [ ] Репутационные tiers (trust tier отдельно от quality)
-- [ ] Апелляции и восстановление (процедуры узла)
+- [ ] Invitation graph model: who can invite whom
+- [ ] Influence rules: limits, depth=2, time-decay, penalties for bad invitee behavior
+- [ ] Reputation tiers (trust tier separate from quality)
+- [ ] Appeals and restoration (node procedures)
 
-## 6) Федерация (узел №2) — после стабильного LA (2–6 недель)
+## 6) Federation (node #2) — after stable LA (2–6 weeks)
 
-- [ ] Node Operator Agreement (процесс одобрения)
-- [ ] Peering allowlist + тех-аудит узла
-- [ ] Межузловой каталог (read-only) + переносимость репутации
-- [ ] Event relay между узлами (server-to-server, tonic gRPC)
-- [ ] CloudEvents формат для межузловых событий
-- [ ] ed25519 подписи событий
-- [ ] Публичные агрегаты сети (без персональных данных)
+- [ ] Node Operator Agreement (approval process)
+- [ ] Peering allowlist + tech audit
+- [ ] Cross-node catalog (read-only) + reputation portability
+- [ ] Event relay between nodes (server-to-server, tonic gRPC)
+- [ ] CloudEvents format for inter-node events
+- [ ] ed25519 event signatures
+- [ ] Public network aggregates (no personal data)
 
-## 7) Роботы (волна 2) (пилот 6–12 недель)
+## 7) Robots (wave 2) (pilot 6–12 weeks)
 
-- [ ] Тип агента DeliveryAgent: HumanCourier / SidewalkRobot / DroneOperator
-- [ ] Зоны робота + исключения (tele-ops интерфейс)
-- [ ] Метрики робота: utilization, exception rate, tele-ops cost
-- [ ] Партнёрская интеграция (Serve Robotics, Coco/DoorDash)
-- [ ] Дроны: только через партнёра Part 135
+- [ ] DeliveryAgent type: HumanCourier / SidewalkRobot / DroneOperator
+- [ ] Robot zones + exceptions (tele-ops interface)
+- [ ] Robot metrics: utilization, exception rate, tele-ops cost
+- [ ] Partner integration (Serve Robotics, Coco/DoorDash)
+- [ ] Drones: only through Part 135 partner
 
-## 8) LA GTM чеклист
+## 8) LA GTM Checklist
 
-- [ ] Выбрать 1–2 "кармана" района (Downtown LA, Hollywood)
-- [ ] 10–20 ресторанов, подписать условия (open-book + fees)
-- [ ] Набор первых курьеров (20–40) + обучение
-- [ ] Первая неделя: ручной ops — собрать данные
-- [ ] Еженедельный отчёт узла: SLA + агрегаты затрат → настройка Local Ops Fee
+- [ ] Pick 1–2 neighborhood pockets (Downtown LA, Hollywood)
+- [ ] 10–20 restaurants, sign terms (open-book + fees)
+- [ ] Recruit first couriers (20–40) + training
+- [ ] Week 1: manual ops — collect data
+- [ ] Weekly node report: SLA + cost aggregates → tune Local Ops Fee
 
-## Rust стек
+## Rust Stack
 
-| Компонент | Крейт |
+| Component | Crate |
 |-----------|-------|
 | API | axum |
 | DB | Postgres + sqlx |
-| Cache/Jobs | Redis (позже NATS/JetStream) |
+| Cache/Jobs | Redis (later NATS/JetStream) |
 | Auth | JWT + RBAC (scopes) |
 | Telemetry | tracing + opentelemetry |
-| Event log | append-only таблица + projection tables |
+| Event log | append-only table + projection tables |
 | Federation | tonic (gRPC) + cloudevents-sdk + ed25519-dalek |
 | Frontend | Dioxus (SPA) |
