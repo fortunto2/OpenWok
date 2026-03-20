@@ -1,5 +1,6 @@
 mod db;
 mod routes;
+pub mod sqlite_repo;
 mod state;
 
 use axum::Router;

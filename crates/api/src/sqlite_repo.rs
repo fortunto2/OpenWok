@@ -577,6 +577,7 @@ impl Repository for SqliteRepo {
             .query_row("SELECT COUNT(*) FROM orders", [], |r| r.get(0))
             .unwrap_or(0);
 
+
         let mut orders_by_status = HashMap::new();
         {
             let mut stmt = conn
@@ -692,5 +693,218 @@ impl Repository for SqliteRepo {
             courier_utilization,
             orders_by_zone,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db;
+    use openwok_core::order::OrderStatus;
+    use openwok_core::repo::{
+        CreateCourierRequest, CreateMenuItemRequest, CreateOrderItemRequest, CreateOrderRequest,
+        CreateRestaurantRequest, Repository,
+    };
+
+    fn test_repo() -> SqliteRepo {
+        let conn = db::open(":memory:");
+        SqliteRepo::new(Arc::new(Mutex::new(conn)))
+    }
+
+    fn seeded_repo() -> SqliteRepo {
+        let conn = db::open(":memory:");
+        db::seed_la_data(&conn);
+        SqliteRepo::new(Arc::new(Mutex::new(conn)))
+    }
+
+    #[tokio::test]
+    async fn list_restaurants_returns_seeded() {
+        let repo = seeded_repo();
+        let restaurants = repo.list_restaurants().await.unwrap();
+        assert_eq!(restaurants.len(), 18);
+    }
+
+    #[tokio::test]
+    async fn get_restaurant_not_found() {
+        let repo = test_repo();
+        let result = repo.get_restaurant(RestaurantId::new()).await;
+        assert!(matches!(result, Err(RepoError::NotFound)));
+    }
+
+    #[tokio::test]
+    async fn create_restaurant_returns_with_menu() {
+        let repo = test_repo();
+        let req = CreateRestaurantRequest {
+            name: "Test Wok".into(),
+            zone_id: ZoneId::new(),
+            menu: vec![CreateMenuItemRequest {
+                name: "Pad Thai".into(),
+                price: Money::from("12.99"),
+            }],
+        };
+        let restaurant = repo.create_restaurant(req).await.unwrap();
+        assert_eq!(restaurant.name, "Test Wok");
+        assert_eq!(restaurant.menu.len(), 1);
+        assert!(restaurant.active);
+    }
+
+    #[tokio::test]
+    async fn create_order_returns_pricing_breakdown() {
+        let repo = seeded_repo();
+        let restaurants = repo.list_restaurants().await.unwrap();
+        let rest = &restaurants[0];
+        let item = &rest.menu[0];
+
+        let req = CreateOrderRequest {
+            restaurant_id: rest.id,
+            items: vec![CreateOrderItemRequest {
+                menu_item_id: item.id,
+                name: item.name.clone(),
+                quantity: 2,
+                unit_price: item.price,
+            }],
+            customer_address: "123 Test St".into(),
+            zone_id: rest.zone_id,
+            delivery_fee: Money::from("5.00"),
+            tip: Money::from("3.00"),
+            local_ops_fee: Money::from("2.50"),
+        };
+        let order = repo.create_order(req).await.unwrap();
+
+        assert_eq!(order.status, OrderStatus::Created);
+        assert_eq!(order.pricing.federal_fee, Money::from("1.00"));
+        assert_eq!(order.pricing.delivery_fee, Money::from("5.00"));
+        assert_eq!(order.pricing.tip, Money::from("3.00"));
+        assert_eq!(order.pricing.local_ops_fee, Money::from("2.50"));
+    }
+
+    #[tokio::test]
+    async fn create_order_nonexistent_restaurant() {
+        let repo = test_repo();
+        let req = CreateOrderRequest {
+            restaurant_id: RestaurantId::new(),
+            items: vec![CreateOrderItemRequest {
+                menu_item_id: MenuItemId::new(),
+                name: "Item".into(),
+                quantity: 1,
+                unit_price: Money::from("10.00"),
+            }],
+            customer_address: "123 Test".into(),
+            zone_id: ZoneId::new(),
+            delivery_fee: Money::from("5.00"),
+            tip: Money::from("0.00"),
+            local_ops_fee: Money::from("2.00"),
+        };
+        let result = repo.create_order(req).await;
+        assert!(matches!(result, Err(RepoError::NotFound)));
+    }
+
+    #[tokio::test]
+    async fn update_order_status_valid_transition() {
+        let repo = seeded_repo();
+        let restaurants = repo.list_restaurants().await.unwrap();
+        let rest = &restaurants[0];
+        let item = &rest.menu[0];
+
+        let order = repo
+            .create_order(CreateOrderRequest {
+                restaurant_id: rest.id,
+                items: vec![CreateOrderItemRequest {
+                    menu_item_id: item.id,
+                    name: item.name.clone(),
+                    quantity: 1,
+                    unit_price: item.price,
+                }],
+                customer_address: "456 Oak".into(),
+                zone_id: rest.zone_id,
+                delivery_fee: Money::from("5.00"),
+                tip: Money::from("0.00"),
+                local_ops_fee: Money::from("2.00"),
+            })
+            .await
+            .unwrap();
+
+        let updated = repo
+            .update_order_status(order.id, OrderStatus::Confirmed)
+            .await
+            .unwrap();
+        assert_eq!(updated.status, OrderStatus::Confirmed);
+    }
+
+    #[tokio::test]
+    async fn update_order_status_invalid_transition() {
+        let repo = seeded_repo();
+        let restaurants = repo.list_restaurants().await.unwrap();
+        let rest = &restaurants[0];
+        let item = &rest.menu[0];
+
+        let order = repo
+            .create_order(CreateOrderRequest {
+                restaurant_id: rest.id,
+                items: vec![CreateOrderItemRequest {
+                    menu_item_id: item.id,
+                    name: item.name.clone(),
+                    quantity: 1,
+                    unit_price: item.price,
+                }],
+                customer_address: "789 Pine".into(),
+                zone_id: rest.zone_id,
+                delivery_fee: Money::from("5.00"),
+                tip: Money::from("0.00"),
+                local_ops_fee: Money::from("2.00"),
+            })
+            .await
+            .unwrap();
+
+        let result = repo
+            .update_order_status(order.id, OrderStatus::Delivered)
+            .await;
+        assert!(matches!(result, Err(RepoError::InvalidTransition(_))));
+    }
+
+    #[tokio::test]
+    async fn get_economics_empty_db() {
+        let repo = test_repo();
+        let economics = repo.get_economics().await.unwrap();
+        assert_eq!(economics.total_orders, 0);
+        assert_eq!(economics.total_food_revenue, "0.00");
+        assert_eq!(economics.avg_order_value, "0.00");
+    }
+
+    #[tokio::test]
+    async fn get_economics_with_order() {
+        let repo = seeded_repo();
+        let restaurants = repo.list_restaurants().await.unwrap();
+        let rest = &restaurants[0];
+        let item = &rest.menu[0];
+
+        repo.create_order(CreateOrderRequest {
+            restaurant_id: rest.id,
+            items: vec![CreateOrderItemRequest {
+                menu_item_id: item.id,
+                name: item.name.clone(),
+                quantity: 2,
+                unit_price: item.price,
+            }],
+            customer_address: "100 Main".into(),
+            zone_id: rest.zone_id,
+            delivery_fee: Money::from("5.00"),
+            tip: Money::from("3.00"),
+            local_ops_fee: Money::from("2.50"),
+        })
+        .await
+        .unwrap();
+
+        let economics = repo.get_economics().await.unwrap();
+        assert_eq!(economics.total_orders, 1);
+        assert_eq!(economics.total_federal_fees, "1.00");
+    }
+
+    #[tokio::test]
+    async fn get_metrics_empty_db() {
+        let repo = test_repo();
+        let metrics = repo.get_metrics().await.unwrap();
+        assert_eq!(metrics.order_count, 0);
+        assert_eq!(metrics.on_time_delivery_rate, 0.0);
     }
 }
