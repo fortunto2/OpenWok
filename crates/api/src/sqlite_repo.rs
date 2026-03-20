@@ -2054,4 +2054,132 @@ mod tests {
             .await;
         assert!(matches!(result, Err(RepoError::NotFound)));
     }
+
+    // ── Admin: users + disputes tests ────────────────────────────────
+
+    #[tokio::test]
+    async fn list_users_returns_created_user() {
+        let repo = test_repo();
+        repo.create_user(CreateUserRequest {
+            supabase_user_id: "sub_1".into(),
+            email: "admin@test.com".into(),
+            name: Some("Admin".into()),
+            role: Some(openwok_core::types::UserRole::NodeOperator),
+        })
+        .await
+        .unwrap();
+
+        let users = repo.list_users().await.unwrap();
+        assert_eq!(users.len(), 1);
+        assert_eq!(users[0].email, "admin@test.com");
+        assert!(!users[0].blocked);
+    }
+
+    #[tokio::test]
+    async fn set_user_blocked_toggles() {
+        let repo = test_repo();
+        let user = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "sub_block".into(),
+                email: "block@test.com".into(),
+                name: None,
+                role: None,
+            })
+            .await
+            .unwrap();
+        assert!(!user.blocked);
+
+        let blocked = repo.set_user_blocked(user.id, true).await.unwrap();
+        assert!(blocked.blocked);
+
+        let unblocked = repo.set_user_blocked(user.id, false).await.unwrap();
+        assert!(!unblocked.blocked);
+    }
+
+    #[tokio::test]
+    async fn dispute_lifecycle() {
+        let repo = seeded_repo();
+
+        // Create a user
+        let user = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "sub_disp".into(),
+                email: "dispute@test.com".into(),
+                name: None,
+                role: None,
+            })
+            .await
+            .unwrap();
+
+        // Create an order to dispute
+        let restaurants = repo.list_restaurants().await.unwrap();
+        let rest = &restaurants[0];
+        let item = &rest.menu[0];
+        let order = repo
+            .create_order(CreateOrderRequest {
+                restaurant_id: rest.id,
+                items: vec![CreateOrderItemRequest {
+                    menu_item_id: item.id,
+                    name: item.name.clone(),
+                    quantity: 1,
+                    unit_price: item.price,
+                }],
+                customer_address: "123 Dispute St".into(),
+                zone_id: rest.zone_id,
+                delivery_fee: Money::from("5.00"),
+                tip: Money::from("0.00"),
+                local_ops_fee: Money::from("2.00"),
+            })
+            .await
+            .unwrap();
+
+        // Create dispute
+        let dispute = repo
+            .create_dispute(order.id, user.id, "wrong order".into())
+            .await
+            .unwrap();
+        assert_eq!(dispute.status, openwok_core::types::DisputeStatus::Open);
+        assert!(dispute.resolution.is_none());
+
+        // List disputes
+        let disputes = repo.list_disputes().await.unwrap();
+        assert_eq!(disputes.len(), 1);
+        assert_eq!(disputes[0].reason, "wrong order");
+
+        // Resolve dispute
+        let resolved = repo
+            .resolve_dispute(
+                dispute.id,
+                openwok_core::types::DisputeStatus::Resolved,
+                Some("refund issued".into()),
+            )
+            .await
+            .unwrap();
+        assert_eq!(
+            resolved.status,
+            openwok_core::types::DisputeStatus::Resolved
+        );
+        assert_eq!(resolved.resolution.as_deref(), Some("refund issued"));
+        assert!(resolved.resolved_at.is_some());
+    }
+
+    #[tokio::test]
+    async fn blocked_user_field_persists() {
+        let repo = test_repo();
+        let user = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "sub_persist".into(),
+                email: "persist@test.com".into(),
+                name: None,
+                role: None,
+            })
+            .await
+            .unwrap();
+
+        repo.set_user_blocked(user.id, true).await.unwrap();
+
+        // Reload via different method
+        let loaded = repo.get_user_by_supabase_id("sub_persist").await.unwrap();
+        assert!(loaded.blocked);
+    }
 }

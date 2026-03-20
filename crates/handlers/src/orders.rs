@@ -135,3 +135,18 @@ pub async fn transition<R: Repository>(
 
     Ok(Json(order))
 }
+
+/// POST /orders/{id}/dispute — any authenticated user can dispute their order
+#[utoipa::path(post, path = "/orders/{id}/dispute", tag = "orders")]
+pub async fn create_dispute<R: Repository>(
+    auth: AuthUser,
+    State(repo): State<Arc<R>>,
+    Path(id): Path<OrderId>,
+    Json(body): Json<openwok_core::types::CreateDisputeRequest>,
+) -> Result<(StatusCode, Json<openwok_core::types::Dispute>), (StatusCode, String)> {
+    let user = crate::admin::get_active_user(repo.as_ref(), &auth).await?;
+    repo.create_dispute(id, user.id, body.reason)
+        .await
+        .map(|d| (StatusCode::CREATED, Json(d)))
+        .map_err(|e| (repo_error_to_status(&e), e.to_string()))
+}

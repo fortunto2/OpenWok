@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod auth;
 pub mod auth_handlers;
 pub mod couriers;
@@ -38,6 +39,11 @@ pub fn api_routes<R: Repository>() -> Router<Arc<R>> {
         .routes(routes!(metrics::get))
         .routes(routes!(auth_handlers::callback))
         .routes(routes!(auth_handlers::me))
+        .routes(routes!(admin::list_users))
+        .routes(routes!(admin::toggle_block))
+        .routes(routes!(admin::list_disputes))
+        .routes(routes!(admin::resolve_dispute))
+        .routes(routes!(orders::create_dispute))
         .split_for_parts();
     router
 }
@@ -68,6 +74,11 @@ pub fn api_routes_with_openapi<R: Repository>(
         .routes(routes!(metrics::get))
         .routes(routes!(auth_handlers::callback))
         .routes(routes!(auth_handlers::me))
+        .routes(routes!(admin::list_users))
+        .routes(routes!(admin::toggle_block))
+        .routes(routes!(admin::list_disputes))
+        .routes(routes!(admin::resolve_dispute))
+        .routes(routes!(orders::create_dispute))
         .split_for_parts()
 }
 

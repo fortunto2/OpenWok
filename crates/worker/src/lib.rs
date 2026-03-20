@@ -763,6 +763,104 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
 
             Response::ok("ok")
         })
+        // Admin: users
+        .get_async("/api/admin/users", |req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            if user.role != UserRole::NodeOperator || user.blocked {
+                return Response::error("admin access required", 403);
+            }
+            match repo.list_users().await {
+                Ok(users) => json_ok(&users, 200),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        .patch_async("/api/admin/users/:id/block", |mut req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            if user.role != UserRole::NodeOperator || user.blocked {
+                return Response::error("admin access required", 403);
+            }
+            let id_str = ctx.param("id").unwrap().to_string();
+            let target_id = openwok_core::types::UserId::from_uuid(parse_uuid(&id_str));
+            #[derive(Deserialize)]
+            struct BlockReq { blocked: bool }
+            let body: BlockReq = req.json().await?;
+            match repo.set_user_blocked(target_id, body.blocked).await {
+                Ok(u) => json_ok(&u, 200),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        // Admin: disputes
+        .get_async("/api/admin/disputes", |req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            if user.role != UserRole::NodeOperator || user.blocked {
+                return Response::error("admin access required", 403);
+            }
+            match repo.list_disputes().await {
+                Ok(disputes) => json_ok(&disputes, 200),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        .patch_async("/api/admin/disputes/:id/resolve", |mut req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            if user.role != UserRole::NodeOperator || user.blocked {
+                return Response::error("admin access required", 403);
+            }
+            let id_str = ctx.param("id").unwrap().to_string();
+            let dispute_id = openwok_core::types::DisputeId::from_uuid(parse_uuid(&id_str));
+            #[derive(Deserialize)]
+            struct ResolveReq { status: String, resolution: Option<String> }
+            let body: ResolveReq = req.json().await?;
+            let status = match body.status.as_str() {
+                "Resolved" => openwok_core::types::DisputeStatus::Resolved,
+                "Dismissed" => openwok_core::types::DisputeStatus::Dismissed,
+                _ => return Response::error("invalid status", 400),
+            };
+            match repo.resolve_dispute(dispute_id, status, body.resolution).await {
+                Ok(d) => json_ok(&d, 200),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        // Dispute creation (any auth user)
+        .post_async("/api/orders/:id/dispute", |mut req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            if user.blocked {
+                return Response::error("user is blocked", 403);
+            }
+            let id_str = ctx.param("id").unwrap().to_string();
+            let order_id = OrderId::from_uuid(parse_uuid(&id_str));
+            #[derive(Deserialize)]
+            struct DisputeReq { reason: String }
+            let body: DisputeReq = req.json().await?;
+            match repo.create_dispute(order_id, user.id, body.reason).await {
+                Ok(d) => json_ok(&d, 201),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
         .run(req, env)
         .await
 }
