@@ -5,14 +5,23 @@ edition = "2024"
 
 [dependencies]
 openwok-core = { path = "../core" }
-dioxus = { version = "0.7", features = ["web", "router"] }
+dioxus = { version = "0.7", features = ["router"] }
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 rust_decimal = { workspace = true }
+uuid = { workspace = true }
+
+# Web-only deps (WASM)
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { workspace = true, features = ["js"] }
-gloo-net = "0.6"
-gloo-timers = { version = "0.3", features = ["futures"] }
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["Window", "Storage", "Location"] }
 js-sys = "0.3"
+gloo-timers = { version = "0.3", features = ["futures"] }
+
+# Native-only deps (desktop, iOS, Android)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+open = "5"
+dirs = "6"
+tokio = { version = "1", features = ["time"] }

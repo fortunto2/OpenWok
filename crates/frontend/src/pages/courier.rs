@@ -1,9 +1,8 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
-use gloo_net::http::Request;
 
-use crate::api::{API_BASE, api_get, api_patch_json};
+use crate::api::{api_get, api_patch_json, register_courier};
 use crate::app::Route;
 use crate::state::UserState;
 
@@ -16,18 +15,13 @@ pub fn RegisterCourier() -> Element {
     let mut error = use_signal(|| None::<String>);
     let mut submitting = use_signal(|| false);
 
-    // Fetch zones from restaurants (extract unique zone_id + name)
     let zones = use_resource(|| async {
         let restaurants: Vec<serde_json::Value> = api_get("/restaurants").await.ok()?;
         let mut seen = std::collections::HashMap::new();
         for r in &restaurants {
-            if let (Some(zid), Some(zname)) = (r["zone_id"].as_str(), r["name"].as_str()) {
-                seen.entry(zid.to_string()).or_insert_with(|| {
-                    // Zone name not in restaurant data — use restaurant's zone_id
-                    zid.to_string()
-                });
-                // We don't have zone names in the API, just use zone_id short form
-                let _ = zname;
+            if let Some(zid) = r["zone_id"].as_str() {
+                seen.entry(zid.to_string())
+                    .or_insert_with(|| zid.to_string());
             }
         }
         Some(seen.into_iter().collect::<Vec<(String, String)>>())
@@ -48,31 +42,22 @@ pub fn RegisterCourier() -> Element {
                     submitting.set(true);
                     error.set(None);
                     spawn(async move {
-                        let Some(token) = jwt else {
+                        if jwt.is_none() {
                             error.set(Some("Please sign in first".into()));
                             submitting.set(false);
                             return;
-                        };
+                        }
                         let body = serde_json::json!({
                             "name": n,
                             "zone_id": z,
                         });
-                        let resp = Request::post(&format!("{API_BASE}/couriers"))
-                            .header("Authorization", &format!("Bearer {token}"))
-                            .header("Content-Type", "application/json")
-                            .body(body.to_string())
-                            .unwrap()
-                            .send()
-                            .await;
-                        match resp {
-                            Ok(r) if r.ok() => {
+                        match register_courier(&body).await {
+                            Ok(_) => {
                                 nav.push(Route::MyDeliveries {});
                             }
-                            Ok(r) => {
-                                let msg = r.text().await.unwrap_or("Failed to register".into());
-                                error.set(Some(msg));
+                            Err(e) => {
+                                error.set(Some(e));
                             }
-                            Err(e) => error.set(Some(e.to_string())),
                         }
                         submitting.set(false);
                     });
@@ -128,8 +113,8 @@ pub fn RegisterCourier() -> Element {
 #[component]
 pub fn MyDeliveries() -> Element {
     let user_state = use_context::<Signal<UserState>>();
+    let mut refresh = use_signal(|| 0u32);
 
-    // Fetch courier profile
     let courier = use_resource(move || {
         let jwt = user_state.read().jwt.clone();
         async move {
@@ -138,8 +123,8 @@ pub fn MyDeliveries() -> Element {
         }
     });
 
-    // Fetch deliveries
     let deliveries = use_resource(move || {
+        let _ = refresh();
         let jwt = user_state.read().jwt.clone();
         async move {
             let _jwt = jwt?;
@@ -208,10 +193,7 @@ pub fn MyDeliveries() -> Element {
                                                                     &format!("/orders/{oid}/status"),
                                                                     &serde_json::json!({"status": "Delivered"}),
                                                                 ).await;
-                                                                // Reload page
-                                                                if let Some(w) = web_sys::window() {
-                                                                    let _ = w.location().reload();
-                                                                }
+                                                                refresh += 1;
                                                             });
                                                         },
                                                         "Mark Delivered"

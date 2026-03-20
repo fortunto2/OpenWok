@@ -73,9 +73,7 @@ pub fn App() -> Element {
                         button {
                             class: "cta",
                             onclick: move |_| {
-                                if let Some(window) = web_sys::window() {
-                                    let _ = window.location().reload();
-                                }
+                                crate::platform::reload_page();
                             },
                             "Reload Page"
                         }

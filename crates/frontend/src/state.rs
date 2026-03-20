@@ -10,23 +10,57 @@ pub struct UserState {
     pub email: Option<String>,
 }
 
+// --- JWT storage: web_sys on WASM, file-based on native ---
+
+#[cfg(target_arch = "wasm32")]
 pub fn get_jwt_from_storage() -> Option<String> {
-    get_local_storage()?.get_item("openwok_jwt").ok()?
+    let storage = web_sys::window()?.local_storage().ok()??;
+    storage.get_item("openwok_jwt").ok()?
 }
 
-pub fn get_local_storage() -> Option<web_sys::Storage> {
-    web_sys::window()?.local_storage().ok()?
-}
-
+#[cfg(target_arch = "wasm32")]
 pub fn save_jwt_to_storage(jwt: &str) {
-    if let Some(storage) = get_local_storage() {
+    if let Some(storage) = web_sys::window()
+        .and_then(|w| w.local_storage().ok())
+        .flatten()
+    {
         let _ = storage.set_item("openwok_jwt", jwt);
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 pub fn clear_jwt_from_storage() {
-    if let Some(storage) = get_local_storage() {
+    if let Some(storage) = web_sys::window()
+        .and_then(|w| w.local_storage().ok())
+        .flatten()
+    {
         let _ = storage.remove_item("openwok_jwt");
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn get_jwt_from_storage() -> Option<String> {
+    let path = dirs::data_dir()?
+        .join("co.superduperai.openwok")
+        .join("jwt.txt");
+    std::fs::read_to_string(&path)
+        .ok()
+        .filter(|s| !s.is_empty())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn save_jwt_to_storage(jwt: &str) {
+    if let Some(dir) = dirs::data_dir() {
+        let dir = dir.join("co.superduperai.openwok");
+        let _ = std::fs::create_dir_all(&dir);
+        let _ = std::fs::write(dir.join("jwt.txt"), jwt);
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn clear_jwt_from_storage() {
+    if let Some(dir) = dirs::data_dir() {
+        let _ = std::fs::remove_file(dir.join("co.superduperai.openwok").join("jwt.txt"));
     }
 }
 

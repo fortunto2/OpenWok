@@ -1,25 +1,29 @@
 #![allow(non_snake_case)]
 
-use gloo_net::http::Request;
 use openwok_core::money::Money;
 use openwok_core::types::Restaurant;
+use reqwest::Client;
 use rust_decimal::Decimal;
 
 use crate::state::{CartItem, get_jwt_from_storage};
 
 pub const API_BASE: &str = "/api";
 
+fn client() -> Client {
+    Client::new()
+}
+
 pub fn auth_header() -> Option<String> {
     get_jwt_from_storage().map(|jwt| format!("Bearer {jwt}"))
 }
 
 pub async fn api_get<T: serde::de::DeserializeOwned>(path: &str) -> Result<T, String> {
-    let mut req = Request::get(&format!("{API_BASE}{path}"));
+    let mut req = client().get(format!("{API_BASE}{path}"));
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }
     let resp = req.send().await.map_err(|e| e.to_string())?;
-    if !resp.ok() {
+    if !resp.status().is_success() {
         return Err(format!("HTTP {}", resp.status()));
     }
     resp.json().await.map_err(|e| e.to_string())
@@ -29,18 +33,15 @@ pub async fn api_post_json<T: serde::de::DeserializeOwned>(
     path: &str,
     body: &str,
 ) -> Result<T, String> {
-    let mut req =
-        Request::post(&format!("{API_BASE}{path}")).header("Content-Type", "application/json");
+    let mut req = client()
+        .post(format!("{API_BASE}{path}"))
+        .header("Content-Type", "application/json")
+        .body(body.to_string());
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }
-    let resp = req
-        .body(body)
-        .map_err(|e| e.to_string())?
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-    if !resp.ok() {
+    let resp = req.send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
         let msg = resp.text().await.unwrap_or_default();
         return Err(msg);
     }
@@ -48,22 +49,58 @@ pub async fn api_post_json<T: serde::de::DeserializeOwned>(
 }
 
 pub async fn api_patch_json(path: &str, body: &serde_json::Value) -> Result<(), String> {
-    let mut req =
-        Request::patch(&format!("{API_BASE}{path}")).header("Content-Type", "application/json");
+    let mut req = client()
+        .patch(format!("{API_BASE}{path}"))
+        .header("Content-Type", "application/json")
+        .body(body.to_string());
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }
-    let resp = req
-        .body(body.to_string())
-        .map_err(|e| e.to_string())?
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-    if !resp.ok() {
+    let resp = req.send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
         let msg = resp.text().await.unwrap_or_default();
         return Err(msg);
     }
     Ok(())
+}
+
+pub async fn api_post_raw(path: &str) -> Result<serde_json::Value, String> {
+    let mut req = client().post(format!("{API_BASE}{path}"));
+    if let Some(auth) = auth_header() {
+        req = req.header("Authorization", &auth);
+    }
+    let resp = req.send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        let msg = resp.text().await.unwrap_or_default();
+        return Err(msg);
+    }
+    resp.json().await.map_err(|e| e.to_string())
+}
+
+pub async fn api_delete(path: &str) -> Result<(), String> {
+    let mut req = client().delete(format!("{API_BASE}{path}"));
+    if let Some(auth) = auth_header() {
+        req = req.header("Authorization", &auth);
+    }
+    let resp = req.send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        let msg = resp.text().await.unwrap_or_default();
+        return Err(msg);
+    }
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub async fn api_get_text(path: &str) -> Result<String, String> {
+    let mut req = client().get(format!("{API_BASE}{path}"));
+    if let Some(auth) = auth_header() {
+        req = req.header("Authorization", &auth);
+    }
+    let resp = req.send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(format!("HTTP {}", resp.status()));
+    }
+    resp.text().await.map_err(|e| e.to_string())
 }
 
 // --- Data fetchers ---
@@ -76,7 +113,6 @@ pub async fn fetch_restaurant(id: String) -> Result<Restaurant, String> {
     api_get(&format!("/restaurants/{id}")).await
 }
 
-/// Returns (order_id, checkout_url option)
 pub async fn place_order(body: String) -> Result<(String, Option<String>), String> {
     let result: serde_json::Value = api_post_json("/orders", &body).await?;
     let order_id = result["order"]["id"]
@@ -119,16 +155,7 @@ pub async fn fetch_all_orders() -> Result<Vec<serde_json::Value>, String> {
 }
 
 pub async fn assign_courier(order_id: String) -> Result<serde_json::Value, String> {
-    let mut req = Request::post(&format!("{API_BASE}/orders/{order_id}/assign"));
-    if let Some(auth) = auth_header() {
-        req = req.header("Authorization", &auth);
-    }
-    let resp = req.send().await.map_err(|e| e.to_string())?;
-    if !resp.ok() {
-        let msg = resp.text().await.unwrap_or_default();
-        return Err(msg);
-    }
-    resp.json().await.map_err(|e| e.to_string())
+    api_post_raw(&format!("/orders/{order_id}/assign")).await
 }
 
 pub async fn transition_order(order_id: String, status: String) -> Result<(), String> {
@@ -176,6 +203,51 @@ pub async fn create_dispute(order_id: &str, reason: &str) -> Result<serde_json::
         &serde_json::json!({ "reason": reason }).to_string(),
     )
     .await
+}
+
+// --- My restaurants (owner) ---
+
+pub async fn fetch_my_restaurants() -> Result<Vec<serde_json::Value>, String> {
+    api_get("/my/restaurants").await
+}
+
+pub async fn fetch_restaurant_detail(id: &str) -> Result<serde_json::Value, String> {
+    api_get(&format!("/restaurants/{id}")).await
+}
+
+pub async fn create_restaurant(body: &serde_json::Value) -> Result<serde_json::Value, String> {
+    api_post_json("/restaurants", &body.to_string()).await
+}
+
+pub async fn update_restaurant(id: &str, body: &serde_json::Value) -> Result<(), String> {
+    api_patch_json(&format!("/restaurants/{id}"), body).await
+}
+
+pub async fn toggle_restaurant_active(id: &str, active: bool) -> Result<(), String> {
+    api_patch_json(
+        &format!("/restaurants/{id}/active"),
+        &serde_json::json!({ "active": active }),
+    )
+    .await
+}
+
+pub async fn add_menu_item(restaurant_id: &str, body: &serde_json::Value) -> Result<(), String> {
+    let _: serde_json::Value = api_post_json(
+        &format!("/restaurants/{restaurant_id}/menu"),
+        &body.to_string(),
+    )
+    .await?;
+    Ok(())
+}
+
+pub async fn delete_menu_item(item_id: &str) -> Result<(), String> {
+    api_delete(&format!("/menu-items/{item_id}")).await
+}
+
+// --- Courier ---
+
+pub async fn register_courier(body: &serde_json::Value) -> Result<serde_json::Value, String> {
+    api_post_json("/couriers", &body.to_string()).await
 }
 
 // --- Helpers ---

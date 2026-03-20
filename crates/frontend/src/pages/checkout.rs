@@ -164,10 +164,7 @@ pub fn Checkout() -> Element {
                                 posthog_capture("order_placed");
                                 cart.write().items.clear();
                                 if let Some(url) = checkout_url {
-                                    // Redirect to Stripe Checkout
-                                    if let Some(window) = web_sys::window() {
-                                        let _ = window.location().set_href(&url);
-                                    }
+                                    crate::platform::open_url(&url);
                                 } else {
                                     // No Stripe configured — go to order tracking
                                     nav.push(Route::OrderTracking { id: order_id });

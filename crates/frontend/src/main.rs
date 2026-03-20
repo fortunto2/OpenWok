@@ -4,6 +4,7 @@ mod analytics;
 mod api;
 mod app;
 mod pages;
+mod platform;
 mod state;
 
 fn main() {
