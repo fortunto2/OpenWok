@@ -130,31 +130,208 @@ pub fn seed_la_data(conn: &Connection) {
     )
     .unwrap();
 
-    let restaurants: Vec<(&str, &str, Vec<(&str, &str)>)> = vec![
+    type Restaurant<'a> = (&'a str, &'a str, Vec<(&'a str, &'a str)>);
+    let restaurants: Vec<Restaurant<'_>> = vec![
         // Downtown LA (3 existing + 2 new)
-        ("Pad Thai Palace", &zone_id, vec![("Pad Thai", "12.99"), ("Tom Yum Soup", "8.99"), ("Green Curry", "14.99")]),
-        ("Sushi Wave", &zone_id, vec![("California Roll", "10.99"), ("Salmon Nigiri", "13.99"), ("Miso Soup", "4.99")]),
-        ("Grand Market Noodles", &zone_id, vec![("Beef Pho", "14.99"), ("Dan Dan Noodles", "12.99"), ("Wonton Soup", "10.99"), ("Char Siu Bao", "7.99"), ("Shrimp Dumplings", "11.99")]),
-        ("Arts District Smokehouse", &zone_id, vec![("Brisket Plate", "19.99"), ("Pulled Pork Plate", "16.99"), ("Smoked Ribs Half Rack", "22.99"), ("Cornbread", "4.99"), ("Baked Beans", "5.99")]),
+        (
+            "Pad Thai Palace",
+            &zone_id,
+            vec![
+                ("Pad Thai", "12.99"),
+                ("Tom Yum Soup", "8.99"),
+                ("Green Curry", "14.99"),
+            ],
+        ),
+        (
+            "Sushi Wave",
+            &zone_id,
+            vec![
+                ("California Roll", "10.99"),
+                ("Salmon Nigiri", "13.99"),
+                ("Miso Soup", "4.99"),
+            ],
+        ),
+        (
+            "Grand Market Noodles",
+            &zone_id,
+            vec![
+                ("Beef Pho", "14.99"),
+                ("Dan Dan Noodles", "12.99"),
+                ("Wonton Soup", "10.99"),
+                ("Char Siu Bao", "7.99"),
+                ("Shrimp Dumplings", "11.99"),
+            ],
+        ),
+        (
+            "Arts District Smokehouse",
+            &zone_id,
+            vec![
+                ("Brisket Plate", "19.99"),
+                ("Pulled Pork Plate", "16.99"),
+                ("Smoked Ribs Half Rack", "22.99"),
+                ("Cornbread", "4.99"),
+                ("Baked Beans", "5.99"),
+            ],
+        ),
         // Hollywood (1 existing + 1 new)
-        ("Taco Libre", &zone2_id, vec![("Street Tacos", "9.99"), ("Burrito Bowl", "11.99"), ("Churros", "5.99")]),
-        ("Sunset Strip Poke", &zone2_id, vec![("Ahi Poke Bowl", "16.99"), ("Salmon Poke Bowl", "15.99"), ("Tofu Poke Bowl", "13.99"), ("Seaweed Salad", "6.99"), ("Coconut Water", "3.99")]),
+        (
+            "Taco Libre",
+            &zone2_id,
+            vec![
+                ("Street Tacos", "9.99"),
+                ("Burrito Bowl", "11.99"),
+                ("Churros", "5.99"),
+            ],
+        ),
+        (
+            "Sunset Strip Poke",
+            &zone2_id,
+            vec![
+                ("Ahi Poke Bowl", "16.99"),
+                ("Salmon Poke Bowl", "15.99"),
+                ("Tofu Poke Bowl", "13.99"),
+                ("Seaweed Salad", "6.99"),
+                ("Coconut Water", "3.99"),
+            ],
+        ),
         // Venice (3 new)
-        ("Boardside Burgers", &zone3_id, vec![("Classic Smash Burger", "11.99"), ("Truffle Fries", "7.49"), ("BBQ Bacon Burger", "14.99"), ("Milkshake", "6.99"), ("Chicken Sandwich", "12.49")]),
-        ("Venice Pizza Co", &zone3_id, vec![("Margherita Pizza", "15.99"), ("Pepperoni Pizza", "17.99"), ("Caesar Salad", "9.99"), ("Garlic Knots", "5.99"), ("Tiramisu", "8.99")]),
-        ("Abbot Kinney Bowls", &zone3_id, vec![("Acai Bowl", "13.99"), ("Poke Bowl", "15.99"), ("Smoothie Bowl", "11.99"), ("Grain Bowl", "14.49"), ("Avocado Toast", "10.99")]),
+        (
+            "Boardside Burgers",
+            &zone3_id,
+            vec![
+                ("Classic Smash Burger", "11.99"),
+                ("Truffle Fries", "7.49"),
+                ("BBQ Bacon Burger", "14.99"),
+                ("Milkshake", "6.99"),
+                ("Chicken Sandwich", "12.49"),
+            ],
+        ),
+        (
+            "Venice Pizza Co",
+            &zone3_id,
+            vec![
+                ("Margherita Pizza", "15.99"),
+                ("Pepperoni Pizza", "17.99"),
+                ("Caesar Salad", "9.99"),
+                ("Garlic Knots", "5.99"),
+                ("Tiramisu", "8.99"),
+            ],
+        ),
+        (
+            "Abbot Kinney Bowls",
+            &zone3_id,
+            vec![
+                ("Acai Bowl", "13.99"),
+                ("Poke Bowl", "15.99"),
+                ("Smoothie Bowl", "11.99"),
+                ("Grain Bowl", "14.49"),
+                ("Avocado Toast", "10.99"),
+            ],
+        ),
         // Santa Monica (3 new)
-        ("Bay Sushi House", &zone4_id, vec![("Omakase Roll", "18.99"), ("Salmon Sashimi", "16.99"), ("Spicy Tuna Roll", "14.99"), ("Edamame", "5.99"), ("Miso Ramen", "15.99"), ("Gyoza", "8.99")]),
-        ("Promenade Deli", &zone4_id, vec![("Turkey Club", "13.99"), ("Reuben Sandwich", "14.99"), ("Matzo Ball Soup", "9.99"), ("Bagel & Lox", "12.99"), ("Pastrami on Rye", "15.49")]),
-        ("Santa Monica Taqueria", &zone4_id, vec![("Carne Asada Tacos", "11.99"), ("Fish Tacos", "12.99"), ("Burrito Supreme", "13.99"), ("Elote", "4.99"), ("Horchata", "3.99")]),
+        (
+            "Bay Sushi House",
+            &zone4_id,
+            vec![
+                ("Omakase Roll", "18.99"),
+                ("Salmon Sashimi", "16.99"),
+                ("Spicy Tuna Roll", "14.99"),
+                ("Edamame", "5.99"),
+                ("Miso Ramen", "15.99"),
+                ("Gyoza", "8.99"),
+            ],
+        ),
+        (
+            "Promenade Deli",
+            &zone4_id,
+            vec![
+                ("Turkey Club", "13.99"),
+                ("Reuben Sandwich", "14.99"),
+                ("Matzo Ball Soup", "9.99"),
+                ("Bagel & Lox", "12.99"),
+                ("Pastrami on Rye", "15.49"),
+            ],
+        ),
+        (
+            "Santa Monica Taqueria",
+            &zone4_id,
+            vec![
+                ("Carne Asada Tacos", "11.99"),
+                ("Fish Tacos", "12.99"),
+                ("Burrito Supreme", "13.99"),
+                ("Elote", "4.99"),
+                ("Horchata", "3.99"),
+            ],
+        ),
         // Koreatown (3 new)
-        ("Seoul Q BBQ", &zone5_id, vec![("Galbi Set", "24.99"), ("Bulgogi", "19.99"), ("Japchae", "13.99"), ("Kimchi Jjigae", "14.99"), ("Bibimbap", "16.99"), ("Korean Fried Tofu", "10.99")]),
-        ("K-Bird Fried Chicken", &zone5_id, vec![("Crispy Chicken Combo", "14.99"), ("Spicy Wings", "12.99"), ("Chicken Sandwich", "11.99"), ("Tteokbokki", "9.99"), ("Corn Cheese", "7.99")]),
-        ("Bingsu Mountain", &zone5_id, vec![("Mango Bingsu", "12.99"), ("Matcha Bingsu", "13.99"), ("Red Bean Bingsu", "11.99"), ("Hotteok", "6.99"), ("Taro Milk Tea", "5.99")]),
+        (
+            "Seoul Q BBQ",
+            &zone5_id,
+            vec![
+                ("Galbi Set", "24.99"),
+                ("Bulgogi", "19.99"),
+                ("Japchae", "13.99"),
+                ("Kimchi Jjigae", "14.99"),
+                ("Bibimbap", "16.99"),
+                ("Korean Fried Tofu", "10.99"),
+            ],
+        ),
+        (
+            "K-Bird Fried Chicken",
+            &zone5_id,
+            vec![
+                ("Crispy Chicken Combo", "14.99"),
+                ("Spicy Wings", "12.99"),
+                ("Chicken Sandwich", "11.99"),
+                ("Tteokbokki", "9.99"),
+                ("Corn Cheese", "7.99"),
+            ],
+        ),
+        (
+            "Bingsu Mountain",
+            &zone5_id,
+            vec![
+                ("Mango Bingsu", "12.99"),
+                ("Matcha Bingsu", "13.99"),
+                ("Red Bean Bingsu", "11.99"),
+                ("Hotteok", "6.99"),
+                ("Taro Milk Tea", "5.99"),
+            ],
+        ),
         // Silver Lake (3 new)
-        ("Silver Lake Coffee & Bites", &zone6_id, vec![("Avocado Egg Sandwich", "11.99"), ("Oat Milk Latte", "5.99"), ("Banana Bread", "4.49"), ("Breakfast Burrito", "10.99"), ("Granola Parfait", "8.99")]),
-        ("Sunset Blvd Thai", &zone6_id, vec![("Pad See Ew", "13.99"), ("Massaman Curry", "15.99"), ("Larb Gai", "12.99"), ("Mango Sticky Rice", "8.99"), ("Thai Iced Tea", "4.99")]),
-        ("Hyperion Street Eats", &zone6_id, vec![("Nashville Hot Chicken", "14.99"), ("Mac & Cheese", "8.99"), ("Loaded Fries", "9.99"), ("Pulled Pork Sandwich", "13.49"), ("Coleslaw", "4.99")]),
+        (
+            "Silver Lake Coffee & Bites",
+            &zone6_id,
+            vec![
+                ("Avocado Egg Sandwich", "11.99"),
+                ("Oat Milk Latte", "5.99"),
+                ("Banana Bread", "4.49"),
+                ("Breakfast Burrito", "10.99"),
+                ("Granola Parfait", "8.99"),
+            ],
+        ),
+        (
+            "Sunset Blvd Thai",
+            &zone6_id,
+            vec![
+                ("Pad See Ew", "13.99"),
+                ("Massaman Curry", "15.99"),
+                ("Larb Gai", "12.99"),
+                ("Mango Sticky Rice", "8.99"),
+                ("Thai Iced Tea", "4.99"),
+            ],
+        ),
+        (
+            "Hyperion Street Eats",
+            &zone6_id,
+            vec![
+                ("Nashville Hot Chicken", "14.99"),
+                ("Mac & Cheese", "8.99"),
+                ("Loaded Fries", "9.99"),
+                ("Pulled Pork Sandwich", "13.49"),
+                ("Coleslaw", "4.99"),
+            ],
+        ),
     ];
 
     for (name, zid, items) in &restaurants {
