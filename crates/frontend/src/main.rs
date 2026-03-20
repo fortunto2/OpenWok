@@ -628,34 +628,72 @@ async fn fetch_dashboard() -> Result<serde_json::Value, ServerFnError> {
 
 #[server]
 async fn fetch_all_orders() -> Result<Vec<serde_json::Value>, ServerFnError> {
-    // AI-NOTE: API doesn't have a list-all-orders endpoint yet.
-    // For MVP, we return an empty list. The operator can view individual orders.
-    Ok(vec![])
+    let resp = reqwest::get(format!("{API_BASE}/orders")).await?;
+    Ok(resp.json().await?)
+}
+
+#[server]
+async fn assign_courier(order_id: String) -> Result<serde_json::Value, ServerFnError> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post(format!("{API_BASE}/orders/{order_id}/assign"))
+        .send()
+        .await?;
+    if !resp.status().is_success() {
+        let msg = resp.text().await.unwrap_or_default();
+        return Err(ServerFnError::ServerError(msg));
+    }
+    Ok(resp.json().await?)
+}
+
+#[server]
+async fn transition_order(order_id: String, status: String) -> Result<(), ServerFnError> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .patch(format!("{API_BASE}/orders/{order_id}/status"))
+        .json(&serde_json::json!({ "status": status }))
+        .send()
+        .await?;
+    if !resp.status().is_success() {
+        let msg = resp.text().await.unwrap_or_default();
+        return Err(ServerFnError::ServerError(msg));
+    }
+    Ok(())
 }
 
 #[component]
 fn OperatorConsole() -> Element {
-    let dashboard = use_resource(fetch_dashboard);
+    let mut refresh = use_signal(|| 0u32);
+    let dashboard = use_resource(move || {
+        let _ = refresh();
+        fetch_dashboard()
+    });
+    let orders = use_resource(move || {
+        let _ = refresh();
+        fetch_all_orders()
+    });
 
-    match &*dashboard.read_unchecked() {
+    let dashboard_data = dashboard.read_unchecked();
+    let orders_data = orders.read_unchecked();
+
+    let (restaurant_count, couriers_online, restaurants, couriers) = match &*dashboard_data {
         Some(Ok(data)) => {
-            let restaurant_count = data["restaurant_count"].as_u64().unwrap_or(0);
-            let couriers_online = data["couriers_online"].as_u64().unwrap_or(0);
-
-            let restaurants: Vec<(String, usize)> = data["restaurants"]
+            let rc = data["restaurant_count"].as_u64().unwrap_or(0);
+            let co = data["couriers_online"].as_u64().unwrap_or(0);
+            let r: Vec<(String, usize)> = data["restaurants"]
                 .as_array()
                 .map(|arr| {
                     arr.iter()
                         .map(|r| {
-                            let name = r["name"].as_str().unwrap_or("").to_string();
-                            let menu_len = r["menu"].as_array().map(|m| m.len()).unwrap_or(0);
-                            (name, menu_len)
+                            (
+                                r["name"].as_str().unwrap_or("").to_string(),
+                                r["menu"].as_array().map(|m| m.len()).unwrap_or(0),
+                            )
                         })
                         .collect()
                 })
                 .unwrap_or_default();
-
-            let couriers: Vec<String> = data["couriers"]
+            let c: Vec<String> = data["couriers"]
                 .as_array()
                 .map(|arr| {
                     arr.iter()
@@ -663,62 +701,161 @@ fn OperatorConsole() -> Element {
                         .collect()
                 })
                 .unwrap_or_default();
+            (rc, co, r, c)
+        }
+        _ => (0, 0, vec![], vec![]),
+    };
 
-            rsx! {
-                div { class: "operator-console",
-                    h1 { "Node Operator Console" }
+    let order_list: Vec<(String, String, String, bool)> = match &*orders_data {
+        Some(Ok(list)) => list
+            .iter()
+            .map(|o| {
+                let id = o["id"].as_str().unwrap_or("").to_string();
+                let status = o["status"].as_str().unwrap_or("").to_string();
+                let addr = o["customer_address"].as_str().unwrap_or("").to_string();
+                let has_courier = o["courier_id"].as_str().is_some();
+                (id, status, addr, has_courier)
+            })
+            .collect(),
+        _ => vec![],
+    };
 
-                    // Stats cards
-                    div { class: "stats-grid",
-                        div { class: "stat-card",
-                            h3 { "{restaurant_count}" }
-                            p { "Restaurants" }
-                        }
-                        div { class: "stat-card",
-                            h3 { "{couriers_online}" }
-                            p { "Couriers Online" }
-                        }
-                        div { class: "stat-card",
-                            h3 { "$1.00" }
-                            p { "Federal Fee / Order" }
-                        }
+    rsx! {
+        div { class: "operator-console",
+            h1 { "Node Operator Console" }
+
+            button {
+                class: "refresh-btn",
+                onclick: move |_| refresh += 1,
+                "Refresh"
+            }
+
+            // Stats
+            div { class: "stats-grid",
+                div { class: "stat-card",
+                    h3 { "{restaurant_count}" }
+                    p { "Restaurants" }
+                }
+                div { class: "stat-card",
+                    h3 { "{couriers_online}" }
+                    p { "Couriers Online" }
+                }
+                div { class: "stat-card",
+                    h3 { "{order_list.len()}" }
+                    p { "Orders" }
+                }
+            }
+
+            // Active Orders
+            div { class: "console-section",
+                h2 { "Orders" }
+                if order_list.is_empty() {
+                    p { "No orders yet" }
+                }
+                for (oid, status, addr, has_courier) in order_list {
+                    OrderRow {
+                        order_id: oid,
+                        status: status,
+                        address: addr,
+                        has_courier: has_courier,
+                        on_action: move |_| refresh += 1,
                     }
+                }
+            }
 
-                    // Restaurants
-                    div { class: "console-section",
-                        h2 { "Restaurants" }
-                        for (name, menu_count) in restaurants {
-                            div { class: "console-row",
-                                span { "{name}" }
-                                span { "{menu_count} items" }
-                            }
-                        }
+            // Restaurants
+            div { class: "console-section",
+                h2 { "Restaurants" }
+                for (name, menu_count) in restaurants {
+                    div { class: "console-row",
+                        span { "{name}" }
+                        span { "{menu_count} items" }
                     }
+                }
+            }
 
-                    // Couriers
-                    div { class: "console-section",
-                        h2 { "Available Couriers" }
-                        if couriers.is_empty() {
-                            p { "No couriers online" }
-                        }
-                        for name in couriers {
-                            div { class: "console-row",
-                                span { "{name}" }
-                                span { class: "badge", "Available" }
-                            }
-                        }
+            // Couriers
+            div { class: "console-section",
+                h2 { "Available Couriers" }
+                if couriers.is_empty() {
+                    p { "No couriers online" }
+                }
+                for name in couriers {
+                    div { class: "console-row",
+                        span { "{name}" }
+                        span { class: "badge", "Available" }
                     }
                 }
             }
         }
-        Some(Err(e)) => rsx! {
-            h1 { "Operator Console" }
-            p { class: "error", "Error: {e}" }
-        },
-        None => rsx! {
-            h1 { "Operator Console" }
-            p { "Loading dashboard..." }
-        },
+    }
+}
+
+#[component]
+fn OrderRow(
+    order_id: String,
+    status: String,
+    address: String,
+    has_courier: bool,
+    on_action: EventHandler<()>,
+) -> Element {
+    let needs_assign =
+        !has_courier && (status == "Created" || status == "Confirmed" || status == "Preparing");
+    let next_status = match status.as_str() {
+        "Created" => Some("Confirmed"),
+        "Confirmed" => Some("Preparing"),
+        "Preparing" => Some("ReadyForPickup"),
+        "ReadyForPickup" => Some("InDelivery"),
+        "InDelivery" => Some("Delivered"),
+        _ => None,
+    };
+
+    rsx! {
+        div { class: "order-row",
+            div { class: "order-row-info",
+                span { class: "order-id", "{order_id}" }
+                span { class: "order-status badge", "{status}" }
+                span { class: "order-addr", "{address}" }
+            }
+            div { class: "order-row-actions",
+                if needs_assign {
+                    button {
+                        class: "action-btn",
+                        onclick: {
+                            let oid = order_id.clone();
+                            move |_| {
+                                let oid = oid.clone();
+                                let handler = on_action;
+                                spawn(async move {
+                                    let _ = assign_courier(oid).await;
+                                    handler.call(());
+                                });
+                            }
+                        },
+                        "Assign Courier"
+                    }
+                }
+                if let Some(next) = next_status {
+                    button {
+                        class: "action-btn",
+                        onclick: {
+                            let oid = order_id.clone();
+                            let ns = next.to_string();
+                            move |_| {
+                                let oid = oid.clone();
+                                let ns = ns.clone();
+                                let handler = on_action;
+                                spawn(async move {
+                                    let _ = transition_order(oid, ns).await;
+                                    handler.call(());
+                                });
+                            }
+                        },
+                        "→ {next}"
+                    }
+                }
+            }
+        }
     }
 }
 

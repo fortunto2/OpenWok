@@ -32,6 +32,11 @@ pub struct TransitionStatus {
     pub status: OrderStatus,
 }
 
+pub async fn list(State(state): State<AppState>) -> Json<Vec<Order>> {
+    let s = state.data.read().await;
+    Json(s.orders.values().cloned().collect())
+}
+
 pub async fn create(
     State(state): State<AppState>,
     Json(body): Json<CreateOrder>,

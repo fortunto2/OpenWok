@@ -17,7 +17,10 @@ pub fn app(state: AppState) -> Router {
             get(routes::restaurants::list).post(routes::restaurants::create),
         )
         .route("/restaurants/{id}", get(routes::restaurants::get))
-        .route("/orders", post(routes::orders::create))
+        .route(
+            "/orders",
+            get(routes::orders::list).post(routes::orders::create),
+        )
         .route("/orders/{id}", get(routes::orders::get))
         .route("/orders/{id}/status", patch(routes::orders::transition))
         .route(
