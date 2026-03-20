@@ -3,7 +3,7 @@
 **Track ID:** frontend-split_20260320
 **Spec:** [spec.md](./spec.md)
 **Created:** 2026-03-20
-**Status:** [~] In Progress
+**Status:** [x] Complete
 
 ## Overview
 
@@ -85,32 +85,32 @@ Slim down main.rs to mod declarations, extract App/Layout/Route.
 Add harness guardrails (3 retro recommendations).
 
 ### Tasks
-- [ ] Task 4.1: Create `.githooks/pre-commit` script: `cargo fmt --check` + `cargo clippy --all -- -D warnings`. Make executable.
-- [ ] Task 4.2: Add `Makefile` target `setup-hooks` that runs `git config core.hooksPath .githooks`. Document in README or CLAUDE.md.
+- [x] Task 4.1: Create `.githooks/pre-commit` script: `cargo fmt --check` + `cargo clippy --all -- -D warnings`. Make executable. <!-- sha:c9840c3 -->
+- [x] Task 4.2: Add `Makefile` target `setup-hooks` that runs `git config core.hooksPath .githooks`. Document in README or CLAUDE.md. <!-- sha:c9840c3 -->
 
 ### Verification
-- [ ] Pre-commit hook blocks commits with fmt/clippy issues
-- [ ] Hook path is committed and portable (`.githooks/`, not `.git/hooks/`)
+- [x] Pre-commit hook blocks commits with fmt/clippy issues
+- [x] Hook path is committed and portable (`.githooks/`, not `.git/hooks/`)
 
-## Phase 5: Docs & Cleanup
+## Phase 5: Docs & Cleanup <!-- checkpoint:a470b1b -->
 
 ### Tasks
-- [ ] Task 5.1: Update CLAUDE.md — add frontend module structure, `make setup-hooks` command
-- [ ] Task 5.2: Remove any dead imports or unused code from refactored files
-- [ ] Task 5.3: Run full verification: `cargo test --workspace && cargo clippy --all && cargo fmt --check`
+- [x] Task 5.1: Update CLAUDE.md — add frontend module structure, `make setup-hooks` command <!-- sha:a470b1b -->
+- [x] Task 5.2: Remove any dead imports or unused code from refactored files <!-- sha:599825b -->
+- [x] Task 5.3: Run full verification: `cargo test --workspace && cargo clippy --all && cargo fmt --check` <!-- sha:a470b1b -->
 
 ### Verification
-- [ ] CLAUDE.md reflects current project state
-- [ ] Linter clean, tests pass
+- [x] CLAUDE.md reflects current project state
+- [x] Linter clean, tests pass
 
 ## Final Verification
 
-- [ ] All acceptance criteria from spec met
-- [ ] Tests pass (101 tests, 0 failures)
-- [ ] Linter clean
-- [ ] Build succeeds
-- [ ] `main.rs` under 30 lines, no file over 500 lines
-- [ ] Pre-commit hooks working
+- [x] All acceptance criteria from spec met
+- [x] Tests pass
+- [x] Linter clean
+- [x] Build succeeds
+- [x] `main.rs` under 30 lines (11 lines), no file over 500 lines (max 444)
+- [x] Pre-commit hooks working
 
 ## Context Handoff
 
