@@ -90,7 +90,31 @@ fn App() -> Element {
     use_context_provider(|| Signal::new(CartState::default()));
     rsx! {
         document::Script { {POSTHOG_SNIPPET} }
-        Router::<Route> {}
+        ErrorBoundary {
+            handle_error: |errors: ErrorContext| {
+                let error_text = format!("{:?}", errors.show());
+                posthog_capture_with_props(
+                    "frontend_error",
+                    &serde_json::json!({ "error": error_text }),
+                );
+                rsx! {
+                    div { class: "error-boundary",
+                        h1 { "Something went wrong" }
+                        p { "We're sorry — an unexpected error occurred. Please try refreshing the page." }
+                        button {
+                            class: "cta",
+                            onclick: move |_| {
+                                if let Some(window) = web_sys::window() {
+                                    let _ = window.location().reload();
+                                }
+                            },
+                            "Reload Page"
+                        }
+                    }
+                }
+            },
+            Router::<Route> {}
+        }
     }
 }
 
