@@ -10,6 +10,8 @@ tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
+chrono = { workspace = true }
+rusqlite = { version = "0.34", features = ["bundled"] }
 futures-util = "0.3"
 
 [dev-dependencies]

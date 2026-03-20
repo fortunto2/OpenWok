@@ -1,3 +1,4 @@
+mod db;
 mod routes;
 mod state;
 
@@ -10,7 +11,7 @@ async fn health() -> &'static str {
 }
 
 pub fn app(state: AppState) -> Router {
-    Router::new()
+    let api = Router::new()
         .route("/health", get(health))
         .route(
             "/restaurants",
@@ -36,21 +37,21 @@ pub fn app(state: AppState) -> Router {
             patch(routes::couriers::toggle_available),
         )
         .route("/ws/orders/{id}", any(routes::ws::order_updates))
-        .with_state(state)
+        .with_state(state);
+
+    Router::new().nest("/api", api)
 }
 
 #[tokio::main]
 async fn main() {
-    let state = AppState::new();
-    {
-        let mut data = state.data.write().await;
-        routes::restaurants::seed_restaurants(&mut data);
-    }
-
+    let db_path = std::env::var("DATABASE_PATH").unwrap_or_else(|_| "data/openwok.db".into());
+    let conn = db::open(&db_path);
+    db::seed_la_data(&conn);
+    let state = AppState::new(conn);
     let app = app(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    println!("OpenWok API listening on http://localhost:3000");
+    println!("OpenWok API listening on http://localhost:3000/api");
     axum::serve(listener, app).await.unwrap();
 }
 
@@ -62,22 +63,21 @@ mod tests {
     use tower::ServiceExt;
 
     fn test_state() -> AppState {
-        AppState::new()
+        let conn = db::open(":memory:");
+        AppState::new(conn)
     }
 
     async fn seeded_state() -> AppState {
-        let state = AppState::new();
-        let mut data = state.data.write().await;
-        routes::restaurants::seed_restaurants(&mut data);
-        drop(data);
-        state
+        let conn = db::open(":memory:");
+        db::seed_la_data(&conn);
+        AppState::new(conn)
     }
 
     #[tokio::test]
     async fn health_returns_ok() {
         let app = app(test_state());
         let resp = app
-            .oneshot(Request::get("/health").body(Body::empty()).unwrap())
+            .oneshot(Request::get("/api/health").body(Body::empty()).unwrap())
             .await
             .unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
@@ -87,7 +87,11 @@ mod tests {
     async fn list_restaurants_returns_seeded() {
         let app = app(seeded_state().await);
         let resp = app
-            .oneshot(Request::get("/restaurants").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/api/restaurants")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
@@ -98,8 +102,6 @@ mod tests {
         assert_eq!(restaurants.len(), 3);
     }
 
-    /// Full integration test: create restaurant → create order → see pricing →
-    /// confirm → assign courier → transition to delivered.
     #[tokio::test]
     async fn full_order_flow() {
         let state = seeded_state().await;
@@ -109,7 +111,7 @@ mod tests {
         let addr = listener.local_addr().unwrap();
         tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
 
-        let base = format!("http://{addr}");
+        let base = format!("http://{addr}/api");
         let client = reqwest::Client::new();
 
         // 1. List restaurants — get first one
