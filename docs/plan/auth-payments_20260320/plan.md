@@ -9,21 +9,21 @@
 
 Add Supabase Auth (Google OAuth + JWT verification) and Stripe Connect payments (Checkout Sessions + webhooks) to the existing Repository/handlers architecture. Uses `stripe-universal` crate (workspace member) for typed Stripe API access on both native and wasm32 targets. 4 phases: domain foundation → backend auth+payments → frontend integration → deploy+docs.
 
-## Phase 1: Domain Foundation
+## Phase 1: Domain Foundation <!-- checkpoint:d24cd19 -->
 Add User/Payment types, migrations, Repository methods, and JWT verification module.
 
 ### Tasks
 - [x] Task 1.0: Create `crates/stripe-universal/` — typed Stripe client with reqwest (native) and worker::Fetch (wasm32) backends. Checkout Session creation, webhook signature verification (HMAC-SHA256), Connect transfer_data support. 8 tests passing.
-- [~] Task 1.1: Add domain types to `crates/core/src/types.rs` — `UserId`, `PaymentId` newtypes, `User` struct (id, supabase_user_id, email, name, role, created_at), `UserRole` enum (Customer, RestaurantOwner, Courier, NodeOperator), `Payment` struct (id, order_id, stripe_payment_intent_id, stripe_checkout_session_id, status, amounts breakdown), `PaymentStatus` enum (Pending, Succeeded, Failed, Refunded), request types `CreateUserRequest`, `CreatePaymentRequest`, `UpdatePaymentStatusRequest`. All with Serialize/Deserialize/ToSchema.
-- [ ] Task 1.2: Create `migrations/0006_auth_users.sql` — `users` table (id TEXT PK, supabase_user_id TEXT UNIQUE NOT NULL, email TEXT NOT NULL, name TEXT, role TEXT DEFAULT 'Customer', created_at TEXT). ALTER TABLE orders ADD COLUMN user_id TEXT REFERENCES users(id). Create `migrations/0007_payments.sql` — `payments` table (id TEXT PK, order_id TEXT REFERENCES orders(id), stripe_payment_intent_id TEXT, stripe_checkout_session_id TEXT, status TEXT DEFAULT 'Pending', amount_total TEXT, restaurant_amount TEXT, courier_amount TEXT, federal_amount TEXT, local_ops_amount TEXT, processing_amount TEXT, created_at TEXT).
-- [ ] Task 1.3: Add user/payment methods to Repository trait in `crates/core/src/repo.rs` — `create_user`, `get_user`, `get_user_by_supabase_id`, `create_payment`, `get_payment_by_order`, `update_payment_status`. Implement all in `SqliteRepo` (`crates/api/src/sqlite_repo.rs`). Add unit tests.
-- [ ] Task 1.4: Create `crates/handlers/src/auth.rs` — `AuthUser` extractor (parses Authorization Bearer header, verifies JWT with `jsonwebtoken` crate, extracts sub + email from Supabase claims). Add `JwtConfig` struct (secret, issuer) to handler state. Fix existing `unwrap()` calls in `crates/handlers/src/restaurants.rs:59` and `crates/handlers/src/couriers.rs:36` (retro item). Unit tests for JWT verification (valid token, expired, malformed).
+- [x] Task 1.1: Add domain types to `crates/core/src/types.rs` — `UserId`, `PaymentId` newtypes, `User` struct (id, supabase_user_id, email, name, role, created_at), `UserRole` enum (Customer, RestaurantOwner, Courier, NodeOperator), `Payment` struct (id, order_id, stripe_payment_intent_id, stripe_checkout_session_id, status, amounts breakdown), `PaymentStatus` enum (Pending, Succeeded, Failed, Refunded), request types `CreateUserRequest`, `CreatePaymentRequest`, `UpdatePaymentStatusRequest`. All with Serialize/Deserialize/ToSchema.
+- [x] Task 1.2: Create `migrations/0006_auth_users.sql` <!-- sha:9a500f4 --> — `users` table (id TEXT PK, supabase_user_id TEXT UNIQUE NOT NULL, email TEXT NOT NULL, name TEXT, role TEXT DEFAULT 'Customer', created_at TEXT). ALTER TABLE orders ADD COLUMN user_id TEXT REFERENCES users(id). Create `migrations/0007_payments.sql` — `payments` table (id TEXT PK, order_id TEXT REFERENCES orders(id), stripe_payment_intent_id TEXT, stripe_checkout_session_id TEXT, status TEXT DEFAULT 'Pending', amount_total TEXT, restaurant_amount TEXT, courier_amount TEXT, federal_amount TEXT, local_ops_amount TEXT, processing_amount TEXT, created_at TEXT).
+- [x] Task 1.3: Add user/payment methods to Repository trait <!-- sha:96f1a08 --> in `crates/core/src/repo.rs` — `create_user`, `get_user`, `get_user_by_supabase_id`, `create_payment`, `get_payment_by_order`, `update_payment_status`. Implement all in `SqliteRepo` (`crates/api/src/sqlite_repo.rs`). Add unit tests.
+- [x] Task 1.4: Create `crates/handlers/src/auth.rs` <!-- sha:d24cd19 --> — `AuthUser` extractor (parses Authorization Bearer header, verifies JWT with `jsonwebtoken` crate, extracts sub + email from Supabase claims). Add `JwtConfig` struct (secret, issuer) to handler state. Fix existing `unwrap()` calls in `crates/handlers/src/restaurants.rs:59` and `crates/handlers/src/couriers.rs:36` (retro item). Unit tests for JWT verification (valid token, expired, malformed).
 
 ### Verification
 - [x] `cargo test -p stripe-universal` — 8 tests pass (webhook verify, form serialize, Connect transfer)
-- [ ] `cargo test -p openwok-core` — new types compile, repo trait compiles
-- [ ] `cargo test -p openwok-api` — SqliteRepo user/payment methods work
-- [ ] JWT verification tests pass with mock tokens
+- [x] `cargo test -p openwok-core` — new types compile, repo trait compiles
+- [x] `cargo test -p openwok-api` — SqliteRepo user/payment methods work
+- [x] JWT verification tests pass with mock tokens
 
 ## Phase 2: Backend Auth + Payment Endpoints
 Wire auth middleware into routes, use `stripe-universal` for Checkout Session creation and webhook handling.
