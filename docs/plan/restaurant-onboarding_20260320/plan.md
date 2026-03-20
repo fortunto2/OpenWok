@@ -17,12 +17,12 @@ Add ownership to DB schema, implement Repository methods, create management hand
 - [x] Task 1.2: Extend Repository trait in `crates/core/src/repo.rs` — add methods: `update_restaurant(id, UpdateRestaurantRequest)`, `toggle_restaurant_active(id, active)`, `list_restaurants_by_owner(user_id)`, `add_menu_item(restaurant_id, CreateMenuItemRequest)`, `update_menu_item(id, UpdateMenuItemRequest)`, `delete_menu_item(id)`, `update_user_role(user_id, UserRole)`. Add `UpdateRestaurantRequest` and `UpdateMenuItemRequest` types to `crates/core/src/types.rs`.
 - [x] Task 1.3: Implement new Repository methods in `crates/api/src/sqlite_repo.rs`. Write unit tests for each method — ownership enforcement, role update, menu CRUD.
 - [x] Task 1.4: Add restaurant management handlers in `crates/handlers/src/restaurants.rs` — `PATCH /api/restaurants/:id` (update info), `PATCH /api/restaurants/:id/active` (toggle), `POST /api/restaurants/:id/menu` (add item), `PATCH /api/menu-items/:id` (update item), `DELETE /api/menu-items/:id` (delete item), `GET /api/my/restaurants` (owner's list). Add ownership check helper. Protect existing `POST /api/restaurants` with auth. On create: auto-promote user to RestaurantOwner role.
-- [ ] Task 1.5: Integration tests in `crates/api/` — test ownership enforcement (owner can edit, non-owner gets 403), role promotion on restaurant creation, menu CRUD.
+- [x] Task 1.5: Integration tests in `crates/api/` — test ownership enforcement (owner can edit, non-owner gets 403), role promotion on restaurant creation, menu CRUD.
 
 ### Verification
-- [ ] `cargo test -p openwok-core -p openwok-handlers -p openwok-api` — all pass
-- [ ] `cargo clippy --all` — no warnings
-- [ ] New endpoints return correct HTTP status codes (200, 201, 403, 404)
+- [x] `cargo test -p openwok-core -p openwok-handlers -p openwok-api` — all pass
+- [x] `cargo clippy --all` — no warnings
+- [x] New endpoints return correct HTTP status codes (200, 201, 403, 404)
 
 ## Phase 2: Worker (D1)
 Port new Repository methods to D1Repo and add routes to Cloudflare Worker.
