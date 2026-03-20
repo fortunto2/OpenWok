@@ -192,8 +192,8 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 - `docs/mvp-deck.pdf` — full MVP concept deck
 - `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
 - `planning/ROADMAP.md` — 12-month roadmap with decision gates
-- `docs/plan-done/` — completed specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy, repo-abstraction)
-- `docs/plan/tailwind-migration/` — planned: Tailwind CSS migration for frontend
+- `docs/plan-done/` — completed specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy, repo-abstraction, auth-payments, tailwind-migration)
+- `docs/plan/restaurant-onboarding_20260320/` — active: restaurant self-service (build complete, pending manual e2e verification)
 - `docs/evolution.md` — factory evolution log (cross-retro learnings)
 - `docs/retro/` — pipeline retrospectives
 

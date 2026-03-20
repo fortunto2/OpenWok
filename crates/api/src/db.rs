@@ -132,14 +132,10 @@ fn migrate(conn: &Connection) {
     }
 
     // Add user_id to couriers + dispatch indexes (migration 0009)
-    let has_courier_user_id: bool = conn
-        .prepare("SELECT user_id FROM couriers LIMIT 0")
-        .is_ok();
+    let has_courier_user_id: bool = conn.prepare("SELECT user_id FROM couriers LIMIT 0").is_ok();
     if !has_courier_user_id {
-        conn.execute_batch(
-            "ALTER TABLE couriers ADD COLUMN user_id TEXT REFERENCES users(id);",
-        )
-        .expect("failed to add user_id to couriers");
+        conn.execute_batch("ALTER TABLE couriers ADD COLUMN user_id TEXT REFERENCES users(id);")
+            .expect("failed to add user_id to couriers");
     }
     conn.execute_batch(
         "CREATE INDEX IF NOT EXISTS idx_couriers_zone_available ON couriers(zone_id, available);

@@ -1,278 +1,173 @@
-  [2msession: f2782bf3  model: claude-opus-4-6[1m][0m
-Starting review for `repo-abstraction_20260320` track. Let me gather context first.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/repo-abstraction_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mRecent git commits for the track[0m
-  [32m$ [0m [33mBash[0m [2mDiff stats for entire track[0m
-  [36m**[0m [36mGlob[0m [2m"docs/plan/repo-abstraction_20260320/spec.md" ~/startups/active/openwok[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/repo-abstraction_20260320/spec.md[0m
+  [2msession: a50819c9  model: claude-opus-4-6[1m][0m
+
+
+Starting the review for OpenWok restaurant-onboarding feature. Let me gather all necessary context first.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mRecent git commits[0m
+  [32m$ [0m [33mBash[0m [2mDiff stats for recent commits[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/restaurant-onboarding_20260320/spec.md" ~/startups/active/openwok[0m
+
+Now let me read the spec, key source files, and run tests/lint in parallel.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/spec.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
+
+Now running the actual verification checks in parallel.
   [32m$ [0m [33mBash[0m [2mRun full test suite[0m
   [32m$ [0m [33mBash[0m [2mRun clippy linter[0m
   [32m$ [0m [33mBash[0m [2mCheck formatting[0m
+  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|SUPABASE_KEY|API_KEY\s*=\s*['"]" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK|console\.log|dbg!" ~/startups/active/openwok/crates[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
 
-Tests pass (55/55), clippy clean, fmt clean. One unused import warning. Let me continue with remaining checks.
-  [32m$ [0m [33mBash[0m [2mCheck worker crate compiles[0m
-  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|secret\s*=\s*['"]|api_key\s*=\s*['"]" ~/startups/active/openwok[0m
-  [36m// [36mGrep[0m [2m"unwrap\(\)|panic!\(|todo!\(" ~/startups/active/openwok/crates[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
-
-Good — Repository trait is clean, handlers crate is well-structured. Let me check remaining dimensions in parallel.
+Tests pass (98/98). Clippy has 2 errors in frontend. Fmt clean. No secrets found. Let me now check more dimensions and also read the handlers.
+  [32m$ [0m [33mBash[0m [2mCheck worker compiles for wasm32[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-Now let me check production, docs, and remaining dimensions.
-  [32m$ [0m [33mBash[0m [2mCheck production health endpoint[0m
-  [32m$ [0m [33mBash[0m [2mCheck production restaurants endpoint[0m
   [32m$ [0m [33mBash[0m [2mCheck CLAUDE.md size[0m
-  [32m$ [0m [33mBash[0m [2mCheck .gitignore for env files[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck frontend file size[0m
   [36m// [36mGrep[0m [2m"AI-TODO|AI-ASK|AI-NOTE" ~/startups/active/openwok/crates[0m
-  [32m$ [0m [33mBash[0m [2mCount total commits and conventional format compliance[0m
 
-All critical checks pass. Let me verify a few more things and update spec.md checkboxes.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/economics.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/metrics.rs[0m
-  [32m$ [0m [33mBash[0m [2mCount SHAs and completed tasks in plan[0m
-  [32m$ [0m [33mBash[0m [2mCheck for scratch files[0m
+Found important issues. Let me check a few more things.
+  [32m$ [0m [33mBash[0m [2mCheck gitignore[0m
+  [32m$ [0m [33mBash[0m [2mCheck for plan SHAs[0m
+  [32m$ [0m [33mBash[0m [2mCheck scratch directory[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0008_restaurant_owner.sql[0m
+  [32m$ [0m [33mBash[0m [2mCheck pre-commit hooks[0m
 
-Now let me update spec.md checkboxes and write the review report.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/repo-abstraction_20260320/spec.md[0m
-  [32m$ [0m [33mBash[0m [2mCommit spec checkbox updates[0m
+I now have all findings. Let me compile the review report and update the plan/spec files.
+
+## Code Review: OpenWok — restaurant-onboarding_20260320
+**Date:** 2026-03-20
+
+### Verdict: FIX FIRST
+
+Two issues block shipping: (1) TOCTOU security bug in menu item ownership verification — update happens BEFORE ownership check, so any authenticated user can modify any restaurant's menu items; (2) `make clippy` fails with 2 errors in frontend.
 
 ---
 
-## Code Review: OpenWok — repo-abstraction_20260320
-**Date:** 2026-03-20
-
-## Verdict: SHIP
-
-### Summary
-Repository abstraction successfully eliminates handler duplication between api (SqliteRepo) and worker (D1Repo). Clean architecture with proper trait abstraction, 55 tests pass, production live at HTTP 200. Two minor `unwrap()` calls in handlers should be addressed in a follow-up.
-
 ### Tests
-- Total: 55 | Pass: 55 | Fail: 0 | Skip: 0
+- Total: 98 | Pass: 98 | Fail: 0 | Skip: 2 (ignored doc-tests)
 - Coverage: N/A (no coverage tool configured)
 - Status: **PASS**
 
 ### Linter
-- Errors: 0 | Warnings: 1 (unused import `CreateCourierRequest` in `sqlite_repo.rs:705`)
-- Clippy: clean (0 warnings, 0 errors)
-- Status: **PASS**
+- Errors: 2 | Warnings: 0
+- `crates/frontend/src/main.rs:1471` — `clone_on_copy`: `nav.clone()` on Copy type
+- `crates/frontend/src/main.rs:1599` — `collapsible_if`: nested if should be collapsed
+- Status: **FAIL** (`make check` breaks)
 
 ### Build
-- `cargo check --workspace`: PASS
-- `cargo check -p openwok-worker`: PASS (wasm32 standalone)
-- `cargo fmt --check`: PASS
+- `cargo test --workspace` compiles all crates — PASS
+- Worker: standalone workspace (can't check from root), deployed successfully
 - Status: **PASS**
 
 ### Pre-Landing Checklist
-**Pass 1 — CRITICAL:** 0 issues
-- No SQL string interpolation (all parameterized queries)
-- No TOCTOU / race conditions
-- No LLM output trust boundary
-
-**Pass 2 — INFORMATIONAL:** 2 issues
-- [MINOR] `handlers/restaurants.rs:59` — `unwrap()` on `create_restaurant` (panics on DB error instead of returning HTTP 500)
-- [MINOR] `handlers/couriers.rs:36` — `unwrap()` on `create_courier` (same issue)
-- Status: **WARN** (0 critical, 2 informational)
+- **CRITICAL: TOCTOU in menu item update** — `crates/handlers/src/restaurants.rs:241-247` and `crates/worker/src/lib.rs:380-393`: `update_menu_item()` is called BEFORE `verify_ownership()`. Any authenticated user can modify any restaurant's menu items; the 403 is returned after the DB write.
+- **INFORMATIONAL: Hacky get-via-update pattern** — `delete_menu_item` uses `update_menu_item(id, {None, None})` as a substitute for a missing `get_menu_item()` method. Not a bug (no fields changed), but code smell.
+- Status: **1 CRITICAL, 1 INFORMATIONAL**
 
 ### Security
-- Vulnerabilities: 0
-- Hardcoded secrets: NONE
-- SQL injection: NONE (all queries use parameterized bindings)
-- `.env` in `.gitignore`: YES
-- Status: **PASS**
+- Hardcoded secrets: NONE (`sk_test_...` in doc comment only)
+- `.gitignore` covers `.env` — PASS
+- SQL: All queries use parameterized bindings — PASS
+- Status: **WARN** (TOCTOU above)
 
 ### Acceptance Criteria
-- Verified: 8/9
-- Partial: Worker doesn't use handlers crate (D1Database !Send limitation — documented in plan Task 3.2)
-- Status: **PASS** (partial criterion is an architectural constraint, not a gap)
+- Verified: 9/10
+- Missing: criterion 6 ("Non-owner cannot modify") is technically violated — 403 returned but modification persists
+- Status: **PARTIAL**
 
 ### Plan Progress
-- Tasks: 13/15 complete (2 skipped = no wrangler credentials for local D1 testing)
+- Tasks: 13/13 complete
 - Phases: 4/4 complete
-- Status: **COMPLETE**
+- Plan SHAs: 0/13 (none recorded)
+- Status: **COMPLETE** (no SHAs is WARN)
 
 ### Production Logs
 - Platform: Cloudflare Workers
-- `/api/health`: HTTP 200
-- `/api/restaurants`: HTTP 200
-- Status: **CLEAN**
+- Verified: /api/health → ok, /api/restaurants → 18 restaurants, frontend → 200
+- Status: **CLEAN** (verified during deploy stage)
 
 ### Dev Principles
-- **SRP:** PASS — clean separation: core (types+trait), handlers (routing), api (SQLite impl), worker (D1 impl)
-- **DIP:** PASS — handlers depend on `Repository` trait, not concrete implementations
-- **Schemas-first:** YES — all request/response types are typed structs
-- **Error handling:** WARN — 2 unwrap()s in handlers violate "never unwrap in production" rule
-- **Clean Architecture:** PASS — dependencies point inward (core ← handlers ← api/worker)
+- **SOLID**: Minor SRP concern — frontend is 1822 lines in one file (noted risk)
+- **Schemas-first**: All types defined in `crates/core/src/types.rs` — PASS
+- **Error handling**: Proper error mapping everywhere — PASS
+- **Clean Architecture**: Dependencies point inward — PASS
+- **TOCTOU**: Ownership check AFTER mutation violates fail-fast — CRITICAL
 - Status: **WARN**
 
 ### Commits
-- Total: 13 | Conventional: 13/13
-- Atomic: YES (each commit = one logical change)
-- Plan SHAs: 14/15 tasks annotated
+- Total: 12 (this track) | Conventional: 12/12
+- Atomic: YES
+- Plan SHAs: 0/13
 - Pre-commit hooks: NOT CONFIGURED
-- Status: **PASS**
+- Status: **WARN**
 
 ### Documentation
-- CLAUDE.md: CURRENT (11,942 chars — well under 40K)
-- README.md: N/A (not present — repo uses CLAUDE.md)
-- docs/prd.md: CURRENT
-- AI-TODO unresolved: 0
-- Dead code: 1 unused import (`sqlite_repo.rs:705`)
+- CLAUDE.md: CURRENT (13,521 chars — well under 40K)
+- README.md: exists (not checked in detail)
+- AI-TODO/AI-ASK: 0
+- Dead code: NONE detected
 - Status: **PASS**
 
 ### Context Quality
-- Plan handoff: GOOD (Context Handoff section with Intent/Key Files/Decisions/Risks)
-- CLAUDE.md size: 11,942 chars — OK
-- Scratch cleanup: N/A (no scratch dir)
+- Plan handoff: GOOD (Context Handoff section present with key files, decisions, risks)
+- CLAUDE.md size: 13,521 chars — OK
+- Scratch cleanup: N/A
 - Status: **PASS**
 
 ### Pre-mortem
 
 | Risk | Type | Likelihood | Impact | Mitigation |
 |------|------|-----------|--------|------------|
-| handlers unwrap() panics on DB errors | Paper Tiger | Low | Medium | DB inserts rarely fail; fix with proper error propagation in follow-up |
-| Worker/API behavior divergence (separate handler code) | Elephant | Medium | Medium | Same SQL in both repos; shared domain types enforce contract; integration test on live URL |
-| Single D1 database = single point of failure | Tiger | Low | High | D1 has automatic backups; future: multi-region federation |
-| No auth on admin endpoints | Tiger | High | Medium | MVP scope — add Supabase Auth before public launch |
-
-- Unmitigated Tigers: 0 (auth is known MVP debt, not this track's scope)
-- Status: **RISKS IDENTIFIED** (none blocking this track)
+| TOCTOU allows menu tampering | Tiger | High | High | Fix ownership check order |
+| Frontend monolith (1822 LOC) | Elephant | High | Medium | Split in future refactor track |
+| No pre-commit hooks | Paper Tiger | Low | Low | Add in next infra pass |
+| Single DB (D1) no backup | Tiger | Medium | High | D1 has automatic backups, but test restore |
 
 ### Visual Testing
-- Platform: N/A — frontend unchanged in this track (pure backend refactor)
+- Platform: N/A — autonomous mode, no browser tools invoked
 - Status: **N/A**
 
-### Issues Found
-1. [MINOR] `unwrap()` in `crates/handlers/src/restaurants.rs:59` — should return `(StatusCode, String)` error
-2. [MINOR] `unwrap()` in `crates/handlers/src/couriers.rs:36` — should return `(StatusCode, String)` error
-3. [MINOR] Unused import in `crates/api/src/sqlite_repo.rs:705` — `CreateCourierRequest`
-
-### Recommendations
-- Replace `unwrap()` in handlers with proper error propagation (match on RepoError → HTTP status)
-- Remove unused import in sqlite_repo.rs
-- Add README.md with setup/run/deploy instructions
-- Add pre-commit hooks (clippy + fmt)
-- Consider adding handler-level tests to handlers crate (currently 0 tests)
-
-<solo:done/>---
-
-## Code Review: OpenWok — repo-abstraction_20260320
-**Date:** 2026-03-20
-
-## Verdict: SHIP
-
-### Summary
-Repository abstraction successfully eliminates handler duplication between api (SqliteRepo) and worker (D1Repo). Clean architecture with proper trait abstraction, 55 tests pass, production live at HTTP 200. Two minor `unwrap()` calls in handlers should be addressed in a follow-up.
-
-### Tests
-- Total: 55 | Pass: 55 | Fail: 0 | Skip: 0
-- Coverage: N/A (no coverage tool configured)
-- Status: **PASS**
-
-### Linter
-- Errors: 0 | Warnings: 1 (unused import `CreateCourierRequest` in `sqlite_repo.rs:705`)
-- Clippy: clean (0 warnings, 0 errors)
-- Status: **PASS**
-
-### Build
-- `cargo check --workspace`: PASS
-- `cargo check -p openwok-worker`: PASS (wasm32 standalone)
-- `cargo fmt --check`: PASS
-- Status: **PASS**
-
-### Pre-Landing Checklist
-**Pass 1 — CRITICAL:** 0 issues
-- No SQL string interpolation (all parameterized queries)
-- No TOCTOU / race conditions
-- No LLM output trust boundary
-
-**Pass 2 — INFORMATIONAL:** 2 issues
-- [MINOR] `handlers/restaurants.rs:59` — `unwrap()` on `create_restaurant` (panics on DB error instead of returning HTTP 500)
-- [MINOR] `handlers/couriers.rs:36` — `unwrap()` on `create_courier` (same issue)
-- Status: **WARN** (0 critical, 2 informational)
-
-### Security
-- Vulnerabilities: 0
-- Hardcoded secrets: NONE
-- SQL injection: NONE (all queries use parameterized bindings)
-- `.env` in `.gitignore`: YES
-- Status: **PASS**
-
-### Acceptance Criteria
-- Verified: 8/9
-- Partial: Worker doesn't use handlers crate (D1Database !Send limitation — documented in plan Task 3.2)
-- Status: **PASS** (partial criterion is an architectural constraint, not a gap)
-
-### Plan Progress
-- Tasks: 13/15 complete (2 skipped = no wrangler credentials for local D1 testing)
-- Phases: 4/4 complete
-- Status: **COMPLETE**
-
-### Production Logs
-- Platform: Cloudflare Workers
-- `/api/health`: HTTP 200
-- `/api/restaurants`: HTTP 200
-- Status: **CLEAN**
-
-### Dev Principles
-- **SRP:** PASS — clean separation: core (types+trait), handlers (routing), api (SQLite impl), worker (D1 impl)
-- **DIP:** PASS — handlers depend on `Repository` trait, not concrete implementations
-- **Schemas-first:** YES — all request/response types are typed structs
-- **Error handling:** WARN — 2 unwrap()s in handlers violate "never unwrap in production" rule
-- **Clean Architecture:** PASS — dependencies point inward (core ← handlers ← api/worker)
-- Status: **WARN**
-
-### Commits
-- Total: 13 | Conventional: 13/13
-- Atomic: YES (each commit = one logical change)
-- Plan SHAs: 14/15 tasks annotated
-- Pre-commit hooks: NOT CONFIGURED
-- Status: **PASS**
-
-### Documentation
-- CLAUDE.md: CURRENT (11,942 chars — well under 40K)
-- README.md: N/A (not present — repo uses CLAUDE.md)
-- docs/prd.md: CURRENT
-- AI-TODO unresolved: 0
-- Dead code: 1 unused import (`sqlite_repo.rs:705`)
-- Status: **PASS**
-
-### Context Quality
-- Plan handoff: GOOD (Context Handoff section with Intent/Key Files/Decisions/Risks)
-- CLAUDE.md size: 11,942 chars — OK
-- Scratch cleanup: N/A (no scratch dir)
-- Status: **PASS**
-
-### Pre-mortem
-
-| Risk | Type | Likelihood | Impact | Mitigation |
-|------|------|-----------|--------|------------|
-| handlers unwrap() panics on DB errors | Paper Tiger | Low | Medium | DB inserts rarely fail; fix with proper error propagation in follow-up |
-| Worker/API behavior divergence (separate handler code) | Elephant | Medium | Medium | Same SQL in both repos; shared domain types enforce contract; integration test on live URL |
-| Single D1 database = single point of failure | Tiger | Low | High | D1 has automatic backups; future: multi-region federation |
-| No auth on admin endpoints | Tiger | High | Medium | MVP scope — add Supabase Auth before public launch |
-
-- Unmitigated Tigers: 0 (auth is known MVP debt, not this track's scope)
-- Status: **RISKS IDENTIFIED** (none blocking this track)
-
-### Visual Testing
-- Platform: N/A — frontend unchanged in this track (pure backend refactor)
-- Status: **N/A**
+---
 
 ### Issues Found
-1. [MINOR] `unwrap()` in `crates/handlers/src/restaurants.rs:59` — should return `(StatusCode, String)` error
-2. [MINOR] `unwrap()` in `crates/handlers/src/couriers.rs:36` — should return `(StatusCode, String)` error
-3. [MINOR] Unused import in `crates/api/src/sqlite_repo.rs:705` — `CreateCourierRequest`
+1. **[CRITICAL]** TOCTOU: menu item updated before ownership verified — `crates/handlers/src/restaurants.rs:241-247`
+2. **[CRITICAL]** Same TOCTOU in worker — `crates/worker/src/lib.rs:380-393`
+3. **[MODERATE]** Clippy error: clone_on_copy — `crates/frontend/src/main.rs:1471`
+4. **[MODERATE]** Clippy error: collapsible_if — `crates/frontend/src/main.rs:1599`
+5. **[LOW]** Missing `get_menu_item()` method forces hacky update-as-read pattern
 
 ### Recommendations
-- Replace `unwrap()` in handlers with proper error propagation (match on RepoError → HTTP status)
-- Remove unused import in sqlite_repo.rs
-- Add README.md with setup/run/deploy instructions
-- Add pre-commit hooks (clippy + fmt)
-- Consider adding handler-level tests to handlers crate (currently 0 tests)
+- Fix TOCTOU: move ownership check BEFORE `update_menu_item` call in both handlers and worker
+- Fix clippy errors to restore `make check`
+- Consider adding `get_menu_item(id)` to Repository trait
+- Consider splitting frontend in future track
 
-<solo:done/>
+---
+
+Now updating spec.md and plan.md with fix tasks.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/spec.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit review fix tasks[0m
+
+Review complete. **Verdict: FIX FIRST** — two critical issues need resolution before shipping:
+
+1. **TOCTOU security bug**: `update_menu_item` handler modifies data BEFORE verifying ownership, allowing any authenticated user to change any restaurant's menu items
+2. **Clippy errors**: `make check` fails due to 2 lint errors in frontend
+
+Phase 5 with 4 fix tasks has been added to plan.md. Sending back to `/build`.
+
+<solo:redo/>Review complete. **Verdict: FIX FIRST** — two critical issues need resolution before shipping:
+
+1. **TOCTOU security bug**: `update_menu_item` handler modifies data BEFORE verifying ownership, allowing any authenticated user to change any restaurant's menu items
+2. **Clippy errors**: `make check` fails due to 2 lint errors in frontend
+
+Phase 5 with 4 fix tasks has been added to plan.md. Sending back to `/build`.
+
+<solo:redo/>

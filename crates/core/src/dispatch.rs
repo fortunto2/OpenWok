@@ -142,10 +142,7 @@ mod tests {
         async fn list_couriers(&self) -> Result<Vec<Courier>, RepoError> {
             Ok(self.couriers.lock().unwrap().clone())
         }
-        async fn create_courier(
-            &self,
-            _req: CreateCourierRequest,
-        ) -> Result<Courier, RepoError> {
+        async fn create_courier(&self, _req: CreateCourierRequest) -> Result<Courier, RepoError> {
             Err(RepoError::NotFound)
         }
         async fn toggle_courier_available(
@@ -167,16 +164,10 @@ mod tests {
         ) -> Result<User, RepoError> {
             Err(RepoError::NotFound)
         }
-        async fn create_payment(
-            &self,
-            _req: CreatePaymentRequest,
-        ) -> Result<Payment, RepoError> {
+        async fn create_payment(&self, _req: CreatePaymentRequest) -> Result<Payment, RepoError> {
             Err(RepoError::NotFound)
         }
-        async fn get_payment_by_order(
-            &self,
-            _order_id: OrderId,
-        ) -> Result<Payment, RepoError> {
+        async fn get_payment_by_order(&self, _order_id: OrderId) -> Result<Payment, RepoError> {
             Err(RepoError::NotFound)
         }
         async fn update_payment_status(
@@ -233,10 +224,7 @@ mod tests {
         ) -> Result<User, RepoError> {
             Err(RepoError::NotFound)
         }
-        async fn get_courier_by_user_id(
-            &self,
-            _user_id: &str,
-        ) -> Result<Courier, RepoError> {
+        async fn get_courier_by_user_id(&self, _user_id: &str) -> Result<Courier, RepoError> {
             Err(RepoError::NotFound)
         }
         async fn list_courier_orders(

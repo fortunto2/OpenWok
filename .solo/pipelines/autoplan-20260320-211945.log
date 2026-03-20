@@ -1,0 +1,120 @@
+  [2msession: 00f858c7  model: claude-opus-4-6[1m][0m
+  [2m--[0m [36mAgent[0m [2mResearch backlog and roadmap[0m
+  [2m--[0m [36mAgent[0m [2mRead completed plans and retro[0m
+  [36m**[0m [36mGlob[0m [2m"**/backlog*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"**/ROADMAP*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"**/roadmap*.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/planning/ROADMAP.md[0m
+  [32m$ [0m [33mBash[0m [2mList all directories in docs/plan-done/[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/roadmap-full.md[0m
+  [32m$ [0m [33mBash[0m [2mGet recent commit history (last 30 commits)[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-restaurant-onboarding.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [36m**[0m [36mGlob[0m [2m"**/plan/**/*.md" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mCheck if there's an active plan directory[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/mvp-core_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mList completed plan directories[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/phase2-frontend/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/phase3-payments/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/phase4-federation/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/pilot-infra_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [36m// [36mGrep[0m [2m"TODO|FIXME|XXX" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/repo-abstraction_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/auth-payments_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/tailwind-migration/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/cf-workers-deploy_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/restaurant-onboarding_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mList retro files to find the latest one[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-restaurant-onboarding.md[0m
+
+Good research. Now let me dig into the codebase to understand what exists for the courier/dispatch system, which is clearly the highest-priority gap for pilot readiness.
+  [2m--[0m [36mAgent[0m [2mResearch courier and dispatch code[0m
+  [36m// [36mGrep[0m [2m"dispatch|auto.assign|courier_assign|find_nearest|available_courier" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"OrderStatus|order_status|Confirmed|Preparing|ReadyForPickup|InDelivery|Delivered" ~/startups/active/openwok/crates/core/src[0m
+  [36m**[0m [36mGlob[0m [2m"**/core/src/**/*.rs"[0m
+  [36m**[0m [36mGlob[0m [2m"**/handlers/src/**/*.rs"[0m
+  [36m**[0m [36mGlob[0m [2m"**/api/src/**/*.rs"[0m
+  [36m**[0m [36mGlob[0m [2m"**/frontend/src/**/*.rs"[0m
+  [36m**[0m [36mGlob[0m [2m"**/worker/src/**/*.rs"[0m
+  [36m// [36mGrep[0m [2m"Courier|courier"[0m
+  [36m// [36mGrep[0m [2m"dispatch|Dispatch"[0m
+  [36m// [36mGrep[0m [2m"OrderStatus"[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/ws.rs[0m
+  [36m// [36mGrep[0m [2m"assign_courier" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m// [36mGrep[0m [2m"list_couriers|create_courier|toggle_courier" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m// [36mGrep[0m [2m"courier|Courier|dispatch|Dispatch" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m**[0m [36mGlob[0m [2m"**/tests/**/*.rs"[0m
+  [36m**[0m [36mGlob[0m [2m"**/*test*.rs"[0m
+  [32m$ [0m [33mBash[0m [2mFind test files in tests directories[0m
+  [36m// [36mGrep[0m [2m"#\[cfg\(test\)\]"[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m// [36mGrep[0m [2m"OrderEvent|order_events"[0m
+  [36m// [36mGrep[0m [2m"order_events\.send|broadcast.*OrderEvent"[0m
+  [32m$ [0m [33mBash[0m [2mFind SQL migration files[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0001_init.sql[0m
+  [36m// [36mGrep[0m [2m"tokio::spawn|background|auto.*assign|dispatch.*logic"[0m
+  [32m$ [0m [33mBash[0m [2mCount lines in core crate[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/roadmap-full.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/ws.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+
+Now I have the full picture. Let me create the plan directory and write the spec and plan.
+  [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Research codebase for courier/dispatch gaps', [0m
+  [32m$ [0m [33mBash[0m [2mCreate plan directory for courier-dispatch track[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/spec.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Research codebase for courier/dispatch gaps', [0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Research codebase for courier/dispatch gaps', [0m
+  [2m--[0m [36mToolSearch[0m [2mselect:AskUserQuestion[0m
+  [2m--[0m [36mAskUserQuestion[0m [2m[{'question': 'Track courier-dispatch_20260320 ready. 3 phas[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Research codebase for courier/dispatch gaps', [0m
+
+```
+Track created: courier-dispatch_20260320
+
+  Type:   Feature
+  Phases: 3
+  Tasks:  12
+  Spec:   docs/plan/courier-dispatch_20260320/spec.md
+  Plan:   docs/plan/courier-dispatch_20260320/plan.md
+
+Research findings:
+  - WebSocket broadcast channel exists (AppState.order_events) but send() is never called — dead code
+  - assign_courier does zone-based FIFO (first available) — reusable as dispatch core
+  - Courier struct lacks user_id — needs migration 0009 to link courier to auth user
+  - No courier-facing UI at all (only operator console has assign button)
+  - Order state machine fully tested (16 tests) — no changes needed
+
+Next: /build courier-dispatch_20260320
+``````
+Track created: courier-dispatch_20260320
+
+  Type:   Feature
+  Phases: 3
+  Tasks:  12
+  Spec:   docs/plan/courier-dispatch_20260320/spec.md
+  Plan:   docs/plan/courier-dispatch_20260320/plan.md
+
+Research findings:
+  - WebSocket broadcast channel exists (AppState.order_events) but send() is never called — dead code
+  - assign_courier does zone-based FIFO (first available) — reusable as dispatch core
+  - Courier struct lacks user_id — needs migration 0009 to link courier to auth user
+  - No courier-facing UI at all (only operator console has assign button)
+  - Order state machine fully tested (16 tests) — no changes needed
+
+Next: /build courier-dispatch_20260320
+```

@@ -108,28 +108,28 @@ pub async fn transition<R: Repository>(
     }
 
     // Auto-dispatch: when order reaches ReadyForPickup, assign a courier
-    if order.status == OrderStatus::ReadyForPickup {
-        if let Ok(Some(result)) = auto_dispatch(repo.as_ref(), order.id).await {
-            // Transition to InDelivery since courier is assigned
-            let _ = repo
-                .update_order_status(order.id, OrderStatus::InDelivery)
-                .await;
+    if order.status == OrderStatus::ReadyForPickup
+        && let Ok(Some(result)) = auto_dispatch(repo.as_ref(), order.id).await
+    {
+        // Transition to InDelivery since courier is assigned
+        let _ = repo
+            .update_order_status(order.id, OrderStatus::InDelivery)
+            .await;
 
-            if let Some(ref s) = sender {
-                let _ = s.send(OrderEvent {
-                    order_id: result.order_id.clone(),
-                    status: "CourierAssigned".into(),
-                });
-                let _ = s.send(OrderEvent {
-                    order_id: result.order_id,
-                    status: "InDelivery".into(),
-                });
-            }
+        if let Some(ref s) = sender {
+            let _ = s.send(OrderEvent {
+                order_id: result.order_id.clone(),
+                status: "CourierAssigned".into(),
+            });
+            let _ = s.send(OrderEvent {
+                order_id: result.order_id,
+                status: "InDelivery".into(),
+            });
+        }
 
-            // Return updated order with InDelivery status
-            if let Ok(updated) = repo.get_order(order.id).await {
-                return Ok(Json(updated));
-            }
+        // Return updated order with InDelivery status
+        if let Ok(updated) = repo.get_order(order.id).await {
+            return Ok(Json(updated));
         }
     }
 

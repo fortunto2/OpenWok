@@ -2393,6 +2393,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.18",
+ "tokio",
  "utoipa",
  "uuid",
 ]
@@ -2425,6 +2426,7 @@ dependencies = [
  "openwok-core",
  "serde",
  "serde_json",
+ "tokio",
  "utoipa",
  "utoipa-axum",
  "uuid",

@@ -1,0 +1,125 @@
+  [2msession: 4716373c  model: claude-opus-4-6[1m][0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/*/plan.md"[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+
+Phase 5 has 4 fix tasks from review. Let me read the affected files.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+
+I see the issues clearly. Let me fix them systematically.
+
+**Starting Task 5.1: Fix TOCTOU in handlers**
+
+The core problem: `update_menu_item` and `delete_menu_item` modify data BEFORE checking ownership. I need to add a `get_menu_item` method to the Repository trait to look up the item's restaurant_id first.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [36m// [36mGrep[0m [2m"get_menu_item"[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m// [36mGrep[0m [2m"pub struct MenuItem" ~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m// [36mGrep[0m [2m"fn update_menu_item|fn delete_menu_item" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+
+Now I'll add `get_menu_item` to the Repository trait, implement it in both repos, and fix the TOCTOU in both handlers and worker.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+
+Now implement `get_menu_item` in SqliteRepo.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+
+Now fix the TOCTOU in handlers — rewrite `update_menu_item` and `delete_menu_item`:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+
+Now remove the unused `uuid` import since we no longer use `uuid::Uuid::nil()`:
+  [36m// [36mGrep[0m [2m"uuid::" ~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+
+Good, no remaining uuid references. Task 5.1 handlers fix is done. Now **Task 5.2: Fix TOCTOU in worker**.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+
+Now add `get_menu_item` to D1Repo and fix the worker routes.
+  [36m// [36mGrep[0m [2m"fn update_menu_item|fn delete_menu_item" ~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+
+Now add `get_menu_item` to D1Repo:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+
+Now fix the worker routes — PATCH and DELETE menu-items need to verify ownership BEFORE modifying:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+
+Now **Task 5.3: Fix clippy errors in frontend**. Let me read the exact lines:
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Let me run clippy first to see the exact errors before fixing:
+  [32m$ [0m [33mBash[0m [2mRun clippy on frontend to see exact errors[0m
+
+Now I know the exact fixes. Apply both:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Now update plan.md and run `make check` (Task 5.4):
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mRun make check (test + clippy + fmt)[0m
+
+Tests pass, clippy passes, just a formatting issue. Let me fix it:
+  [32m$ [0m [33mBash[0m [2mAuto-format code[0m
+
+Now also check the worker compiles for wasm32:
+  [32m$ [0m [33mBash[0m [2mCheck worker compiles for wasm32 target[0m
+  [32m$ [0m [33mBash[0m [2mCheck worker compiles from its directory[0m
+
+Worker compiles. Now run `make check` again to confirm everything passes:
+  [32m$ [0m [33mBash[0m [2mVerify make check passes cleanly[0m
+  [32m$ [0m [33mBash[0m [2mRun make check from project root[0m
+
+All clean — tests pass, clippy clean, fmt clean. Now commit:
+  [32m$ [0m [33mBash[0m [2mCommit TOCTOU fix + clippy fixes[0m
+
+Now update the plan with SHA annotations and mark all Phase 5 tasks complete:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit plan progress[0m
+
+Phase 5 complete. All tasks done:
+
+```
+Phase 5 complete! <!-- checkpoint:17fb4be -->
+
+  Tasks:  4/4
+  Tests:  pass
+  Clippy: pass
+  Fmt:    pass
+  Verification:
+    - [x] make check passes cleanly
+    - [x] TOCTOU fixed: non-owner update returns 403 without modifying data
+
+  Commits:
+    17fb4be — fix(security): TOCTOU in menu item ownership + clippy fixes
+    0642447 — chore(plan): complete phase 5
+```
+
+<solo:done/>Phase 5 complete. All tasks done:
+
+```
+Phase 5 complete! <!-- checkpoint:17fb4be -->
+
+  Tasks:  4/4
+  Tests:  pass
+  Clippy: pass
+  Fmt:    pass
+  Verification:
+    - [x] make check passes cleanly
+    - [x] TOCTOU fixed: non-owner update returns 403 without modifying data
+
+  Commits:
+    17fb4be — fix(security): TOCTOU in menu item ownership + clippy fixes
+    0642447 — chore(plan): complete phase 5
+```
+
+<solo:done/>

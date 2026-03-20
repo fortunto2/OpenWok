@@ -123,3 +123,39 @@ Deployed: Auth + payments live on CF Workers, 91 tests passing
 - Test growth: 55 → 91 tests in one track, 0 failures
 - Commit discipline: 92% conventional (104/113)
 - CLAUDE.md: 12.7KB, under control
+
+## 2026-03-20 | openwok | Factory Score: 8.5/10 | Retro #6 (restaurant-onboarding)
+
+Pipeline: 1 start, 1 redo cycle | Iters: 6 (5 productive) | Waste: 17%
+Track completed: restaurant-onboarding_20260320 (ownership model, management API, owner dashboard, TOCTOU fix)
+Deployed: CF Workers updated, 98 tests passing
+
+### Defects
+- **LOW** | Doubled `<solo:redo/>` signal in review output — cosmetic, no impact
+  - No fix needed
+
+### Harness Gaps
+- **Context:** Excellent — CLAUDE.md 13.5KB, plan Context Handoff section worked well, dependencies (auth-payments, repo-abstraction) correctly ordered.
+- **Constraints:** Clean — Repository pattern maintained, ownership check-before-mutate enforced after TOCTOU fix.
+- **Precedents:**
+  - GOOD: Review caught TOCTOU security vulnerability — quality gate working as designed
+  - GOOD: Build completed 13-task plan in single iteration (35 min) — well-scoped track
+  - GOOD: Dynamic Phase 5 (review fix tasks) — pipeline adapts to findings
+  - GOOD: Deploy 0 waste, 2 deploys in 6.5 min total
+  - LESSON: TOCTOU pattern (mutate then check) should be a static analysis rule
+  - LESSON: Pre-build `cargo fmt --check` still not implemented (from retro #5)
+
+### Missing
+- Pre-build fmt/lint gate (recurring recommendation since retro #5)
+- Frontend component splitting (main.rs at 1822 lines)
+- Pre-commit hooks (clippy + fmt)
+- Test coverage measurement
+
+### What worked well
+- Review quality gate: caught real auth bypass vulnerability
+- Build skill: 6th consecutive track with 0 build-stage waste
+- Deploy: 4th consecutive 0-waste deploy
+- Pipeline redo cycle: clean redo→fix→ship in 9 minutes
+- Test growth: 91 → 98 tests, 0 failures
+- CLAUDE.md discipline: 13.5KB, lean and current
+- Commit discipline: 93% conventional (119/128)
