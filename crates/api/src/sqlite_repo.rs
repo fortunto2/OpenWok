@@ -901,8 +901,8 @@ mod tests {
     use crate::db;
     use openwok_core::order::OrderStatus;
     use openwok_core::repo::{
-        CreateCourierRequest, CreateMenuItemRequest, CreateOrderItemRequest, CreateOrderRequest,
-        CreateRestaurantRequest, Repository,
+        CreateMenuItemRequest, CreateOrderItemRequest, CreateOrderRequest, CreateRestaurantRequest,
+        Repository,
     };
     use openwok_core::types::{
         CreatePaymentRequest, CreateUserRequest, PaymentStatus, UpdatePaymentStatusRequest,

@@ -146,10 +146,10 @@ fn row_to_order(row: OrderRow, items: Vec<OrderItemRow>) -> Option<Order> {
             processing_fee: Money::from(row.processing_fee.as_str()),
         },
         created_at: chrono::DateTime::parse_from_rfc3339(&row.created_at)
-            .unwrap()
+            .unwrap_or_default()
             .with_timezone(&chrono::Utc),
         updated_at: chrono::DateTime::parse_from_rfc3339(&row.updated_at)
-            .unwrap()
+            .unwrap_or_default()
             .with_timezone(&chrono::Utc),
         estimated_eta: row.estimated_eta.map(|v| v as i32),
         actual_delivery_at: row.actual_delivery_at.and_then(|s| {
@@ -831,7 +831,7 @@ impl D1Repo {
             name: req.name,
             role: role_enum,
             created_at: chrono::DateTime::parse_from_rfc3339(&now)
-                .unwrap()
+                .unwrap_or_default()
                 .with_timezone(&chrono::Utc),
         })
     }
@@ -915,7 +915,7 @@ impl D1Repo {
             local_ops_amount: req.local_ops_amount,
             processing_amount: req.processing_amount,
             created_at: chrono::DateTime::parse_from_rfc3339(&now)
-                .unwrap()
+                .unwrap_or_default()
                 .with_timezone(&chrono::Utc),
         })
     }

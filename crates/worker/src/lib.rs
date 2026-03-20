@@ -38,6 +38,7 @@ struct CreateOrderReq {
     delivery_fee: String,
     tip: String,
     local_ops_fee: String,
+    origin_url: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -168,6 +169,20 @@ fn json_ok<T: serde::Serialize>(data: &T, status: u16) -> Result<Response> {
     Ok(resp)
 }
 
+/// Convert auth errors to 401 responses.
+fn auth_err_to_response(e: Error) -> Result<Response> {
+    Response::error(format!("Unauthorized: {e}"), 401)
+}
+
+/// Convert Money amount to Stripe cents (integer).
+fn to_cents(money: &Money) -> i64 {
+    use rust_decimal::prelude::ToPrimitive;
+    (money.amount() * rust_decimal::Decimal::from(100))
+        .round()
+        .to_i64()
+        .unwrap_or(0)
+}
+
 fn repo_err_to_response(e: openwok_core::repo::RepoError) -> Result<Response> {
     use openwok_core::repo::RepoError;
     match &e {
@@ -241,9 +256,14 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .post_async("/api/orders", |mut req, ctx| async move {
+            // Auth required
+            if let Err(e) = extract_auth(&req, &ctx.env) {
+                return auth_err_to_response(e);
+            }
+
             let body: CreateOrderReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
-            let result = repo
+            let order = repo
                 .create_order(CreateOrderRequest {
                     restaurant_id: RestaurantId::from_uuid(parse_uuid(&body.restaurant_id)),
                     items: body
@@ -263,8 +283,83 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                     local_ops_fee: Money::from(body.local_ops_fee.as_str()),
                 })
                 .await;
-            match result {
-                Ok(order) => json_ok(&order, 201),
+
+            match order {
+                Ok(order) => {
+                    let order_id_str = order.id.to_string();
+
+                    // Create payment record
+                    let payment_req = CreatePaymentRequest {
+                        order_id: order.id,
+                        stripe_checkout_session_id: None,
+                        amount_total: order.pricing.total(),
+                        restaurant_amount: order.pricing.food_total,
+                        courier_amount: order.pricing.delivery_fee + order.pricing.tip,
+                        federal_amount: order.pricing.federal_fee,
+                        local_ops_amount: order.pricing.local_ops_fee,
+                        processing_amount: order.pricing.processing_fee,
+                    };
+
+                    let payment = repo.create_payment(payment_req).await.ok();
+                    let payment_id = payment.as_ref().map(|p| p.id.to_string());
+
+                    // Try to create Stripe Checkout Session
+                    let checkout_url = match ctx.env.secret("STRIPE_SECRET_KEY") {
+                        Ok(key) => {
+                            let stripe =
+                                stripe_universal::StripeClient::new(key.to_string());
+                            let origin = body
+                                .origin_url
+                                .unwrap_or_else(|| "https://openwok.superduperai.co".into());
+                            let success_url =
+                                format!("{origin}/order/{order_id_str}/success");
+                            let cancel_url = format!("{origin}/checkout");
+
+                            let total_cents = to_cents(&order.pricing.total());
+                            let params =
+                                stripe_universal::types::CreateCheckoutSessionParams {
+                                    mode: stripe_universal::types::CheckoutMode::Payment,
+                                    success_url,
+                                    cancel_url,
+                                    line_items: vec![stripe_universal::types::LineItem {
+                                        price_data: stripe_universal::types::PriceData {
+                                            currency: "usd".into(),
+                                            product_data:
+                                                stripe_universal::types::ProductData {
+                                                    name: "OpenWok Order".into(),
+                                                },
+                                            unit_amount: total_cents,
+                                        },
+                                        quantity: 1,
+                                    }],
+                                    payment_intent_data: None,
+                                    metadata: Some(
+                                        [(
+                                            "order_id".to_string(),
+                                            order_id_str.clone(),
+                                        )]
+                                        .into_iter()
+                                        .collect(),
+                                    ),
+                                };
+
+                            match stripe.create_checkout_session(&params).await {
+                                Ok(session) => session.url,
+                                Err(_) => None,
+                            }
+                        }
+                        Err(_) => None, // No Stripe key — dev mode
+                    };
+
+                    json_ok(
+                        &serde_json::json!({
+                            "order": order,
+                            "checkout_url": checkout_url,
+                            "payment_id": payment_id,
+                        }),
+                        201,
+                    )
+                }
                 Err(e) => repo_err_to_response(e),
             }
         })
@@ -278,6 +373,11 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .patch_async("/api/orders/:id/status", |mut req, ctx| async move {
+            // Auth required
+            if let Err(e) = extract_auth(&req, &ctx.env) {
+                return auth_err_to_response(e);
+            }
+
             let id_str = ctx.param("id").unwrap().to_string();
             let body: TransitionReq = req.json().await?;
             let id = OrderId::from_uuid(parse_uuid(&id_str));
@@ -289,7 +389,12 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                 Err(e) => repo_err_to_response(e),
             }
         })
-        .post_async("/api/orders/:id/assign", |_, ctx| async move {
+        .post_async("/api/orders/:id/assign", |req, ctx| async move {
+            // Auth required
+            if let Err(e) = extract_auth(&req, &ctx.env) {
+                return auth_err_to_response(e);
+            }
+
             let id_str = ctx.param("id").unwrap().to_string();
             let id = OrderId::from_uuid(parse_uuid(&id_str));
             let repo = D1Repo::new(ctx.env.d1("DB")?);
@@ -310,6 +415,11 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .post_async("/api/couriers", |mut req, ctx| async move {
+            // Auth required
+            if let Err(e) = extract_auth(&req, &ctx.env) {
+                return auth_err_to_response(e);
+            }
+
             let body: CreateCourierReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
             let result = repo
@@ -324,6 +434,11 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .patch_async("/api/couriers/:id/available", |mut req, ctx| async move {
+            // Auth required
+            if let Err(e) = extract_auth(&req, &ctx.env) {
+                return auth_err_to_response(e);
+            }
+
             let id_str = ctx.param("id").unwrap().to_string();
             let body: SetAvailableReq = req.json().await?;
             let id = CourierId::from_uuid(parse_uuid(&id_str));
