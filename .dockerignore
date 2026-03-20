@@ -3,4 +3,7 @@ target/
 .solo/
 docs/
 planning/
-*.md
+public/
+data/
+*.pdf
+.env*
