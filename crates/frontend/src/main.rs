@@ -600,11 +600,125 @@ fn OrderTracking(id: String) -> Element {
 
 // --- Operator Console ---
 
+#[server]
+async fn fetch_dashboard() -> Result<serde_json::Value, ServerFnError> {
+    let client = reqwest::Client::new();
+
+    let restaurants: Vec<serde_json::Value> = client
+        .get(format!("{API_BASE}/restaurants"))
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    let couriers: Vec<serde_json::Value> = client
+        .get(format!("{API_BASE}/couriers"))
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    Ok(serde_json::json!({
+        "restaurant_count": restaurants.len(),
+        "couriers_online": couriers.len(),
+        "restaurants": restaurants,
+        "couriers": couriers,
+    }))
+}
+
+#[server]
+async fn fetch_all_orders() -> Result<Vec<serde_json::Value>, ServerFnError> {
+    // AI-NOTE: API doesn't have a list-all-orders endpoint yet.
+    // For MVP, we return an empty list. The operator can view individual orders.
+    Ok(vec![])
+}
+
 #[component]
 fn OperatorConsole() -> Element {
-    rsx! {
-        h1 { "Node Operator Console" }
-        p { "Dashboard coming soon..." }
+    let dashboard = use_resource(fetch_dashboard);
+
+    match &*dashboard.read_unchecked() {
+        Some(Ok(data)) => {
+            let restaurant_count = data["restaurant_count"].as_u64().unwrap_or(0);
+            let couriers_online = data["couriers_online"].as_u64().unwrap_or(0);
+
+            let restaurants: Vec<(String, usize)> = data["restaurants"]
+                .as_array()
+                .map(|arr| {
+                    arr.iter()
+                        .map(|r| {
+                            let name = r["name"].as_str().unwrap_or("").to_string();
+                            let menu_len = r["menu"].as_array().map(|m| m.len()).unwrap_or(0);
+                            (name, menu_len)
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            let couriers: Vec<String> = data["couriers"]
+                .as_array()
+                .map(|arr| {
+                    arr.iter()
+                        .map(|c| c["name"].as_str().unwrap_or("").to_string())
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            rsx! {
+                div { class: "operator-console",
+                    h1 { "Node Operator Console" }
+
+                    // Stats cards
+                    div { class: "stats-grid",
+                        div { class: "stat-card",
+                            h3 { "{restaurant_count}" }
+                            p { "Restaurants" }
+                        }
+                        div { class: "stat-card",
+                            h3 { "{couriers_online}" }
+                            p { "Couriers Online" }
+                        }
+                        div { class: "stat-card",
+                            h3 { "$1.00" }
+                            p { "Federal Fee / Order" }
+                        }
+                    }
+
+                    // Restaurants
+                    div { class: "console-section",
+                        h2 { "Restaurants" }
+                        for (name, menu_count) in restaurants {
+                            div { class: "console-row",
+                                span { "{name}" }
+                                span { "{menu_count} items" }
+                            }
+                        }
+                    }
+
+                    // Couriers
+                    div { class: "console-section",
+                        h2 { "Available Couriers" }
+                        if couriers.is_empty() {
+                            p { "No couriers online" }
+                        }
+                        for name in couriers {
+                            div { class: "console-row",
+                                span { "{name}" }
+                                span { class: "badge", "Available" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Some(Err(e)) => rsx! {
+            h1 { "Operator Console" }
+            p { class: "error", "Error: {e}" }
+        },
+        None => rsx! {
+            h1 { "Operator Console" }
+            p { "Loading dashboard..." }
+        },
     }
 }
 
