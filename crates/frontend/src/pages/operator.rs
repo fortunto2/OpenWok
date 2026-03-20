@@ -3,7 +3,8 @@
 use dioxus::prelude::*;
 
 use crate::api::{
-    assign_courier, fetch_admin_metrics, fetch_all_orders, fetch_dashboard, transition_order,
+    assign_courier, fetch_admin_disputes, fetch_admin_metrics, fetch_admin_users, fetch_all_orders,
+    fetch_dashboard, resolve_dispute, toggle_user_blocked, transition_order,
 };
 
 #[component]
@@ -82,6 +83,16 @@ pub fn OperatorConsole() -> Element {
                     "Metrics"
                 }
                 button {
+                    class: if *active_tab.read() == "users" { "tab-btn active" } else { "tab-btn" },
+                    onclick: move |_| active_tab.set("users".to_string()),
+                    "Users"
+                }
+                button {
+                    class: if *active_tab.read() == "disputes" { "tab-btn active" } else { "tab-btn" },
+                    onclick: move |_| active_tab.set("disputes".to_string()),
+                    "Disputes"
+                }
+                button {
                     class: "refresh-btn",
                     onclick: move |_| refresh += 1,
                     "Refresh"
@@ -90,6 +101,14 @@ pub fn OperatorConsole() -> Element {
 
             if *active_tab.read() == "metrics" {
                 MetricsPanel {}
+            }
+
+            if *active_tab.read() == "users" {
+                UsersPanel { refresh: refresh }
+            }
+
+            if *active_tab.read() == "disputes" {
+                DisputesPanel { refresh: refresh }
             }
 
             if *active_tab.read() == "overview" {
@@ -253,6 +272,170 @@ fn MetricsPanel() -> Element {
         },
         None => rsx! {
             p { "Loading metrics..." }
+        },
+    }
+}
+
+#[component]
+fn UsersPanel(refresh: Signal<u32>) -> Element {
+    let users = use_resource(move || {
+        let _ = refresh();
+        fetch_admin_users()
+    });
+
+    match &*users.read_unchecked() {
+        Some(Ok(list)) => {
+            rsx! {
+                div { class: "console-section",
+                    h2 { "Users ({list.len()})" }
+                    table { class: "admin-table",
+                        thead {
+                            tr {
+                                th { "Email" }
+                                th { "Name" }
+                                th { "Role" }
+                                th { "Blocked" }
+                                th { "Action" }
+                            }
+                        }
+                        tbody {
+                            for user in list.iter() {
+                                {
+                                    let uid = user["id"].as_str().unwrap_or("").to_string();
+                                    let email = user["email"].as_str().unwrap_or("").to_string();
+                                    let name = user["name"].as_str().unwrap_or("-").to_string();
+                                    let role = user["role"].as_str().unwrap_or("Customer").to_string();
+                                    let blocked = user["blocked"].as_bool().unwrap_or(false);
+                                    rsx! {
+                                        tr { key: "{uid}",
+                                            td { "{email}" }
+                                            td { "{name}" }
+                                            td { span { class: "badge", "{role}" } }
+                                            td {
+                                                if blocked {
+                                                    span { class: "badge badge-danger", "Blocked" }
+                                                } else {
+                                                    span { class: "badge badge-success", "Active" }
+                                                }
+                                            }
+                                            td {
+                                                button {
+                                                    class: "action-btn",
+                                                    onclick: {
+                                                        let uid = uid.clone();
+                                                        let new_blocked = !blocked;
+                                                        let mut refresh = refresh;
+                                                        move |_| {
+                                                            let uid = uid.clone();
+                                                            spawn(async move {
+                                                                let _ = toggle_user_blocked(&uid, new_blocked).await;
+                                                                refresh += 1;
+                                                            });
+                                                        }
+                                                    },
+                                                    if blocked { "Unblock" } else { "Block" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Some(Err(e)) => rsx! {
+            p { class: "error", "Failed to load users: {e}" }
+        },
+        None => rsx! {
+            p { "Loading users..." }
+        },
+    }
+}
+
+#[component]
+fn DisputesPanel(refresh: Signal<u32>) -> Element {
+    let disputes = use_resource(move || {
+        let _ = refresh();
+        fetch_admin_disputes()
+    });
+
+    match &*disputes.read_unchecked() {
+        Some(Ok(list)) => {
+            rsx! {
+                div { class: "console-section",
+                    h2 { "Disputes ({list.len()})" }
+                    if list.is_empty() {
+                        p { "No disputes" }
+                    }
+                    for dispute in list.iter() {
+                        {
+                            let did = dispute["id"].as_str().unwrap_or("").to_string();
+                            let order_id = dispute["order_id"].as_str().unwrap_or("").to_string();
+                            let reason = dispute["reason"].as_str().unwrap_or("").to_string();
+                            let status = dispute["status"].as_str().unwrap_or("Open").to_string();
+                            let resolution = dispute["resolution"].as_str().unwrap_or("").to_string();
+                            let is_open = status == "Open";
+                            rsx! {
+                                div { class: "dispute-card", key: "{did}",
+                                    div { class: "dispute-header",
+                                        span { class: "order-id", "Order: {order_id}" }
+                                        span { class: "badge",
+                                            class: if is_open { "badge-warning" } else { "" },
+                                            "{status}"
+                                        }
+                                    }
+                                    p { class: "dispute-reason", "{reason}" }
+                                    if !resolution.is_empty() {
+                                        p { class: "dispute-resolution", "Resolution: {resolution}" }
+                                    }
+                                    if is_open {
+                                        div { class: "dispute-actions",
+                                            button {
+                                                class: "action-btn",
+                                                onclick: {
+                                                    let did = did.clone();
+                                                    let mut refresh = refresh;
+                                                    move |_| {
+                                                        let did = did.clone();
+                                                        spawn(async move {
+                                                            let _ = resolve_dispute(&did, "Resolved", Some("resolved by operator")).await;
+                                                            refresh += 1;
+                                                        });
+                                                    }
+                                                },
+                                                "Resolve"
+                                            }
+                                            button {
+                                                class: "action-btn action-btn-secondary",
+                                                onclick: {
+                                                    let did = did.clone();
+                                                    let mut refresh = refresh;
+                                                    move |_| {
+                                                        let did = did.clone();
+                                                        spawn(async move {
+                                                            let _ = resolve_dispute(&did, "Dismissed", None).await;
+                                                            refresh += 1;
+                                                        });
+                                                    }
+                                                },
+                                                "Dismiss"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Some(Err(e)) => rsx! {
+            p { class: "error", "Failed to load disputes: {e}" }
+        },
+        None => rsx! {
+            p { "Loading disputes..." }
         },
     }
 }

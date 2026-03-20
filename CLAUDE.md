@@ -179,6 +179,11 @@ When building or reviewing frontend changes:
 | GET | /api/my/deliveries | List orders assigned to current courier (auth) |
 | GET | /api/public/economics | Aggregate financials (public, cached 5min) |
 | GET | /api/admin/metrics | Pilot KPIs (order count, on-time rate, revenue) |
+| GET | /api/admin/users | List all users with blocked status (admin) |
+| PATCH | /api/admin/users/{id}/block | Toggle user blocked status (admin) |
+| GET | /api/admin/disputes | List all disputes (admin) |
+| PATCH | /api/admin/disputes/{id}/resolve | Resolve/dismiss dispute (admin) |
+| POST | /api/orders/{id}/dispute | Create dispute on order (auth) |
 | POST | /api/auth/callback | Verify Supabase JWT, create/get user |
 | GET | /api/auth/me | Get current user profile (auth) |
 | POST | /api/webhooks/stripe | Stripe webhook (signature verified) |
@@ -203,7 +208,7 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 - `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
 - `planning/ROADMAP.md` — 12-month roadmap with decision gates
 - `docs/plan-done/` — completed specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy, repo-abstraction, auth-payments, tailwind-migration, restaurant-onboarding)
-- `docs/plan/courier-dispatch_20260320/` — active: courier dispatch + dashboard
+- `docs/plan/admin-tools_20260320/` — active: admin tools (block/unblock + disputes)
 - `docs/evolution.md` — factory evolution log (cross-retro learnings)
 - `docs/retro/` — pipeline retrospectives
 
@@ -220,6 +225,7 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 | `migrations/0007_payments.sql` | Payments table (Stripe tracking) |
 | `migrations/0008_restaurant_owner.sql` | Restaurant ownership: owner_id, description, address, phone, timestamps |
 | `migrations/0009_courier_user.sql` | Courier user_id FK + dispatch indexes (zone_id+available, courier_id) |
+| `migrations/0010_admin_disputes.sql` | Add `blocked` to users, create `disputes` table |
 
 ## Frontend Routes
 

@@ -135,6 +135,45 @@ pub async fn transition_order(order_id: String, status: String) -> Result<(), St
     .await
 }
 
+// --- Admin ---
+
+pub async fn fetch_admin_users() -> Result<Vec<serde_json::Value>, String> {
+    api_get("/admin/users").await
+}
+
+pub async fn toggle_user_blocked(user_id: &str, blocked: bool) -> Result<(), String> {
+    api_patch_json(
+        &format!("/admin/users/{user_id}/block"),
+        &serde_json::json!({ "blocked": blocked }),
+    )
+    .await
+}
+
+pub async fn fetch_admin_disputes() -> Result<Vec<serde_json::Value>, String> {
+    api_get("/admin/disputes").await
+}
+
+pub async fn resolve_dispute(
+    dispute_id: &str,
+    status: &str,
+    resolution: Option<&str>,
+) -> Result<(), String> {
+    api_patch_json(
+        &format!("/admin/disputes/{dispute_id}/resolve"),
+        &serde_json::json!({ "status": status, "resolution": resolution }),
+    )
+    .await
+}
+
+#[allow(dead_code)]
+pub async fn create_dispute(order_id: &str, reason: &str) -> Result<serde_json::Value, String> {
+    api_post_json(
+        &format!("/orders/{order_id}/dispute"),
+        &serde_json::json!({ "reason": reason }).to_string(),
+    )
+    .await
+}
+
 // --- Helpers ---
 
 pub fn cart_total(items: &[CartItem]) -> Money {

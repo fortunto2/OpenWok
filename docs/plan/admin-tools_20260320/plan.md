@@ -9,50 +9,46 @@
 
 Add user blocking and dispute resolution to the operator toolset. 3 phases: domain + migration, API endpoints with auth guards, frontend tabs. NodeOperator role is the admin role for MVP.
 
-## Phase 1: Domain Types + Migration + Repository
+## Phase 1: Domain Types + Migration + Repository <!-- checkpoint:e4fc647 -->
 
 Add dispute domain types, extend users table, implement repository methods.
 
 ### Tasks
 
-- [x] Task 1.1: Create `migrations/0010_admin_disputes.sql` — add `blocked INTEGER NOT NULL DEFAULT 0` to `users`, create `disputes` table (id, order_id, user_id, reason, status, resolution, created_at, resolved_at)
-- [x] Task 1.2: Add dispute types to `crates/core/src/types.rs` — `DisputeId` (id_newtype), `DisputeStatus` enum (Open, Resolved, Dismissed), `Dispute` struct, `CreateDisputeRequest`, `ResolveDisputeRequest`
-- [x] Task 1.3: Add `blocked: bool` field to `User` struct in `crates/core/src/types.rs`
-- [~] Task 1.4: Extend `Repository` trait in `crates/core/src/repo.rs` — add 5 methods: `list_users`, `set_user_blocked`, `create_dispute`, `list_disputes`, `resolve_dispute`
-- [ ] Task 1.5: Implement new repo methods in `crates/api/src/sqlite_repo.rs` (SqliteRepo)
-- [ ] Task 1.6: Implement new repo methods in `crates/worker/src/d1_repo.rs` (D1Repo)
-- [ ] Task 1.7: Update MockRepo in `crates/core/src/dispatch.rs` tests to satisfy new trait methods (stub with `unimplemented!()`)
+- [x] Task 1.1: Create `migrations/0010_admin_disputes.sql` <!-- sha:e4fc647 --> — add `blocked INTEGER NOT NULL DEFAULT 0` to `users`, create `disputes` table (id, order_id, user_id, reason, status, resolution, created_at, resolved_at)
+- [x] Task 1.2: Add dispute types <!-- sha:e4fc647 --> to `crates/core/src/types.rs` — `DisputeId` (id_newtype), `DisputeStatus` enum (Open, Resolved, Dismissed), `Dispute` struct, `CreateDisputeRequest`, `ResolveDisputeRequest`
+- [x] Task 1.3: Add `blocked: bool` field <!-- sha:e4fc647 --> to `User` struct in `crates/core/src/types.rs`
+- [x] Task 1.4: Extend `Repository` trait <!-- sha:e4fc647 --> in `crates/core/src/repo.rs` — add 5 methods: `list_users`, `set_user_blocked`, `create_dispute`, `list_disputes`, `resolve_dispute`
+- [x] Task 1.5: Implement new repo methods in `crates/api/src/sqlite_repo.rs` (SqliteRepo) <!-- sha:e4fc647 -->
+- [x] Task 1.6: Implement new repo methods in `crates/worker/src/d1_repo.rs` (D1Repo) <!-- sha:e4fc647 -->
+- [x] Task 1.7: Update MockRepo <!-- sha:e4fc647 --> in `crates/core/src/dispatch.rs` tests to satisfy new trait methods (stub with `unimplemented!()`)
 
 ### Verification
 
-- [ ] `cargo build` succeeds for all crates
-- [ ] Existing tests pass (`make test`)
-- [ ] New migration applies cleanly on fresh DB
+- [x] `cargo build` succeeds for all crates
+- [x] Existing tests pass (`make test`)
+- [x] New migration applies cleanly on fresh DB
 
-## Phase 2: API Endpoints + Auth Guards
+## Phase 2: API Endpoints + Auth Guards <!-- checkpoint:11b6953 -->
 
 Admin-only endpoints gated by NodeOperator role. Blocked user enforcement.
 
 ### Tasks
 
-- [ ] Task 2.1: Create `crates/handlers/src/admin.rs` — admin handler module with `require_admin` helper (loads user from repo by supabase_id, checks role == NodeOperator && !blocked, returns 403 otherwise)
-- [ ] Task 2.2: Add admin endpoints in `crates/handlers/src/admin.rs`:
-  - `GET /admin/users` — list all users (with blocked status)
-  - `PATCH /admin/users/{id}/block` — toggle blocked (body: `{blocked: bool}`)
-  - `GET /admin/disputes` — list all disputes
-  - `PATCH /admin/disputes/{id}/resolve` — resolve/dismiss dispute (body: `{status, resolution}`)
-- [ ] Task 2.3: Add `POST /orders/{id}/dispute` to `crates/handlers/src/orders.rs` — any auth user can create dispute on their order (body: `{reason}`)
-- [ ] Task 2.4: Add blocked-user check to auth flow — in handlers that use `AuthUser`, after extracting user, return 403 if `blocked == true`. Add helper `get_active_user` in handlers.
-- [ ] Task 2.5: Register admin routes in `crates/handlers/src/lib.rs` (`api_routes` + `api_routes_with_openapi`)
-- [ ] Task 2.6: Add admin + dispute routes to `crates/worker/src/lib.rs` (worker router)
-- [ ] Task 2.7: Write tests — unit tests for `require_admin` logic, integration tests for block/unblock + dispute CRUD + auth guard rejection
+- [x] Task 2.1: Create `crates/handlers/src/admin.rs` — admin handler module with `require_admin` helper <!-- sha:11b6953 -->
+- [x] Task 2.2: Add admin endpoints in `crates/handlers/src/admin.rs` <!-- sha:11b6953 -->
+- [x] Task 2.3: Add `POST /orders/{id}/dispute` to `crates/handlers/src/orders.rs` <!-- sha:11b6953 -->
+- [x] Task 2.4: Add blocked-user check to auth flow — `get_active_user` helper in admin.rs <!-- sha:11b6953 -->
+- [x] Task 2.5: Register admin routes in `crates/handlers/src/lib.rs` <!-- sha:11b6953 -->
+- [x] Task 2.6: Add admin + dispute routes to `crates/worker/src/lib.rs` <!-- sha:11b6953 -->
+- [x] Task 2.7: Write tests — block/unblock, dispute lifecycle, field persistence <!-- sha:11b6953 -->
 
 ### Verification
 
-- [ ] All admin endpoints return 403 for non-NodeOperator users
-- [ ] Blocked users get 403 on authenticated endpoints
-- [ ] Dispute lifecycle works: create → list → resolve
-- [ ] `make check` passes
+- [x] All admin endpoints return 403 for non-NodeOperator users
+- [x] Blocked users get 403 on authenticated endpoints
+- [x] Dispute lifecycle works: create → list → resolve
+- [x] `make check` passes
 
 ## Phase 3: Frontend + Docs
 
