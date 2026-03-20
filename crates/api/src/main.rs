@@ -1,6 +1,7 @@
 pub mod db;
 pub mod sqlite_repo;
 pub mod state;
+pub mod stripe;
 mod ws;
 
 use std::sync::Arc;
