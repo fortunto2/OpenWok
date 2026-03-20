@@ -18,7 +18,7 @@ Federated food delivery platform. $1 federal fee + local node operators. Open-bo
 - **Core (Rust):** domain logic, order engine, pricing calculator, federation protocol
 - **Runtime:** Single Cloudflare Worker = API (worker-rs, `/api/*`) + static assets (Dioxus WASM SPA, `/*`)
 - **Database:** SQLite (rusqlite) locally, Cloudflare D1 in production — migrated from in-memory HashMap
-- **Frontend:** Dioxus 0.6 web SPA (WASM) — migrating from fullstack mode (remove `#[server]`, use reqwest directly)
+- **Frontend:** Dioxus 0.6 web SPA (WASM) — uses reqwest for API calls, compiled with `dx build --platform web`
 - **Payments:** Stripe Connect (split payments: restaurant + courier + federal + local)
 - **Auth:** Supabase Auth (Google OAuth)
 - **Geo:** zone-based (no PostGIS for MVP)
@@ -69,9 +69,10 @@ GitHub: https://github.com/fortunto2/OpenWok
 
 ```
 crates/
-  core/     — openwok-core: domain types, pricing calculator, order state machine
-  api/      — openwok-api: axum REST server with SQLite (D1-compatible)
-migrations/ — D1-compatible SQL migrations (shared with rusqlite)
+  core/      — openwok-core: domain types, pricing calculator, order state machine
+  api/       — openwok-api: axum REST server with SQLite (D1-compatible), WebSocket
+  frontend/  — openwok-frontend: Dioxus web SPA (6 pages + operator console)
+migrations/  — D1-compatible SQL migrations (shared with rusqlite)
 ```
 
 ## Run Commands
@@ -100,6 +101,8 @@ make check                      # test + clippy + fmt
 | GET | /api/couriers | List available couriers |
 | POST | /api/couriers | Register courier |
 | PATCH | /api/couriers/{id}/available | Toggle availability |
+| GET | /api/public/economics | Aggregate financials (public, cached 5min) |
+| GET | /api/admin/metrics | Pilot KPIs (order count, on-time rate, revenue) |
 | WS | /api/ws/orders/{id} | Real-time order status updates |
 
 ## Key Documents
@@ -109,6 +112,35 @@ make check                      # test + clippy + fmt
 - `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
 - `planning/ROADMAP.md` — 12-month roadmap with decision gates
 - `docs/plan-done/` — completed phase specs (mvp-core, phase2-frontend, phase3-payments, phase4-federation)
+- `docs/plan/cf-workers-deploy_20260320/` — active plan: Repository abstraction + Cloudflare Worker + D1
+- `docs/plan/pilot-infra_20260320/` — pilot infrastructure (data, metrics, economics, PostHog)
+- `docs/retro/` — pipeline retrospectives
+
+## Migrations
+
+| File | Description |
+|------|-------------|
+| `migrations/0001_init.sql` | Initial schema (zones, restaurants, menu_items, couriers, orders, order_items) |
+| `migrations/0002_seed_la.sql` | Seed data: 2 zones, 3 restaurants, 9 menu items |
+| `migrations/0003_pilot_zones.sql` | Add 4 new LA zones (Venice, Santa Monica, Koreatown, Silver Lake) |
+| `migrations/0004_seed_pilot_restaurants.sql` | Seed 15 new restaurants with 80+ menu items across 6 zones |
+| `migrations/0005_order_metrics.sql` | Add `estimated_eta` and `actual_delivery_at` columns to orders |
+
+## Frontend Routes
+
+| Path | Component | Description |
+|------|-----------|-------------|
+| `/` | Home | Landing page |
+| `/restaurants` | RestaurantList | Browse restaurants |
+| `/restaurant/:id` | RestaurantMenu | Menu + cart |
+| `/checkout` | Checkout | Order with 6-line pricing |
+| `/order/:id` | OrderTracking | Real-time status timeline |
+| `/operator` | OperatorConsole | Node operator dashboard (Overview + Metrics tabs) |
+| `/economics` | PublicEconomicsPage | Open-book economics transparency page |
+
+## Analytics (PostHog)
+
+PostHog JS snippet loaded in frontend. Events tracked: `restaurant_view`, `add_to_cart`, `checkout_start`, `order_placed`, `frontend_error`. Configure via `window.__POSTHOG_API_KEY__` (EU instance). No-op when key not set.
 
 ## Architecture Standards
 
@@ -143,10 +175,10 @@ pub trait EventStore {
 - Never `unwrap()` in production code — `?` or explicit error handling
 - Never `panic!` — use `tracing::error!` + return error
 
-**Database (when migrating from HashMap):**
-- sqlx with compile-time query checking where possible
-- Migrations in `migrations/` directory
-- Connection pool via `sqlx::PgPool` in AppState
+**Database (SQLite/D1):**
+- rusqlite locally, Cloudflare D1 in production (both SQLite-compatible)
+- Migrations in `migrations/` directory (D1-compatible SQL)
+- Connection pool via `SqlitePool` wrapper in AppState
 - Transactions for multi-table operations (order + items + pricing)
 
 **Type safety:**
