@@ -71,7 +71,8 @@ GitHub: https://github.com/fortunto2/OpenWok
 crates/
   core/      — openwok-core: domain types, pricing calculator, order state machine
   api/       — openwok-api: axum REST server with SQLite (D1-compatible), WebSocket
-  frontend/  — openwok-frontend: Dioxus web SPA (6 pages + operator console)
+  frontend/  — openwok-frontend: Dioxus web SPA (7 pages + operator console)
+  worker/    — openwok-worker: Cloudflare Worker entry point + D1 handlers
 migrations/  — D1-compatible SQL migrations (shared with rusqlite)
 ```
 
@@ -85,6 +86,51 @@ make clippy                     # Lint
 make fmt                        # Check formatting
 make check                      # test + clippy + fmt
 ```
+
+## Development Workflow
+
+**Frontend (Dioxus SPA):**
+```bash
+cd crates/frontend && dx serve    # Dev server with hot-reload at http://localhost:8080
+                                  # MUST run from crates/frontend/ (where Dioxus.toml is)
+                                  # API proxied to http://localhost:3000/api
+```
+
+**Backend (local axum):**
+```bash
+cargo run -p openwok-api          # Local API server at http://localhost:3000
+```
+
+**Full stack local:**
+```bash
+# Terminal 1:
+cargo run -p openwok-api
+# Terminal 2:
+cd crates/frontend && dx serve
+# Open http://localhost:8080
+```
+
+**Production (Cloudflare Worker):**
+```bash
+make deploy                       # worker-build + wrangler deploy
+# Live at https://openwok.superduperai.co
+# API: /api/*    Frontend: /* (static SPA from public/)
+```
+
+**Frontend build for production:**
+```bash
+cd crates/frontend && dx build --platform web --release
+cp -r dist/* ../worker/public/    # Copy WASM bundle to worker static assets
+```
+
+## Visual Testing (Playwright MCP)
+
+When building or reviewing frontend changes:
+1. Start dev server: `cd crates/frontend && dx serve` (background)
+2. Use Playwright MCP to navigate to `http://localhost:8080`
+3. Take screenshots of key pages: restaurants, menu, cart, checkout, order tracking
+4. Check browser console for errors
+5. Test at mobile viewport (375px) for responsive layout
 
 ## API Endpoints
 
@@ -105,15 +151,27 @@ make check                      # test + clippy + fmt
 | GET | /api/admin/metrics | Pilot KPIs (order count, on-time rate, revenue) |
 | WS | /api/ws/orders/{id} | Real-time order status updates |
 
+## OpenAPI / Swagger
+
+Use `utoipa` for auto-generated OpenAPI docs from Rust code:
+```toml
+# crates/api or crates/worker Cargo.toml
+utoipa = { version = "5", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "9", features = ["axum"] }
+```
+
+Annotate handlers with `#[utoipa::path(...)]`, serve Swagger UI at `/api/docs`.
+See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
+
 ## Key Documents
 
 - `docs/prd.md` — PRD: vision, phases, what's built, what's next
 - `docs/mvp-deck.pdf` — full MVP concept deck
 - `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
 - `planning/ROADMAP.md` — 12-month roadmap with decision gates
-- `docs/plan-done/` — completed phase specs (mvp-core, phase2-frontend, phase3-payments, phase4-federation)
-- `docs/plan/cf-workers-deploy_20260320/` — active plan: Repository abstraction + Cloudflare Worker + D1
-- `docs/plan/pilot-infra_20260320/` — pilot infrastructure (data, metrics, economics, PostHog)
+- `docs/plan-done/` — completed phase specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy)
+- `docs/plan/pilot-infra_20260320/` — completed: pilot infrastructure (data, metrics, economics, PostHog)
+- `docs/evolution.md` — factory evolution log (cross-retro learnings)
 - `docs/retro/` — pipeline retrospectives
 
 ## Migrations
