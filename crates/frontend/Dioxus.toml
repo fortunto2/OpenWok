@@ -1,0 +1,9 @@
+[application]
+name = "openwok"
+
+[web.app]
+title = "OpenWok — Fair Food Delivery"
+
+[web.watcher]
+reload_html = true
+watch_path = ["src"]

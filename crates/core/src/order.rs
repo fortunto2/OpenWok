@@ -1,5 +1,5 @@
 use crate::money::Money;
-use crate::pricing::{calculate_pricing, PricingBreakdown};
+use crate::pricing::{PricingBreakdown, calculate_pricing};
 use crate::types::{CourierId, MenuItemId, OrderId, RestaurantId, ZoneId};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
