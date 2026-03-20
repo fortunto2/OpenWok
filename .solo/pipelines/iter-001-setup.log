@@ -1,0 +1,58 @@
+  [2msession: 26a403bd  model: claude-opus-4-6[1m][0m
+  [35m=>[0m [35msolo:setup[0m
+
+Let me read all project data in parallel to generate the workflow config.
+  [36m**[0m [36mGlob[0m [2m"docs/workflow.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
+  [36m**[0m [36mGlob[0m [2m"docs/prd.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"Cargo.toml" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"Makefile" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"**/*.toml" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mList project root contents[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
+  [32m$ [0m [33mBash[0m [2mList docs, programs, planning dirs[0m
+  [36m**[0m [36mGlob[0m [2m"**/*.rs" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"**/Cargo.toml" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mList simulation program contents[0m
+
+Всё понятно. Проект Rust-based, Cargo.toml ещё нет (код не scaffolded), но Makefile с cargo-командами уже есть. Создаю `docs/workflow.md`.
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/workflow.md[0m
+
+Теперь добавлю ссылку на workflow в CLAUDE.md.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
+
+Setup complete for **OpenWok**!
+
+**Created:**
+- `docs/workflow.md` — TDD strict (pricing = core), cargo test, clippy -D warnings, conventional commits
+
+**Detected:**
+- Language: Rust (axum + Dioxus)
+- Test: `cargo test --workspace`
+- Lint: `cargo clippy -- -D warnings`
+- Format: `cargo fmt --all`
+- Make targets: `test`, `clippy`, `fmt`, `check`
+
+**Updated:**
+- `CLAUDE.md` — added Key Documents section with workflow reference
+
+**Next:** `/plan` для первой фичи (рекомендую начать с domain types + pricing calculator)
+
+<solo:done/>Setup complete for **OpenWok**!
+
+**Created:**
+- `docs/workflow.md` — TDD strict (pricing = core), cargo test, clippy -D warnings, conventional commits
+
+**Detected:**
+- Language: Rust (axum + Dioxus)
+- Test: `cargo test --workspace`
+- Lint: `cargo clippy -- -D warnings`
+- Format: `cargo fmt --all`
+- Make targets: `test`, `clippy`, `fmt`, `check`
+
+**Updated:**
+- `CLAUDE.md` — added Key Documents section with workflow reference
+
+**Next:** `/plan` для первой фичи (рекомендую начать с domain types + pricing calculator)
+
+<solo:done/>
