@@ -8,6 +8,34 @@ use openwok_core::types::Restaurant;
 use rust_decimal::Decimal;
 use wasm_bindgen::prelude::*;
 
+// --- Auth state ---
+
+#[derive(Clone, Default, PartialEq)]
+struct UserState {
+    jwt: Option<String>,
+    email: Option<String>,
+}
+
+fn get_jwt_from_storage() -> Option<String> {
+    get_local_storage()?.get_item("openwok_jwt").ok()?
+}
+
+fn get_local_storage() -> Option<web_sys::Storage> {
+    web_sys::window()?.local_storage().ok()?
+}
+
+fn save_jwt_to_storage(jwt: &str) {
+    if let Some(storage) = get_local_storage() {
+        let _ = storage.set_item("openwok_jwt", jwt);
+    }
+}
+
+fn clear_jwt_from_storage() {
+    if let Some(storage) = get_local_storage() {
+        let _ = storage.remove_item("openwok_jwt");
+    }
+}
+
 // --- Cart state ---
 
 #[derive(Clone, PartialEq)]
@@ -86,15 +114,25 @@ enum Route {
         Checkout {},
         #[route("/order/:id")]
         OrderTracking { id: String },
+        #[route("/order/:id/success")]
+        OrderSuccess { id: String },
         #[route("/operator")]
         OperatorConsole {},
         #[route("/economics")]
         PublicEconomicsPage {},
+        #[route("/login")]
+        Login {},
+        #[route("/auth/callback")]
+        AuthCallback {},
 }
 
 #[component]
 fn App() -> Element {
     use_context_provider(|| Signal::new(CartState::default()));
+    use_context_provider(|| {
+        let jwt = get_jwt_from_storage();
+        Signal::new(UserState { jwt, email: None })
+    });
     rsx! {
         document::Script { {POSTHOG_SNIPPET} }
         ErrorBoundary {
@@ -127,6 +165,8 @@ fn App() -> Element {
 
 #[component]
 fn Layout() -> Element {
+    let mut user_state = use_context::<Signal<UserState>>();
+
     rsx! {
         document::Link { rel: "stylesheet", href: asset!("/assets/tailwind.css") }
         document::Link { rel: "stylesheet", href: asset!("/assets/style.css") }
@@ -137,6 +177,21 @@ fn Layout() -> Element {
                     Link { to: Route::RestaurantList {}, "Restaurants" }
                     Link { to: Route::PublicEconomicsPage {}, "Economics" }
                     Link { to: Route::OperatorConsole {}, "Operator" }
+                    if user_state.read().jwt.is_some() {
+                        span { class: "user-email",
+                            "{user_state.read().email.as_deref().unwrap_or(\"User\")}"
+                        }
+                        button {
+                            class: "logout-btn",
+                            onclick: move |_| {
+                                clear_jwt_from_storage();
+                                user_state.set(UserState::default());
+                            },
+                            "Logout"
+                        }
+                    } else {
+                        Link { to: Route::Login {}, class: "login-link", "Sign In" }
+                    }
                 }
             }
         }
@@ -157,15 +212,134 @@ fn Home() -> Element {
     }
 }
 
+// --- Auth pages ---
+
+#[component]
+fn Login() -> Element {
+    let user_state = use_context::<Signal<UserState>>();
+
+    // Already logged in → redirect home
+    if user_state.read().jwt.is_some() {
+        return rsx! {
+            p { "Already signed in. " }
+            Link { to: Route::Home {}, "Go home" }
+        };
+    }
+
+    // Build Supabase OAuth URL from window.__SUPABASE_URL__ or default
+    let supabase_url = web_sys::window()
+        .and_then(|w| js_sys::Reflect::get(&w, &JsValue::from_str("__SUPABASE_URL__")).ok())
+        .and_then(|v| v.as_string())
+        .unwrap_or_default();
+
+    let origin = web_sys::window()
+        .and_then(|w| w.location().origin().ok())
+        .unwrap_or_default();
+
+    let oauth_url = if supabase_url.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "{supabase_url}/auth/v1/authorize?provider=google&redirect_to={origin}/auth/callback"
+        )
+    };
+
+    rsx! {
+        div { class: "login-page",
+            h1 { "Sign In" }
+            p { "Sign in to place orders and track deliveries." }
+            if oauth_url.is_empty() {
+                p { class: "error", "Supabase not configured. Set window.__SUPABASE_URL__ to enable Google OAuth." }
+            } else {
+                a {
+                    href: "{oauth_url}",
+                    class: "google-signin-btn cta",
+                    "Sign in with Google"
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn AuthCallback() -> Element {
+    let mut user_state = use_context::<Signal<UserState>>();
+    let nav = use_navigator();
+    let mut error = use_signal(|| None::<String>);
+
+    // Extract access_token from URL hash fragment on mount
+    use_effect(move || {
+        spawn(async move {
+            // Get hash fragment: #access_token=xxx&token_type=bearer&...
+            let hash = web_sys::window()
+                .and_then(|w| w.location().hash().ok())
+                .unwrap_or_default();
+
+            let access_token = hash
+                .trim_start_matches('#')
+                .split('&')
+                .find_map(|part| {
+                    let (key, val) = part.split_once('=')?;
+                    if key == "access_token" {
+                        Some(val.to_string())
+                    } else {
+                        None
+                    }
+                });
+
+            let Some(token) = access_token else {
+                error.set(Some("No access_token in callback URL".into()));
+                return;
+            };
+
+            // Call backend to verify token and create/get user
+            let body = serde_json::json!({ "access_token": token });
+            let resp: Result<serde_json::Value, String> =
+                api_post_json("/auth/callback", &body.to_string()).await;
+
+            match resp {
+                Ok(data) => {
+                    let email = data["user"]["email"].as_str().map(|s| s.to_string());
+                    save_jwt_to_storage(&token);
+                    user_state.set(UserState {
+                        jwt: Some(token),
+                        email,
+                    });
+                    nav.push(Route::Home {});
+                }
+                Err(e) => {
+                    error.set(Some(format!("Auth failed: {e}")));
+                }
+            }
+        });
+    });
+
+    rsx! {
+        div { class: "auth-callback",
+            if let Some(err) = &*error.read() {
+                p { class: "error", "{err}" }
+                Link { to: Route::Login {}, "Try again" }
+            } else {
+                p { "Signing you in..." }
+            }
+        }
+    }
+}
+
 // --- API helpers ---
 
 const API_BASE: &str = "/api";
 
+fn auth_header() -> Option<String> {
+    get_jwt_from_storage().map(|jwt| format!("Bearer {jwt}"))
+}
+
 async fn api_get<T: serde::de::DeserializeOwned>(path: &str) -> Result<T, String> {
-    let resp = Request::get(&format!("{API_BASE}{path}"))
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
+    let mut req = Request::get(&format!("{API_BASE}{path}"));
+    if let Some(auth) = auth_header() {
+        req = req.header("Authorization", &auth);
+    }
+    let resp = req.send().await.map_err(|e| e.to_string())?;
     if !resp.ok() {
         return Err(format!("HTTP {}", resp.status()));
     }
@@ -176,8 +350,12 @@ async fn api_post_json<T: serde::de::DeserializeOwned>(
     path: &str,
     body: &str,
 ) -> Result<T, String> {
-    let resp = Request::post(&format!("{API_BASE}{path}"))
-        .header("Content-Type", "application/json")
+    let mut req = Request::post(&format!("{API_BASE}{path}"))
+        .header("Content-Type", "application/json");
+    if let Some(auth) = auth_header() {
+        req = req.header("Authorization", &auth);
+    }
+    let resp = req
         .body(body)
         .map_err(|e| e.to_string())?
         .send()
@@ -191,8 +369,12 @@ async fn api_post_json<T: serde::de::DeserializeOwned>(
 }
 
 async fn api_patch_json(path: &str, body: &serde_json::Value) -> Result<(), String> {
-    let resp = Request::patch(&format!("{API_BASE}{path}"))
-        .header("Content-Type", "application/json")
+    let mut req = Request::patch(&format!("{API_BASE}{path}"))
+        .header("Content-Type", "application/json");
+    if let Some(auth) = auth_header() {
+        req = req.header("Authorization", &auth);
+    }
+    let resp = req
         .body(body.to_string())
         .map_err(|e| e.to_string())?
         .send()
@@ -215,9 +397,15 @@ async fn fetch_restaurant(id: String) -> Result<Restaurant, String> {
     api_get(&format!("/restaurants/{id}")).await
 }
 
-async fn place_order(body: String) -> Result<String, String> {
-    let order: serde_json::Value = api_post_json("/orders", &body).await?;
-    Ok(order["id"].as_str().unwrap_or_default().to_string())
+/// Returns (order_id, checkout_url option)
+async fn place_order(body: String) -> Result<(String, Option<String>), String> {
+    let result: serde_json::Value = api_post_json("/orders", &body).await?;
+    let order_id = result["order"]["id"]
+        .as_str()
+        .unwrap_or_default()
+        .to_string();
+    let checkout_url = result["checkout_url"].as_str().map(|s| s.to_string());
+    Ok((order_id, checkout_url))
 }
 
 async fn fetch_order(id: String) -> Result<serde_json::Value, String> {
@@ -248,10 +436,11 @@ async fn fetch_all_orders() -> Result<Vec<serde_json::Value>, String> {
 }
 
 async fn assign_courier(order_id: String) -> Result<serde_json::Value, String> {
-    let resp = Request::post(&format!("{API_BASE}/orders/{order_id}/assign"))
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
+    let mut req = Request::post(&format!("{API_BASE}/orders/{order_id}/assign"));
+    if let Some(auth) = auth_header() {
+        req = req.header("Authorization", &auth);
+    }
+    let resp = req.send().await.map_err(|e| e.to_string())?;
     if !resp.ok() {
         let msg = resp.text().await.unwrap_or_default();
         return Err(msg);
@@ -580,10 +769,18 @@ fn Checkout() -> Element {
                             "local_ops_fee": "2.50",
                         });
                         match place_order(body.to_string()).await {
-                            Ok(order_id) => {
+                            Ok((order_id, checkout_url)) => {
                                 posthog_capture("order_placed");
                                 cart.write().items.clear();
-                                nav.push(Route::OrderTracking { id: order_id });
+                                if let Some(url) = checkout_url {
+                                    // Redirect to Stripe Checkout
+                                    if let Some(window) = web_sys::window() {
+                                        let _ = window.location().set_href(&url);
+                                    }
+                                } else {
+                                    // No Stripe configured — go to order tracking
+                                    nav.push(Route::OrderTracking { id: order_id });
+                                }
                             }
                             Err(e) => {
                                 order_error.set(Some(e.to_string()));
@@ -593,6 +790,23 @@ fn Checkout() -> Element {
                     }
                 },
                 if placing() { "Placing order..." } else { "Place Order" }
+            }
+        }
+    }
+}
+
+// --- Order Success (after Stripe checkout) ---
+
+#[component]
+fn OrderSuccess(id: String) -> Element {
+    rsx! {
+        div { class: "order-success",
+            h1 { "Payment Successful!" }
+            p { "Your order has been confirmed. You can track it below." }
+            Link {
+                to: Route::OrderTracking { id: id.clone() },
+                class: "cta",
+                "Track Order"
             }
         }
     }
