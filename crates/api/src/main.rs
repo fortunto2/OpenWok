@@ -105,7 +105,7 @@ mod tests {
             .await
             .unwrap();
         let restaurants: Vec<serde_json::Value> = serde_json::from_slice(&body).unwrap();
-        assert_eq!(restaurants.len(), 3);
+        assert_eq!(restaurants.len(), 18);
     }
 
     #[tokio::test]
@@ -129,7 +129,7 @@ mod tests {
             .json()
             .await
             .unwrap();
-        assert_eq!(restaurants.len(), 3);
+        assert_eq!(restaurants.len(), 18);
         let restaurant = &restaurants[0];
         let restaurant_id = restaurant["id"].as_str().unwrap();
         let zone_id = restaurant["zone_id"].as_str().unwrap();
