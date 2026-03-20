@@ -37,6 +37,7 @@ pub fn app(state: AppState) -> Router {
             "/couriers/{id}/available",
             patch(routes::couriers::toggle_available),
         )
+        .route("/public/economics", get(routes::economics::get))
         .route("/ws/orders/{id}", any(routes::ws::order_updates))
         .with_state(state);
 
