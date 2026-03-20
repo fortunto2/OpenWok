@@ -12,6 +12,7 @@ use openwok_core::types::{
 use serde::Deserialize;
 use utoipa::ToSchema;
 
+use crate::admin::get_active_user;
 use crate::auth::AuthUser;
 
 // --- Request DTOs ---
@@ -62,16 +63,13 @@ pub(crate) fn repo_error_to_status(e: &RepoError) -> StatusCode {
     }
 }
 
-/// Check if the authenticated user owns the given restaurant.
+/// Check if the authenticated user is active (non-blocked) and owns the given restaurant.
 async fn verify_ownership<R: Repository>(
     repo: &R,
     auth: &AuthUser,
     restaurant_id: RestaurantId,
 ) -> Result<(), (StatusCode, String)> {
-    let user = repo
-        .get_user_by_supabase_id(&auth.supabase_user_id)
-        .await
-        .map_err(|_| (StatusCode::UNAUTHORIZED, "user not found".into()))?;
+    let user = get_active_user(repo, auth).await?;
 
     let restaurant = repo
         .get_restaurant(restaurant_id)
@@ -111,11 +109,7 @@ pub async fn create<R: Repository>(
     State(repo): State<Arc<R>>,
     Json(body): Json<CreateRestaurant>,
 ) -> Result<(StatusCode, Json<Restaurant>), (StatusCode, String)> {
-    // Look up user
-    let user = repo
-        .get_user_by_supabase_id(&auth.supabase_user_id)
-        .await
-        .map_err(|_| (StatusCode::UNAUTHORIZED, "user not found".into()))?;
+    let user = get_active_user(repo.as_ref(), &auth).await?;
 
     let req = CreateRestaurantRequest {
         name: body.name,
@@ -265,10 +259,7 @@ pub async fn my_restaurants<R: Repository>(
     auth: AuthUser,
     State(repo): State<Arc<R>>,
 ) -> Result<Json<Vec<Restaurant>>, (StatusCode, String)> {
-    let user = repo
-        .get_user_by_supabase_id(&auth.supabase_user_id)
-        .await
-        .map_err(|_| (StatusCode::UNAUTHORIZED, "user not found".into()))?;
+    let user = get_active_user(repo.as_ref(), &auth).await?;
 
     repo.list_restaurants_by_owner(user.id)
         .await

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::admin::get_active_user;
 use crate::auth::AuthUser;
 use crate::restaurants::repo_error_to_status;
 use axum::Json;
@@ -35,11 +36,7 @@ pub async fn create<R: Repository>(
     State(repo): State<Arc<R>>,
     Json(body): Json<CreateCourier>,
 ) -> Result<(StatusCode, Json<Courier>), (StatusCode, String)> {
-    // Look up internal user to link courier
-    let user = repo
-        .get_user_by_supabase_id(&auth.supabase_user_id)
-        .await
-        .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
+    let user = get_active_user(repo.as_ref(), &auth).await?;
 
     let req = CreateCourierRequest {
         name: body.name,
@@ -59,24 +56,26 @@ pub async fn create<R: Repository>(
 
 #[utoipa::path(patch, path = "/couriers/{id}/available", tag = "couriers")]
 pub async fn toggle_available<R: Repository>(
-    _auth: AuthUser,
+    auth: AuthUser,
     State(repo): State<Arc<R>>,
     Path(id): Path<CourierId>,
     Json(body): Json<SetAvailable>,
-) -> Result<Json<Courier>, StatusCode> {
+) -> Result<Json<Courier>, (StatusCode, String)> {
+    get_active_user(repo.as_ref(), &auth).await?;
     repo.toggle_courier_available(id, body.available)
         .await
         .map(Json)
-        .map_err(|_| StatusCode::NOT_FOUND)
+        .map_err(|e| (repo_error_to_status(&e), e.to_string()))
 }
 
 #[utoipa::path(post, path = "/orders/{order_id}/assign", tag = "orders")]
 pub async fn assign_to_order<R: Repository>(
-    _auth: AuthUser,
+    auth: AuthUser,
     State(repo): State<Arc<R>>,
     tx: Option<axum::Extension<broadcast::Sender<OrderEvent>>>,
     Path(order_id): Path<OrderId>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    get_active_user(repo.as_ref(), &auth).await?;
     let result = repo.assign_courier(order_id).await.map_err(|e| {
         let status = match &e {
             RepoError::NotFound => StatusCode::NOT_FOUND,
@@ -106,10 +105,7 @@ pub async fn me<R: Repository>(
     auth: AuthUser,
     State(repo): State<Arc<R>>,
 ) -> Result<Json<Courier>, (StatusCode, String)> {
-    let user = repo
-        .get_user_by_supabase_id(&auth.supabase_user_id)
-        .await
-        .map_err(|_| (StatusCode::NOT_FOUND, "user not found".into()))?;
+    let user = get_active_user(repo.as_ref(), &auth).await?;
 
     repo.get_courier_by_user_id(&user.id.to_string())
         .await
@@ -123,10 +119,7 @@ pub async fn my_deliveries<R: Repository>(
     auth: AuthUser,
     State(repo): State<Arc<R>>,
 ) -> Result<Json<Vec<Order>>, (StatusCode, String)> {
-    let user = repo
-        .get_user_by_supabase_id(&auth.supabase_user_id)
-        .await
-        .map_err(|_| (StatusCode::NOT_FOUND, "user not found".into()))?;
+    let user = get_active_user(repo.as_ref(), &auth).await?;
 
     let courier = repo
         .get_courier_by_user_id(&user.id.to_string())

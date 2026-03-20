@@ -203,6 +203,21 @@ fn to_cents(money: &Money) -> i64 {
         .unwrap_or(0)
 }
 
+/// Get user and verify not blocked. Returns error Response if user not found or blocked.
+async fn require_active_user(
+    repo: &D1Repo,
+    sub: &str,
+) -> std::result::Result<openwok_core::types::User, Result<Response>> {
+    let user = repo
+        .get_user_by_supabase_id(sub)
+        .await
+        .map_err(|_| Response::error("user not found", 401))?;
+    if user.blocked {
+        return Err(Response::error("user is blocked", 403));
+    }
+    Ok(user)
+}
+
 fn repo_err_to_response(e: openwok_core::repo::RepoError) -> Result<Response> {
     use openwok_core::repo::RepoError;
     match &e {
@@ -254,10 +269,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let body: CreateRestaurantReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
 
-            let user = repo
-                .get_user_by_supabase_id(&sub)
-                .await
-                .map_err(|_| Error::RustError("user not found".into()))?;
+            let user = match require_active_user(&repo, &sub).await {
+                Ok(u) => u,
+                Err(resp) => return resp,
+            };
 
             let result = repo
                 .create_restaurant(CreateRestaurantRequest {
@@ -302,8 +317,11 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let body: UpdateRestaurantReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
 
-            // Verify ownership
-            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            // Verify active + ownership
+            let user = match require_active_user(&repo, &sub).await {
+                Ok(u) => u,
+                Err(resp) => return resp,
+            };
             let restaurant = repo.get_restaurant(id).await.map_err(|e| Error::RustError(e.to_string()))?;
             match restaurant.owner_id {
                 Some(oid) if oid == user.id => {}
@@ -330,7 +348,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let body: ToggleActiveReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
 
-            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let user = match require_active_user(&repo, &sub).await {
+                Ok(u) => u,
+                Err(resp) => return resp,
+            };
             let restaurant = repo.get_restaurant(id).await.map_err(|e| Error::RustError(e.to_string()))?;
             match restaurant.owner_id {
                 Some(oid) if oid == user.id => {}
@@ -352,7 +373,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let body: CreateMenuItemReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
 
-            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let user = match require_active_user(&repo, &sub).await {
+                Ok(u) => u,
+                Err(resp) => return resp,
+            };
             let restaurant = repo.get_restaurant(id).await.map_err(|e| Error::RustError(e.to_string()))?;
             match restaurant.owner_id {
                 Some(oid) if oid == user.id => {}
@@ -377,9 +401,12 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let body: UpdateMenuItemReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
 
-            // Verify ownership BEFORE modifying
+            // Verify active + ownership BEFORE modifying
             let current = repo.get_menu_item(id).await.map_err(|e| Error::RustError(e.to_string()))?;
-            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let user = match require_active_user(&repo, &sub).await {
+                Ok(u) => u,
+                Err(resp) => return resp,
+            };
             let restaurant = repo.get_restaurant(current.restaurant_id).await.map_err(|e| Error::RustError(e.to_string()))?;
             match restaurant.owner_id {
                 Some(oid) if oid == user.id => {}
@@ -402,9 +429,12 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let id = MenuItemId::from_uuid(parse_uuid(&id_str));
             let repo = D1Repo::new(ctx.env.d1("DB")?);
 
-            // Verify ownership BEFORE deleting
+            // Verify active + ownership BEFORE deleting
             let item = repo.get_menu_item(id).await.map_err(|e| Error::RustError(e.to_string()))?;
-            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let user = match require_active_user(&repo, &sub).await {
+                Ok(u) => u,
+                Err(resp) => return resp,
+            };
             let restaurant = repo.get_restaurant(item.restaurant_id).await.map_err(|e| Error::RustError(e.to_string()))?;
             match restaurant.owner_id {
                 Some(oid) if oid == user.id => {}
@@ -422,7 +452,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                 Err(e) => return auth_err_to_response(e),
             };
             let repo = D1Repo::new(ctx.env.d1("DB")?);
-            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let user = match require_active_user(&repo, &sub).await {
+                Ok(u) => u,
+                Err(resp) => return resp,
+            };
             match repo.list_restaurants_by_owner(user.id).await {
                 Ok(restaurants) => json_ok(&restaurants, 200),
                 Err(e) => repo_err_to_response(e),
@@ -437,13 +470,17 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .post_async("/api/orders", |mut req, ctx| async move {
-            // Auth required
-            if let Err(e) = extract_auth(&req, &ctx.env) {
-                return auth_err_to_response(e);
-            }
+            // Auth required + blocked check
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
 
             let body: CreateOrderReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
+            if let Err(resp) = require_active_user(&repo, &sub).await {
+                return resp;
+            }
             let order = repo
                 .create_order(CreateOrderRequest {
                     restaurant_id: RestaurantId::from_uuid(parse_uuid(&body.restaurant_id)),
@@ -554,10 +591,11 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .patch_async("/api/orders/:id/status", |mut req, ctx| async move {
-            // Auth required
-            if let Err(e) = extract_auth(&req, &ctx.env) {
-                return auth_err_to_response(e);
-            }
+            // Auth required + blocked check
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
 
             let id_str = ctx.param("id").unwrap().to_string();
             let body: TransitionReq = req.json().await?;
@@ -565,20 +603,27 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let status = parse_status(&body.status)
                 .ok_or_else(|| Error::RustError("invalid status".into()))?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
+            if let Err(resp) = require_active_user(&repo, &sub).await {
+                return resp;
+            }
             match repo.update_order_status(id, status).await {
                 Ok(order) => json_ok(&order, 200),
                 Err(e) => repo_err_to_response(e),
             }
         })
         .post_async("/api/orders/:id/assign", |req, ctx| async move {
-            // Auth required
-            if let Err(e) = extract_auth(&req, &ctx.env) {
-                return auth_err_to_response(e);
-            }
+            // Auth required + blocked check
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
 
             let id_str = ctx.param("id").unwrap().to_string();
             let id = OrderId::from_uuid(parse_uuid(&id_str));
             let repo = D1Repo::new(ctx.env.d1("DB")?);
+            if let Err(resp) = require_active_user(&repo, &sub).await {
+                return resp;
+            }
             match repo.assign_courier(id).await {
                 Ok(result) => json_ok(
                     &serde_json::json!({"order_id": result.order_id, "courier_id": result.courier_id}),
@@ -596,13 +641,17 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .post_async("/api/couriers", |mut req, ctx| async move {
-            // Auth required
-            if let Err(e) = extract_auth(&req, &ctx.env) {
-                return auth_err_to_response(e);
-            }
+            // Auth required + blocked check
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
 
             let body: CreateCourierReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
+            if let Err(resp) = require_active_user(&repo, &sub).await {
+                return resp;
+            }
             let result = repo
                 .create_courier(CreateCourierRequest {
                     name: body.name,
@@ -616,9 +665,15 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .patch_async("/api/couriers/:id/available", |mut req, ctx| async move {
-            // Auth required
-            if let Err(e) = extract_auth(&req, &ctx.env) {
-                return auth_err_to_response(e);
+            // Auth required + blocked check
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+
+            let repo_check = D1Repo::new(ctx.env.d1("DB")?);
+            if let Err(resp) = require_active_user(&repo_check, &sub).await {
+                return resp;
             }
 
             let id_str = ctx.param("id").unwrap().to_string();

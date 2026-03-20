@@ -9,6 +9,7 @@ use openwok_core::order::{Order, OrderStatus};
 use openwok_core::repo::{CreateOrderItemRequest, CreateOrderRequest, Repository};
 use tokio::sync::broadcast;
 
+use crate::admin::get_active_user;
 use crate::auth::AuthUser;
 use crate::restaurants::repo_error_to_status;
 use openwok_core::types::{MenuItemId, OrderId, RestaurantId, ZoneId};
@@ -46,9 +47,11 @@ pub async fn list<R: Repository>(State(repo): State<Arc<R>>) -> Json<Vec<Order>>
 
 #[utoipa::path(post, path = "/orders", tag = "orders")]
 pub async fn create<R: Repository>(
+    auth: AuthUser,
     State(repo): State<Arc<R>>,
     Json(body): Json<CreateOrder>,
 ) -> Result<(StatusCode, Json<Order>), (StatusCode, String)> {
+    get_active_user(repo.as_ref(), &auth).await?;
     let req = CreateOrderRequest {
         restaurant_id: body.restaurant_id,
         items: body
@@ -86,12 +89,13 @@ pub async fn get<R: Repository>(
 
 #[utoipa::path(patch, path = "/orders/{id}/status", tag = "orders")]
 pub async fn transition<R: Repository>(
-    _auth: AuthUser,
+    auth: AuthUser,
     State(repo): State<Arc<R>>,
     tx: Option<axum::Extension<broadcast::Sender<OrderEvent>>>,
     Path(id): Path<OrderId>,
     Json(body): Json<TransitionStatus>,
 ) -> Result<Json<Order>, (StatusCode, String)> {
+    get_active_user(repo.as_ref(), &auth).await?;
     let order = repo
         .update_order_status(id, body.status)
         .await

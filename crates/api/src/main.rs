@@ -111,6 +111,7 @@ mod tests {
     use super::*;
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
+    use openwok_core::repo::Repository;
     use tower::ServiceExt;
 
     fn test_state() -> AppState {
@@ -426,6 +427,84 @@ mod tests {
         assert!(
             resp.status() == StatusCode::BAD_REQUEST
                 || resp.status() == StatusCode::INTERNAL_SERVER_ERROR
+        );
+    }
+
+    #[tokio::test]
+    async fn blocked_user_gets_403_on_non_admin_endpoint() {
+        let state = seeded_state();
+        let app = app(state.clone());
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+
+        let base = format!("http://{addr}/api");
+        let client = reqwest::Client::new();
+        let token = test_jwt();
+        let auth = format!("Bearer {token}");
+
+        // 1. Register user via auth callback
+        let resp = client
+            .post(format!("{base}/auth/callback"))
+            .json(&serde_json::json!({ "access_token": token }))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), 200);
+        let user_data: serde_json::Value = resp.json().await.unwrap();
+        let user_id = user_data["user"]["id"].as_str().unwrap().to_string();
+
+        // 2. Block the user directly via repo
+        let uid = openwok_core::types::UserId::from_uuid(uuid::Uuid::parse_str(&user_id).unwrap());
+        state.repo.set_user_blocked(uid, true).await.unwrap();
+
+        // 3. Try to create a restaurant — should get 403 (blocked)
+        let resp = client
+            .post(format!("{base}/restaurants"))
+            .header("authorization", &auth)
+            .json(&serde_json::json!({
+                "name": "Blocked User Restaurant",
+                "zone_id": "00000000-0000-0000-0000-000000000001",
+                "menu": [{"name": "Item", "price": "10.00"}],
+            }))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(
+            resp.status(),
+            403,
+            "blocked user should get 403 on restaurant create"
+        );
+
+        // 4. Try to list my restaurants — should also get 403
+        let resp = client
+            .get(format!("{base}/my/restaurants"))
+            .header("authorization", &auth)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(
+            resp.status(),
+            403,
+            "blocked user should get 403 on my/restaurants"
+        );
+
+        // 5. Try to register as courier — should also get 403
+        let resp = client
+            .post(format!("{base}/couriers"))
+            .header("authorization", &auth)
+            .json(&serde_json::json!({
+                "name": "Blocked Courier",
+                "zone_id": "00000000-0000-0000-0000-000000000001",
+            }))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(
+            resp.status(),
+            403,
+            "blocked user should get 403 on courier create"
         );
     }
 }
