@@ -69,12 +69,13 @@ GitHub: https://github.com/fortunto2/OpenWok
 
 ```
 crates/
-  core/      — openwok-core: domain types, pricing, order state machine, Repository trait
-  handlers/  — openwok-handlers: shared axum route handlers generic over Repository
-  api/       — openwok-api: axum REST server with SqliteRepo + WebSocket
-  frontend/  — openwok-frontend: Dioxus web SPA (7 pages + operator console)
-  worker/    — openwok-worker: Cloudflare Worker with D1Repo (standalone workspace)
-migrations/  — D1-compatible SQL migrations (shared with rusqlite)
+  core/              — openwok-core: domain types, pricing, order state machine, Repository trait
+  handlers/          — openwok-handlers: shared axum route handlers generic over Repository
+  api/               — openwok-api: axum REST server with SqliteRepo + WebSocket + Stripe payments
+  frontend/          — openwok-frontend: Dioxus web SPA (10 pages: auth, checkout, tracking + operator)
+  worker/            — openwok-worker: Cloudflare Worker with D1Repo (standalone workspace)
+  stripe-universal/  — stripe-universal: typed Stripe client (reqwest native + worker::Fetch wasm32)
+migrations/          — D1-compatible SQL migrations (shared with rusqlite)
 ```
 
 **Repository pattern:**
@@ -153,15 +154,18 @@ When building or reviewing frontend changes:
 | GET | /api/restaurants | List restaurants |
 | GET | /api/restaurants/{id} | Get restaurant |
 | POST | /api/restaurants | Create restaurant |
-| POST | /api/orders | Create order (returns pricing breakdown) |
+| POST | /api/orders | Create order + payment, returns checkout URL (auth) |
 | GET | /api/orders/{id} | Get order |
-| PATCH | /api/orders/{id}/status | Transition order status |
-| POST | /api/orders/{id}/assign | Assign courier to order |
+| PATCH | /api/orders/{id}/status | Transition order status (auth) |
+| POST | /api/orders/{id}/assign | Assign courier to order (auth) |
 | GET | /api/couriers | List available couriers |
-| POST | /api/couriers | Register courier |
-| PATCH | /api/couriers/{id}/available | Toggle availability |
+| POST | /api/couriers | Register courier (auth) |
+| PATCH | /api/couriers/{id}/available | Toggle availability (auth) |
 | GET | /api/public/economics | Aggregate financials (public, cached 5min) |
 | GET | /api/admin/metrics | Pilot KPIs (order count, on-time rate, revenue) |
+| POST | /api/auth/callback | Verify Supabase JWT, create/get user |
+| GET | /api/auth/me | Get current user profile (auth) |
+| POST | /api/webhooks/stripe | Stripe webhook (signature verified) |
 | WS | /api/ws/orders/{id} | Real-time order status updates |
 
 ## OpenAPI / Swagger
@@ -182,8 +186,8 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 - `docs/mvp-deck.pdf` — full MVP concept deck
 - `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
 - `planning/ROADMAP.md` — 12-month roadmap with decision gates
-- `docs/plan-done/` — completed phase specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy)
-- `docs/plan/pilot-infra_20260320/` — completed: pilot infrastructure (data, metrics, economics, PostHog)
+- `docs/plan-done/` — completed specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy, repo-abstraction)
+- `docs/plan/tailwind-migration/` — planned: Tailwind CSS migration for frontend
 - `docs/evolution.md` — factory evolution log (cross-retro learnings)
 - `docs/retro/` — pipeline retrospectives
 
@@ -196,6 +200,8 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 | `migrations/0003_pilot_zones.sql` | Add 4 new LA zones (Venice, Santa Monica, Koreatown, Silver Lake) |
 | `migrations/0004_seed_pilot_restaurants.sql` | Seed 15 new restaurants with 80+ menu items across 6 zones |
 | `migrations/0005_order_metrics.sql` | Add `estimated_eta` and `actual_delivery_at` columns to orders |
+| `migrations/0006_auth_users.sql` | Users table + orders.user_id FK |
+| `migrations/0007_payments.sql` | Payments table (Stripe tracking) |
 
 ## Frontend Routes
 
@@ -204,10 +210,13 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 | `/` | Home | Landing page |
 | `/restaurants` | RestaurantList | Browse restaurants |
 | `/restaurant/:id` | RestaurantMenu | Menu + cart |
-| `/checkout` | Checkout | Order with 6-line pricing |
-| `/order/:id` | OrderTracking | Real-time status timeline |
+| `/checkout` | Checkout | Order with 6-line pricing, Stripe redirect |
+| `/order/:id` | OrderTracking | Real-time status timeline + payment badge |
+| `/order/:id/success` | OrderSuccess | Post-payment confirmation |
 | `/operator` | OperatorConsole | Node operator dashboard (Overview + Metrics tabs) |
 | `/economics` | PublicEconomicsPage | Open-book economics transparency page |
+| `/login` | Login | Google OAuth via Supabase |
+| `/auth/callback` | AuthCallback | OAuth callback, stores JWT |
 
 ## Analytics (PostHog)
 

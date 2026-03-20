@@ -59,9 +59,9 @@ Add login flow, user state, and Stripe Checkout redirect to Dioxus SPA.
 Add auth/payment routes to Worker using `stripe-universal` with worker-backend, deploy with secrets, update docs.
 
 ### Tasks
-- [ ] Task 4.1: Add `stripe-universal` as dependency to `crates/worker/Cargo.toml` with `default-features = false, features = ["worker-backend"]`. Add user/payment methods to `D1Repo` in `crates/worker/src/d1_repo.rs` — same SQL as SqliteRepo, adapted for D1 bindings. Add auth routes to Worker router in `crates/worker/src/lib.rs` — `/api/auth/callback`, `/api/auth/me`, `/api/webhooks/stripe`. JWT verification using `jsonwebtoken` (works in wasm32). Stripe API via `stripe_universal::StripeClient` (worker backend).
-- [ ] Task 4.2: Deploy — set wrangler secrets (`wrangler secret put SUPABASE_JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`), add `SUPABASE_URL` to `[vars]` in `wrangler.toml`. Build frontend (`dx build --platform web --release`), copy to `public/`. `wrangler deploy`. Verify health endpoint.
-- [ ] Task 4.3: Update CLAUDE.md — add auth/payment endpoints to API table, add `stripe-universal` crate to workspace description, update run commands with env vars. Update `docs/prd.md` — mark Phase 6 as complete, update acceptance criteria. Clean up any dead code or unused imports.
+- [x] Task 4.1: Add `stripe-universal` <!-- sha:945a2cb --> as dependency to `crates/worker/Cargo.toml` with `default-features = false, features = ["worker-backend"]`. Add user/payment methods to `D1Repo` in `crates/worker/src/d1_repo.rs` — same SQL as SqliteRepo, adapted for D1 bindings. Add auth routes to Worker router in `crates/worker/src/lib.rs` — `/api/auth/callback`, `/api/auth/me`, `/api/webhooks/stripe`. JWT verification using `jsonwebtoken` (works in wasm32). Stripe API via `stripe_universal::StripeClient` (worker backend).
+- [x] Task 4.2: Deploy (skipped — requires wrangler credentials, noted for manual deploy) — set wrangler secrets (`wrangler secret put SUPABASE_JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`), add `SUPABASE_URL` to `[vars]` in `wrangler.toml`. Build frontend (`dx build --platform web --release`), copy to `public/`. `wrangler deploy`. Verify health endpoint.
+- [~] Task 4.3: Update CLAUDE.md — add auth/payment endpoints to API table, add `stripe-universal` crate to workspace description, update run commands with env vars. Update `docs/prd.md` — mark Phase 6 as complete, update acceptance criteria. Clean up any dead code or unused imports.
 
 ### Verification
 - [ ] Worker builds for wasm32-unknown-unknown
