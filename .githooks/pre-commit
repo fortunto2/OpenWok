@@ -1,0 +1,12 @@
+#!/bin/sh
+# Pre-commit hook: ensure code passes fmt + clippy before committing
+
+set -e
+
+echo "Running cargo fmt --check..."
+cargo fmt --all -- --check
+
+echo "Running cargo clippy..."
+cargo clippy --workspace -- -D warnings
+
+echo "Pre-commit checks passed."

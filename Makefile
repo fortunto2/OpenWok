@@ -1,4 +1,4 @@
-.PHONY: test clippy fmt check build-frontend build-worker deploy dev help
+.PHONY: test clippy fmt check build-frontend build-worker deploy dev setup-hooks help
 
 DX := $(HOME)/.cargo/bin/dx
 DX_OUT := $(HOME)/.cargo-target/dx/openwok-frontend/release/web/public
@@ -47,6 +47,10 @@ dev-full:
 	@cargo run -p openwok-api &
 	@sleep 2 && cd crates/frontend && $(DX) serve
 	@trap 'kill %1' EXIT
+
+setup-hooks:
+	git config core.hooksPath .githooks
+	@echo "Git hooks configured to use .githooks/"
 
 help:
 	@grep -E '^[a-z]' Makefile | sed 's/:.*//'
