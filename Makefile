@@ -14,7 +14,13 @@ fmt:
 
 check: test clippy fmt
 
-build-frontend:
+tailwind:
+	cd crates/frontend && npx @tailwindcss/cli -i ./input.css -o ./assets/tailwind.css
+
+tailwind-watch:
+	cd crates/frontend && npx @tailwindcss/cli -i ./input.css -o ./assets/tailwind.css --watch
+
+build-frontend: tailwind
 	cd crates/frontend && $(DX) build --platform web --release
 	rm -rf public/*
 	cp -r $(DX_OUT)/* public/

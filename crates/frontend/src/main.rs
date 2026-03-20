@@ -128,6 +128,7 @@ fn App() -> Element {
 #[component]
 fn Layout() -> Element {
     rsx! {
+        document::Link { rel: "stylesheet", href: asset!("/assets/tailwind.css") }
         document::Link { rel: "stylesheet", href: asset!("/assets/style.css") }
         header { class: "header",
             nav { class: "nav",
