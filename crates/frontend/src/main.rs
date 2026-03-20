@@ -99,7 +99,7 @@ fn App() -> Element {
         document::Script { {POSTHOG_SNIPPET} }
         ErrorBoundary {
             handle_error: |errors: ErrorContext| {
-                let error_text = format!("{:?}", errors.show());
+                let error_text = format!("{errors:?}");
                 posthog_capture_with_props(
                     "frontend_error",
                     &serde_json::json!({ "error": error_text }),

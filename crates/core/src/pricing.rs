@@ -5,7 +5,7 @@ use std::fmt;
 use std::str::FromStr;
 
 /// The 6-line open-book receipt — zero hidden markup.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, utoipa::ToSchema)]
 pub struct PricingBreakdown {
     pub food_total: Money,
     pub delivery_fee: Money,

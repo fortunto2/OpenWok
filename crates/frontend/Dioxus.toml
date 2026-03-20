@@ -13,6 +13,6 @@ index_on_404 = true
 script = []
 style = []
 
-[web.proxy]
+[[web.proxy]]
 # Proxy API calls to local axum server during development
-backend = "http://localhost:3000/api"
+backend = "http://localhost:3030/api/"

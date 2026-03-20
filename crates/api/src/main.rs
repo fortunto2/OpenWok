@@ -6,6 +6,30 @@ use axum::Router;
 use axum::routing::{any, get, patch, post};
 use state::AppState;
 use tower_http::cors::{Any, CorsLayer};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
+
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "OpenWok API",
+        description = "Fair food delivery — $1 federal fee, 100% transparency",
+        version = "0.1.0"
+    ),
+    components(schemas(
+        openwok_core::types::Restaurant,
+        openwok_core::types::MenuItem,
+        openwok_core::types::Courier,
+        openwok_core::types::CourierKind,
+        openwok_core::types::Zone,
+        openwok_core::order::Order,
+        openwok_core::order::OrderStatus,
+        openwok_core::pricing::PricingBreakdown,
+        openwok_core::money::Money,
+    ))
+)]
+struct ApiDoc;
+// TODO: Add #[utoipa::path] annotations to each handler to populate paths
 
 async fn health() -> &'static str {
     "ok"
@@ -47,7 +71,10 @@ pub fn app(state: AppState) -> Router {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    Router::new().nest("/api", api).layer(cors)
+    Router::new()
+        .merge(SwaggerUi::new("/api/docs").url("/api/openapi.json", ApiDoc::openapi()))
+        .nest("/api", api)
+        .layer(cors)
 }
 
 #[tokio::main]
@@ -58,8 +85,10 @@ async fn main() {
     let state = AppState::new(conn);
     let app = app(state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    println!("OpenWok API listening on http://localhost:3000/api");
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3030".into());
+    let addr = format!("0.0.0.0:{port}");
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    println!("OpenWok API listening on http://localhost:{port}/api");
     axum::serve(listener, app).await.unwrap();
 }
 

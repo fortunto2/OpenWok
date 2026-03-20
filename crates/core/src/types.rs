@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 macro_rules! id_newtype {
     ($name:ident) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, utoipa::ToSchema)]
         pub struct $name(Uuid);
 
         impl $name {
@@ -42,7 +42,7 @@ id_newtype!(NodeId);
 id_newtype!(ZoneId);
 id_newtype!(MenuItemId);
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct MenuItem {
     pub id: MenuItemId,
     pub name: String,
@@ -50,7 +50,7 @@ pub struct MenuItem {
     pub restaurant_id: RestaurantId,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Restaurant {
     pub id: RestaurantId,
     pub name: String,
@@ -59,14 +59,14 @@ pub struct Restaurant {
     pub active: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Zone {
     pub id: ZoneId,
     pub name: String,
     pub node_id: NodeId,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Node {
     pub id: NodeId,
     pub name: String,
@@ -74,12 +74,12 @@ pub struct Node {
     pub zones: Vec<ZoneId>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
 pub enum CourierKind {
     Human,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Courier {
     pub id: CourierId,
     pub name: String,

@@ -1,0 +1,319 @@
+  [2msession: 6eacfd8d  model: claude-opus-4-6[1m][0m
+Starting review for `pilot-infra_20260320`. Let me gather context first.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/spec.md[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/pilot-infra_20260320/*.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
+  [32m$ [0m [33mBash[0m [2mRecent commit history[0m
+  [32m$ [0m [33mBash[0m [2mDiff stats for pilot-infra track[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mRun full test suite[0m
+  [32m$ [0m [33mBash[0m [2mRun clippy linter[0m
+  [32m$ [0m [33mBash[0m [2mCheck formatting[0m
+
+Tests: 50 pass, 0 fail. Clippy: clean. Fmt: clean. Now checking security, code quality, and other dimensions.
+  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|secret\s*=\s*['"]|api_key\s*=\s*['"]" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK|AI-TODO|AI-ASK" ~/startups/active/openwok/crates[0m
+  [32m$ [0m [33mBash[0m [2mCheck .gitignore for .env[0m
+  [32m$ [0m [33mBash[0m [2mCheck CLAUDE.md size[0m
+  [32m$ [0m [33mBash[0m [2mList source files in all crates[0m
+
+Now reading hub files for code quality and checking production `unwrap()` calls.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/economics.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/metrics.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/pricing.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck pre-commit hooks and README[0m
+  [32m$ [0m [33mBash[0m [2mCount SHAs and completed tasks in plan[0m
+  [32m$ [0m [33mBash[0m [2mRecent commits for conventional format check[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/public/index.html[0m
+
+Now let me verify the last pieces and update the spec checkboxes.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/money.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0003_pilot_zones.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0004_seed_pilot_restaurants.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0005_order_metrics.sql[0m
+
+All acceptance criteria verified. Now updating spec checkboxes and writing the report.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/spec.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit spec checkbox updates[0m
+
+Now the review report.
+
+---
+
+```
+Code Review: openwok (pilot-infra_20260320)
+Date: 2026-03-20
+
+## Verdict: SHIP
+
+### Summary
+Pilot infrastructure track is complete and well-implemented. All 10 acceptance criteria met, 50 tests pass, zero clippy warnings, no security issues. Code quality is solid for MVP scope with minor informational items.
+
+### Tests
+- Total: 50 | Pass: 50 | Fail: 0 | Skip: 0
+- Coverage: N/A (no coverage tool configured for Rust workspace)
+- Status: PASS
+
+### Linter
+- Errors: 0 | Warnings: 0
+- Clippy: zero warnings (-D warnings policy enforced)
+- Rustfmt: clean
+- Status: PASS
+
+### Build
+- Status: PASS (workspace compiles, worker builds for WASM target)
+- Warnings: 0
+
+### Pre-Landing Checklist
+- CRITICAL: 0
+- INFORMATIONAL: 3
+  - N+1 queries in restaurant list and order list endpoints (both API and Worker) — acceptable for MVP (<20 restaurants)
+  - `Money::from(&str)` panics on invalid input in Worker crate (`worker/lib.rs:436-443`) — user input goes through `Money::from()` without validation. In axum API this is handled by serde deserialization, but Worker uses raw strings.
+  - `unwrap()` on UUID parsing from DB data in `orders.rs:95,118-123` — would panic on corrupted DB, very unlikely
+- Status: PASS (no critical issues)
+
+### Security
+- Vulnerabilities: 0
+- Hardcoded secrets: NONE
+- SQL injection: NONE (all queries use parameterized binding — rusqlite `params![]` and D1 `.bind()`)
+- `.env` in .gitignore: YES
+- PostHog key: loaded via `window.__POSTHOG_API_KEY__` (no hardcoded key)
+- Status: PASS
+
+### Acceptance Criteria
+- Verified: 10/10
+  - [x] 15+ restaurants across 6 zones with 80+ menu items (18 restaurants, 6 zones, 86 items)
+  - [x] GET /api/public/economics with Cache-Control header
+  - [x] GET /api/admin/metrics with all KPI fields
+  - [x] estimated_eta + actual_delivery_at columns in orders
+  - [x] /economics page with open-book breakdown
+  - [x] Metrics tab in operator console
+  - [x] PostHog JS snippet with event tracking (restaurant_view, add_to_cart, checkout_start, order_placed, frontend_error)
+  - [x] ErrorBoundary wrapping app root with PostHog error reporting
+  - [x] All tests pass (50/50)
+  - [x] New endpoints have integration tests (5 tests for economics + metrics)
+- Status: PASS
+
+### Plan Progress
+- Tasks: 12/12 complete
+- Phases: 4/4 complete
+- All tasks have SHA annotations
+- All phase checkpoints have SHA annotations
+- Status: COMPLETE
+
+### Production Logs
+- Platform: Cloudflare Workers (openwok.nameless-sunset-8f24.workers.dev)
+- Status: N/A — no wrangler credentials available to check logs
+
+### Dev Principles
+- SOLID: PASS — clean separation (core/api/frontend/worker), dependencies point inward
+- DIP: Core has zero framework deps, API depends on Core
+- Schemas-first: Money newtype, typed IDs (RestaurantId, OrderId, etc.), PricingBreakdown struct
+- Error handling: API uses proper Result<T, (StatusCode, String)>, Worker uses Result<Response>
+- Key invariant: Federal fee hardcoded at $1.00, pricing always shows 6 lines — verified in tests
+- Status: PASS
+
+### Commits
+- Total: 17 (track: 8846d1f..1963d56)
+- Conventional: 17/17 compliant (feat, chore, docs with scopes)
+- Atomic: YES — each commit = one logical change
+- Plan SHAs: 12/12 tasks have SHAs
+- Pre-commit hooks: NOT CONFIGURED (no husky/pre-commit/lefthook)
+- Status: WARN (no pre-commit hooks)
+
+### Documentation
+- CLAUDE.md: CURRENT (9,456 chars — well under 40K limit)
+- README.md: EXISTS
+- docs/prd.md: CURRENT (Phase 7 items marked)
+- docs/workflow.md: CURRENT
+- AI-TODO unresolved: 0
+- AI-ASK unanswered: 0
+- Dead code: NONE detected
+- Status: PASS
+
+### Context Quality
+- Plan handoff: GOOD (all tasks annotated with SHAs, phase checkpoints present)
+- CLAUDE.md size: 9,456 chars — OK
+- Scratch cleanup: N/A (no scratch directory)
+- Status: PASS
+
+### Visual Testing
+- Platform: N/A — no browser tools invoked (Dioxus WASM SPA requires special build)
+- Status: N/A
+
+### Pre-mortem
+| Risk | Type | Likelihood | Impact | Mitigation |
+|------|------|-----------|--------|------------|
+| No auth on /api/admin/metrics — anyone can see KPIs | Tiger | High | Medium | Add auth in Phase 6 (planned). Acceptable for closed pilot |
+| No rate limiting on API | Paper Tiger | Low | Medium | CF Workers has basic DDoS protection. Add rate limiting if needed |
+| Money::from() panic on bad Worker input | Tiger | Medium | Low | Single-request failure, not system crash. Fix in next iteration |
+| D1 scaling for pilot volume | Paper Tiger | Low | Low | D1 handles well beyond MVP volume |
+| No database backups configured | Elephant | High | Medium | D1 has automatic backups. Add export script before wider pilot |
+
+- Tigers: 2 (admin metrics auth, Money parsing)
+- Paper Tigers: 2
+- Elephants: 1
+- Unmitigated blockers: NONE (both Tigers are acceptable for closed MVP pilot)
+- Status: RISKS IDENTIFIED (non-blocking for pilot)
+
+### Issues Found
+1. [INFO] N+1 query in /api/restaurants — worker/lib.rs:312-331
+2. [INFO] N+1 query in /api/orders list — worker/lib.rs:402-417, orders.rs:148-157
+3. [INFO] Money::from() panics on invalid input in Worker — worker/lib.rs:436
+4. [INFO] unwrap() on UUID parse from DB — orders.rs:95,118-123
+5. [WARN] No pre-commit hooks configured
+6. [WARN] /api/admin/metrics has no auth protection
+
+### Recommendations
+- Add pre-commit hooks (clippy + fmt) before onboarding contributors
+- Add input validation for money strings in Worker crate before public launch
+- Add auth to /api/admin/metrics in Phase 6
+- Consider JOINs to eliminate N+1 queries when order volume grows
+```
+
+CLAUDE.md is current at 9,456 chars and doesn't need revision — it already has all endpoints, migrations, routes, and PostHog documented from the build phase.
+
+<solo:done/>Now the review report.
+
+---
+
+```
+Code Review: openwok (pilot-infra_20260320)
+Date: 2026-03-20
+
+## Verdict: SHIP
+
+### Summary
+Pilot infrastructure track is complete and well-implemented. All 10 acceptance criteria met, 50 tests pass, zero clippy warnings, no security issues. Code quality is solid for MVP scope with minor informational items.
+
+### Tests
+- Total: 50 | Pass: 50 | Fail: 0 | Skip: 0
+- Coverage: N/A (no coverage tool configured for Rust workspace)
+- Status: PASS
+
+### Linter
+- Errors: 0 | Warnings: 0
+- Clippy: zero warnings (-D warnings policy enforced)
+- Rustfmt: clean
+- Status: PASS
+
+### Build
+- Status: PASS (workspace compiles, worker builds for WASM target)
+- Warnings: 0
+
+### Pre-Landing Checklist
+- CRITICAL: 0
+- INFORMATIONAL: 3
+  - N+1 queries in restaurant list and order list endpoints (both API and Worker) — acceptable for MVP (<20 restaurants)
+  - `Money::from(&str)` panics on invalid input in Worker crate (`worker/lib.rs:436-443`) — user input goes through `Money::from()` without validation. In axum API this is handled by serde deserialization, but Worker uses raw strings.
+  - `unwrap()` on UUID parsing from DB data in `orders.rs:95,118-123` — would panic on corrupted DB, very unlikely
+- Status: PASS (no critical issues)
+
+### Security
+- Vulnerabilities: 0
+- Hardcoded secrets: NONE
+- SQL injection: NONE (all queries use parameterized binding — rusqlite `params![]` and D1 `.bind()`)
+- `.env` in .gitignore: YES
+- PostHog key: loaded via `window.__POSTHOG_API_KEY__` (no hardcoded key)
+- Status: PASS
+
+### Acceptance Criteria
+- Verified: 10/10
+  - [x] 15+ restaurants across 6 zones with 80+ menu items (18 restaurants, 6 zones, 86 items)
+  - [x] GET /api/public/economics with Cache-Control header
+  - [x] GET /api/admin/metrics with all KPI fields
+  - [x] estimated_eta + actual_delivery_at columns in orders
+  - [x] /economics page with open-book breakdown
+  - [x] Metrics tab in operator console
+  - [x] PostHog JS snippet with event tracking (restaurant_view, add_to_cart, checkout_start, order_placed, frontend_error)
+  - [x] ErrorBoundary wrapping app root with PostHog error reporting
+  - [x] All tests pass (50/50)
+  - [x] New endpoints have integration tests (5 tests for economics + metrics)
+- Status: PASS
+
+### Plan Progress
+- Tasks: 12/12 complete
+- Phases: 4/4 complete
+- All tasks have SHA annotations
+- All phase checkpoints have SHA annotations
+- Status: COMPLETE
+
+### Production Logs
+- Platform: Cloudflare Workers (openwok.nameless-sunset-8f24.workers.dev)
+- Status: N/A — no wrangler credentials available to check logs
+
+### Dev Principles
+- SOLID: PASS — clean separation (core/api/frontend/worker), dependencies point inward
+- DIP: Core has zero framework deps, API depends on Core
+- Schemas-first: Money newtype, typed IDs (RestaurantId, OrderId, etc.), PricingBreakdown struct
+- Error handling: API uses proper Result<T, (StatusCode, String)>, Worker uses Result<Response>
+- Key invariant: Federal fee hardcoded at $1.00, pricing always shows 6 lines — verified in tests
+- Status: PASS
+
+### Commits
+- Total: 17 (track: 8846d1f..1963d56)
+- Conventional: 17/17 compliant (feat, chore, docs with scopes)
+- Atomic: YES — each commit = one logical change
+- Plan SHAs: 12/12 tasks have SHAs
+- Pre-commit hooks: NOT CONFIGURED (no husky/pre-commit/lefthook)
+- Status: WARN (no pre-commit hooks)
+
+### Documentation
+- CLAUDE.md: CURRENT (9,456 chars — well under 40K limit)
+- README.md: EXISTS
+- docs/prd.md: CURRENT (Phase 7 items marked)
+- docs/workflow.md: CURRENT
+- AI-TODO unresolved: 0
+- AI-ASK unanswered: 0
+- Dead code: NONE detected
+- Status: PASS
+
+### Context Quality
+- Plan handoff: GOOD (all tasks annotated with SHAs, phase checkpoints present)
+- CLAUDE.md size: 9,456 chars — OK
+- Scratch cleanup: N/A (no scratch directory)
+- Status: PASS
+
+### Visual Testing
+- Platform: N/A — no browser tools invoked (Dioxus WASM SPA requires special build)
+- Status: N/A
+
+### Pre-mortem
+| Risk | Type | Likelihood | Impact | Mitigation |
+|------|------|-----------|--------|------------|
+| No auth on /api/admin/metrics — anyone can see KPIs | Tiger | High | Medium | Add auth in Phase 6 (planned). Acceptable for closed pilot |
+| No rate limiting on API | Paper Tiger | Low | Medium | CF Workers has basic DDoS protection. Add rate limiting if needed |
+| Money::from() panic on bad Worker input | Tiger | Medium | Low | Single-request failure, not system crash. Fix in next iteration |
+| D1 scaling for pilot volume | Paper Tiger | Low | Low | D1 handles well beyond MVP volume |
+| No database backups configured | Elephant | High | Medium | D1 has automatic backups. Add export script before wider pilot |
+
+- Tigers: 2 (admin metrics auth, Money parsing)
+- Paper Tigers: 2
+- Elephants: 1
+- Unmitigated blockers: NONE (both Tigers are acceptable for closed MVP pilot)
+- Status: RISKS IDENTIFIED (non-blocking for pilot)
+
+### Issues Found
+1. [INFO] N+1 query in /api/restaurants — worker/lib.rs:312-331
+2. [INFO] N+1 query in /api/orders list — worker/lib.rs:402-417, orders.rs:148-157
+3. [INFO] Money::from() panics on invalid input in Worker — worker/lib.rs:436
+4. [INFO] unwrap() on UUID parse from DB — orders.rs:95,118-123
+5. [WARN] No pre-commit hooks configured
+6. [WARN] /api/admin/metrics has no auth protection
+
+### Recommendations
+- Add pre-commit hooks (clippy + fmt) before onboarding contributors
+- Add input validation for money strings in Worker crate before public launch
+- Add auth to /api/admin/metrics in Phase 6
+- Consider JOINs to eliminate N+1 queries when order volume grows
+```
+
+CLAUDE.md is current at 9,456 chars and doesn't need revision — it already has all endpoints, migrations, routes, and PostHog documented from the build phase.
+
+<solo:done/>

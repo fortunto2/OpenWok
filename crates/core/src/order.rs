@@ -4,7 +4,7 @@ use crate::types::{CourierId, MenuItemId, OrderId, RestaurantId, ZoneId};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
 pub enum OrderStatus {
     Created,
     Confirmed,
@@ -38,7 +38,7 @@ pub enum OrderError {
     EmptyOrder,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct OrderItem {
     pub menu_item_id: MenuItemId,
     pub name: String,
@@ -46,7 +46,7 @@ pub struct OrderItem {
     pub unit_price: Money,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Order {
     pub id: OrderId,
     pub items: Vec<OrderItem>,

@@ -1,111 +1,46 @@
-[02:12:16] START | openwok | stages: /scaffold -> /setup -> /plan -> /build -> /deploy -> /review | max: 20
-[02:12:16] STAGE | iter 1/20 | stage 2/6: setup
-[02:12:16] CWD | /Users/rustam/startups/active/openwok
-[02:12:16] INVOKE | /solo:setup 
-[02:13:24] ITER | saved iter-001-setup.log | commit: e1c0fed | result: stage complete
-[02:13:24] CHECK | setup | /Users/rustam/startups/active/openwok/docs/workflow.md -> FOUND
-[02:13:26] STAGE | iter 2/20 | stage 3/6: plan
-[02:13:26] CWD | /Users/rustam/startups/active/openwok
-[02:13:26] GRAPH | Updating code graph for RepoMap...
-[02:13:26] INVOKE | /solo:plan "Federated food delivery platform. Read CLAUDE.md and docs/mvp-deck.pdf for full concept. Rust core (axum server + Dioxus frontend). MVP: single LA node, open-book pricing ( federal + local ops + pass-through), order flow, restaurant catalog, courier dispatch. TDD. Start from scratch — make research, scaffold, plan, then build."
-[02:15:56] ITER | saved iter-002-plan.log | commit: e1c0fed | result: stage complete
-[02:15:56] CHECK | plan | /Users/rustam/startups/active/openwok/docs/plan/*/*.md -> FOUND
-[02:15:58] STAGE | iter 3/20 | stage 4/6: build
-[02:15:58] PLAN | Active plan track: mvp-core_20260320
-[02:15:58] CWD | /Users/rustam/startups/active/openwok
-[02:15:58] GRAPH | Updating code graph for RepoMap...
-[02:15:58] INVOKE | /solo:build 
-[02:32:23] SIGNAL | <solo:done/> → creating build
-[02:32:23] ITER | saved iter-003-build.log | commit: fc14f6a | result: stage complete
-[02:32:23] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
-[02:32:25] STAGE | iter 4/20 | stage 5/6: deploy
-[02:32:25] CWD | /Users/rustam/startups/active/openwok
-[02:32:25] INVOKE | /solo:deploy 
-[02:33:46] ITER | saved iter-004-deploy.log | commit: fc14f6a | result: continuing
-[02:33:46] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> NOT FOUND
-[02:33:48] STAGE | iter 5/20 | stage 5/6: deploy
-[02:33:48] CWD | /Users/rustam/startups/active/openwok
-[02:33:48] INVOKE | /solo:deploy 
-[02:34:54] ITER | saved iter-005-deploy.log | commit: fc14f6a | result: continuing
-[02:34:54] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> NOT FOUND
-[02:34:56] STAGE | iter 6/20 | stage 5/6: deploy
-[02:34:56] CWD | /Users/rustam/startups/active/openwok
-[02:34:56] INVOKE | /solo:deploy 
-[02:35:35] ITER | saved iter-006-deploy.log | commit: fc14f6a | result: continuing
-[02:35:35] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> NOT FOUND
-[02:35:37] STAGE | iter 7/20 | stage 5/6: deploy
-[02:35:37] CWD | /Users/rustam/startups/active/openwok
-[02:35:37] INVOKE | /solo:deploy 
-[02:37:15] ITER | saved iter-007-deploy.log | commit: fc14f6a | result: continuing
-[02:37:15] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> NOT FOUND
-[02:37:17] STAGE | iter 8/20 | stage 5/6: deploy
-[02:37:17] CWD | /Users/rustam/startups/active/openwok
-[02:37:17] INVOKE | /solo:deploy 
-[02:38:27] ITER | saved iter-008-deploy.log | commit: fc14f6a | result: continuing
-[02:38:27] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> NOT FOUND
-[02:38:29] STAGE | iter 9/20 | stage 5/6: deploy
-[02:38:29] CWD | /Users/rustam/startups/active/openwok
-[02:38:29] INVOKE | /solo:deploy 
-[03:39:07] ITER | saved iter-009-deploy.log | commit: fc14f6a | result: stage complete
-[03:39:07] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
-[03:39:09] START | openwok | stages: /scaffold -> /setup -> /plan -> /build -> /deploy -> /review | max: 20
-[03:39:09] CTRL | Skip stage requested
-[03:39:09] CTRL | Skipping stage: review
-[03:39:09] RETRO | Running retro for plan: mvp-core_20260320...
-[03:42:55] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-mvp-core_20260320.log
-[03:42:55] RETRO | Running Codex factory critique...
-[03:42:58] RETRO | Codex factory critique complete
-[03:42:58] DONE | All stages complete (no more plans in queue)
-[03:42:58] FINISH | Duration: 3m
-[03:42:58] DONE | Pipeline complete!
-[03:42:58] ARCHIVE | Archiving: mvp-core_20260320 → docs/plan-done/
-[03:42:58] POST | No backlog/roadmap found — skipping auto-plan
-[03:45:31] START | openwok | stages: /scaffold -> /setup -> /plan -> /build -> /deploy -> /review | max: 20
-[03:45:32] STAGE | iter 1/20 | stage 3/6: plan
-[03:45:32] CWD | /Users/rustam/startups/active/openwok
-[03:45:32] GRAPH | Updating code graph for RepoMap...
-[03:45:32] INVOKE | /solo:plan "Federated food delivery platform. Read CLAUDE.md and docs/mvp-deck.pdf for full concept. Rust core (axum server + Dioxus frontend). MVP: single LA node, open-book pricing ( federal + local ops + pass-through), order flow, restaurant catalog, courier dispatch. TDD. Start from scratch — make research, scaffold, plan, then build."
-[03:45:48] RATELIMIT | CLI exited with code 130 and near-empty output (56B) — treating as rate limit
-[03:45:48] RATELIMIT | Detected rate limit (attempt 1/10) — waiting 60s
-[03:46:10] START | openwok | stages: /build -> /deploy -> /review | max: 20
-[03:46:10] RETRO | Running retro for plan: current...
-[03:49:00] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-post.log
-[03:49:00] DONE | All stages complete (no more plans in queue)
-[03:49:00] FINISH | Duration: 2m
-[03:49:00] DONE | Pipeline complete!
-[03:49:00] POST | No backlog/roadmap found — skipping auto-plan
-[03:55:56] START | openwok | stages: /build -> /deploy -> /review | max: 20
-[03:55:56] RETRO | Running retro for plan: phase2-frontend...
-[04:00:51] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-phase2-frontend.log
-[04:00:51] DONE | All stages complete (no more plans in queue)
-[04:00:51] FINISH | Duration: 4m
-[04:00:51] DONE | Pipeline complete! 4 plans cycled.
-[04:00:51] ARCHIVE | Archiving: phase2-frontend → docs/plan-done/
-[04:00:51] ARCHIVE | Archiving: phase3-payments → docs/plan-done/
-[04:00:51] ARCHIVE | Archiving: phase4-federation → docs/plan-done/
-[04:00:51] POST | No backlog/roadmap found — skipping auto-plan
-[04:06:25] START | openwok | stages: /build -> /deploy -> /review | max: 20
-[04:06:25] STAGE | iter 1/20 | stage 1/3: build
-[04:06:25] PLAN | Active plan track: phase2-frontend
-[04:06:25] CWD | /Users/rustam/startups/active/openwok
-[04:06:25] GRAPH | Updating code graph for RepoMap...
-[04:06:25] INVOKE | /solo:build 
-[04:43:44] SIGNAL | <solo:done/> → creating build
-[04:43:44] ITER | saved iter-001-build.log | commit: 7abd41c | result: stage complete
-[04:43:44] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
-[04:43:46] STAGE | iter 2/20 | stage 3/3: review
-[04:43:46] PLAN | Active plan track: phase2-frontend
-[04:43:46] CWD | /Users/rustam/startups/active/openwok
-[04:43:46] INVOKE | /solo:review 
-[04:46:05] SIGNAL | <solo:done/> → creating review
-[04:46:05] ITER | saved iter-002-review.log | commit: 5adecdb | result: stage complete
-[04:46:05] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> FOUND
-[04:46:05] RETRO | Running retro for plan: phase2-frontend...
-[04:51:21] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-phase2-frontend.log
-[04:51:21] DONE | All stages complete (no more plans in queue)
-[04:51:21] FINISH | Duration: 44m
-[04:51:21] DONE | Pipeline complete! 4 plans cycled.
-[04:51:21] ARCHIVE | Archiving: phase2-frontend → docs/plan-done/
-[04:51:21] ARCHIVE | Archiving: phase3-payments → docs/plan-done/
-[04:51:21] ARCHIVE | Archiving: phase4-federation → docs/plan-done/
-[04:51:21] POST | No backlog/roadmap found — skipping auto-plan
+[12:37:24] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[12:37:24] RETRO | Running retro for plan: cf-workers-deploy_20260320...
+[12:42:30] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-cf-workers-deploy_20260320.log
+[12:42:30] DONE | All stages complete (no more plans in queue)
+[12:42:30] FINISH | Duration: 5m
+[12:42:31] DONE | Pipeline complete! 5 plans cycled.
+[12:42:31] ARCHIVE | Archiving: cf-workers-deploy_20260320 → docs/plan-done/
+[12:42:31] POST | Running auto-plan from backlog...
+[12:52:10] POST | Auto-plan complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/autoplan-20260320-124231.log
+[12:52:10] POST | New plan created: pilot-infra_20260320 — restarting build→deploy→review
+[12:52:10] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[12:52:10] STAGE | iter 1/10 | stage 1/3: build
+[12:52:10] PLAN | Active plan track: pilot-infra_20260320
+[12:52:10] CWD | /Users/rustam/startups/active/openwok
+[12:52:10] GRAPH | Updating code graph for RepoMap...
+[12:52:11] INVOKE | /solo:build 
+[13:10:44] SIGNAL | <solo:done/> → creating build
+[13:10:44] ITER | saved iter-001-build.log | commit: 96dc2e8 | result: stage complete
+[13:10:44] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
+[13:10:46] STAGE | iter 2/10 | stage 2/3: deploy
+[13:10:46] CWD | /Users/rustam/startups/active/openwok
+[13:10:46] INVOKE | /solo:deploy 
+[13:43:55] ITER | saved iter-002-deploy.log | commit: 1963d56 | result: stage complete
+[13:43:55] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
+[13:43:57] STAGE | iter 3/10 | stage 3/3: review
+[13:43:57] PLAN | Active plan track: pilot-infra_20260320
+[13:43:57] CWD | /Users/rustam/startups/active/openwok
+[13:43:57] INVOKE | /solo:review 
+[13:48:10] SIGNAL | <solo:done/> → creating review
+[13:48:10] ITER | saved iter-003-review.log | commit: d9a2040 | result: stage complete
+[13:48:10] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> FOUND
+[13:48:10] RETRO | Running retro for plan: pilot-infra_20260320...
+[13:54:16] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-pilot-infra_20260320.log
+[13:54:16] DONE | All stages complete (no more plans in queue)
+[13:54:16] FINISH | Duration: 62m
+[13:54:16] DONE | Pipeline complete! 6 plans cycled.
+[13:54:16] ARCHIVE | Archiving: pilot-infra_20260320 → docs/plan-done/
+[13:54:16] POST | Running auto-plan from backlog...
+[14:01:32] POST | Auto-plan complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/autoplan-20260320-135416.log
+[14:01:32] POST | New plan created: repo-abstraction_20260320 — restarting build→deploy→review
+[14:01:32] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[14:01:32] STAGE | iter 1/10 | stage 1/3: build
+[14:01:32] PLAN | Active plan track: repo-abstraction_20260320
+[14:01:32] CWD | /Users/rustam/startups/active/openwok
+[14:01:32] GRAPH | Updating code graph for RepoMap...
+[14:01:33] INVOKE | /solo:build 

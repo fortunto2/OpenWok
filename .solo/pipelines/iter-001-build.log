@@ -1,308 +1,357 @@
-  [2msession: e8f66fad  model: claude-opus-4-6[1m][0m
-  [36m**[0m [36mGlob[0m [2m"docs/plan/**/plan.md" ~/startups/active/openwok[0m
-  [32m$ [0m [33mBash[0m [2mRecent commit history[0m
-  [36m**[0m [36mGlob[0m [2m"docs/plan/phase2*/**" ~/startups/active/openwok[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/spec.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Cargo.toml[0m
-  [32m$ [0m [33mBash[0m [2mList existing crates[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/Cargo.toml[0m
+  [2msession: 63cb34ed  model: claude-opus-4-6[1m][0m
   [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/pilot-infra_20260320/**/*" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
+  [32m$ [0m [33mBash[0m [2mRecent git history[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/spec.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Data Foundation (Tasks 1.1-1.3)', 'st[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m**[0m [36mGlob[0m [2m"migrations/*.sql" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
+
+Let me also read the routes module structure and state.
+  [36m**[0m [36mGlob[0m [2m"crates/api/src/routes/*.rs" ~/startups/active/openwok[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/mod.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0001_init.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0002_seed_la.sql[0m
 
-Let me check Dioxus docs for the latest API and verify the toolchain.
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create Dioxus frontend crate with ro[0m
-  [2m--[0m [36mToolSearch[0m [2mselect:mcp__context7__resolve-library-id,mcp__context7__quer[0m
-  [34m~~[0m [34mresolve-library-id[0m [2mdioxus[0m
-  [32m$ [0m [33mBash[0m [2mCheck if dx CLI is installed[0m
-  [32m$ [0m [33mBash[0m [2mCheck WASM target availability[0m
-  [34m~~[0m [34mquery-docs[0m [2m/dioxuslabs/dioxus/v0.6.3[0m
-  [32m$ [0m [33mBash[0m [2mInstall Dioxus CLI[0m
+Good — I have full context. 4 phases, 13 tasks. Let me start building.
 
-Good, I have the Dioxus 0.6 API reference. dx CLI is installing in background. Let me start implementing Task 1.1.
+**Starting Task 1.1: Create `migrations/0003_pilot_zones.sql`**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/migrations/0003_pilot_zones.sql[0m
 
-**Starting Task 1.1: Create Dioxus frontend crate with router**
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/Cargo.toml[0m
-  [32m$ [0m [33mBash[0m [2mCheck Rust version[0m
+Now update `db.rs` `seed_la_data` to add these 4 zones for local dev.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
 
-Good, Rust 1.93.1 with 2024 edition. Now let me create the frontend crate files.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/Cargo.toml[0m
-  [32m$ [0m [33mBash[0m [2mCreate frontend crate directory[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/Cargo.toml[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/Dioxus.toml[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+Now update the test that checks zone count from 2 to 6.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
 
-Now let me check if it compiles.
-  [32m$ [0m [33mBash[0m [2mCheck frontend crate compiles[0m
+Quick test to verify zones work:
+  [32m$ [0m [33mBash[0m [2mTest zone seeding[0m
 
-The `#[end_layout]` at the end of the enum causes a parse error (nothing follows it). Since all routes use the layout, I can remove it.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend compiles[0m
-
-Frontend compiles. Let me verify the whole workspace works too.
-  [32m$ [0m [33mBash[0m [2mRun full workspace check[0m
-
-Pre-existing format issues in the API crate. Let me fix them.
-  [32m$ [0m [33mBash[0m [2mFix formatting across workspace[0m
-  [32m$ [0m [33mBash[0m [2mRe-run full check[0m
-
-All checks pass. Let me commit Task 1.1.
+Task 1.1 done. Commit and move to Task 1.2.
   [32m$ [0m [33mBash[0m [2mCommit Task 1.1[0m
-  [32m$ [0m [33mBash[0m [2mGet commit SHA[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create Dioxus frontend crate with ro[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
 
-**Starting Task 1.2: Restaurant listing page** — fetch from API, display cards.
+**Starting Task 1.2: Seed 15 LA restaurants with 80+ menu items**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/migrations/0004_seed_pilot_restaurants.sql[0m
 
-I need to add a server function that fetches restaurants from the API. Let me read the API restaurant response format.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/restaurants.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/money.rs[0m
+Now update `db.rs` `seed_la_data` to include the 15 new restaurants across all 6 zones. I'll replace the existing restaurant array and add the new ones.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
 
-Good, `Money` has `Display` formatting as `$25.50`. Now I need to add `PartialEq` to core types for Dioxus component props, then implement the restaurant listing with a server function.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+Now update the tests to expect 18 restaurants and 90 menu items:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
 
-Now update the frontend with the real restaurant listing.
+Also need to update the integration test in `main.rs` that expects 3 restaurants:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mTest seed data[0m
+  [32m$ [0m [33mBash[0m [2mCommit Task 1.2[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+**Starting Task 1.3: Add `estimated_eta` and `actual_delivery_at` to orders**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+Create the migration file, update the inline schema in `db.rs`, update the Order domain type, and update the orders route.
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/migrations/0005_order_metrics.sql[0m
+
+Update `db.rs` inline schema — add the two columns to the CREATE TABLE:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
+
+Update the Order domain type in core:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+
+Update `Order::new()` to initialize the new fields:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+
+Now update `load_order` in routes/orders.rs to read the new columns:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
+
+Now update the Order construction in `load_order` to include the new fields:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
+
+Now update the INSERT in `create` to include the new columns:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
+
+Now run tests:
+  [32m$ [0m [33mBash[0m [2mRun all tests[0m
+
+All 37 tests pass. Commit Task 1.3:
+  [32m$ [0m [33mBash[0m [2mCommit Task 1.3[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+Phase 1 complete. Run verification:
+  [32m$ [0m [33mBash[0m [2mPhase 1 verification[0m
+
+Clippy warning — fix the type complexity:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
+  [32m$ [0m [33mBash[0m [2mRe-run verification after clippy fix[0m
+
+Format issue:
+  [32m$ [0m [33mBash[0m [2mFormat and re-verify[0m
+
+All checks pass. Mark Phase 1 verification checkboxes and commit:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit phase 1 completion[0m
+
+Phase 1 complete! Tasks: 3/3, Tests: 37 pass, Clippy: clean, Fmt: clean.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Data Foundation (Tasks 1.1-1.3)', 'st[0m
+
+**Starting Task 2.1: `GET /api/public/economics` endpoint**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/routes/economics.rs[0m
+
+Register the module and route:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/mod.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mTest economics endpoint[0m
+  [32m$ [0m [33mBash[0m [2mCommit Task 2.1[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+**Starting Task 2.2: `GET /api/admin/metrics` endpoint**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/routes/metrics.rs[0m
+
+Register the module and route:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/mod.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mTest metrics endpoint[0m
+
+Fix the warnings:
+  [32m$ [0m [33mBash[0m [2mCheck clippy warnings[0m
+
+Clean. Commit:
+  [32m$ [0m [33mBash[0m [2mCommit Task 2.2[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+**Starting Task 2.3: Integration tests for both endpoints**
+
+Tests are already included in the route modules (Task 2.1 has 3 tests, Task 2.2 has 2 tests). The plan says "Write integration tests for both endpoints in economics.rs and metrics.rs — test with seeded data, test empty DB edge case." — this is already done. Let me mark it complete.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+Phase 2 verification:
+  [32m$ [0m [33mBash[0m [2mPhase 2 verification[0m
+  [32m$ [0m [33mBash[0m [2mFormat and verify[0m
+
+All checks pass. Mark Phase 2 complete:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit phase 2 completion[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Data Foundation (Tasks 1.1-1.3)', 'st[0m
+
+**Starting Phase 3: Frontend Pages**
+
+Let me read the current frontend code first.
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend compiles with restaurant listing[0m
 
-The `ServerFnError` type parameter needs to be inferred. Let me simplify by using `?` directly.
+Now I have full context on the frontend. Let me implement Tasks 3.1-3.4.
+
+**Starting Task 3.1: Economics page**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+Add the route, fetcher, and component:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Add nav link to Economics:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Add the data fetcher:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Now add the PublicEconomicsPage component before the OperatorConsole:
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
   [32m$ [0m [33mBash[0m [2mCheck frontend compiles[0m
 
-Compiles. Let me mark the plan and run tests.
-  [32m$ [0m [33mBash[0m [2mRun full workspace check[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mRun full check[0m
+Compiles. Commit:
+  [32m$ [0m [33mBash[0m [2mCommit Task 3.1[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
 
-All checks pass. Commit Task 1.2.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.2[0m
-  [32m$ [0m [33mBash[0m [2mGet SHA[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create Dioxus frontend crate with ro[0m
+**Starting Task 3.2: Metrics tab in OperatorConsole**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
 
-**Starting Task 1.3: Restaurant menu page with cart.** Fetch restaurant by ID, show menu items with prices, cart with running total.
+I'll add a "Metrics" tab to the OperatorConsole. Let me add a tab signal and a MetricsPanel component.
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+I'll add a tab system to OperatorConsole and a MetricsPanel component. Let me modify the OperatorConsole to include a tab signal and add the metrics section:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Now add the tab buttons and MetricsPanel right after the h1 and refresh button:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Close the overview condition before the closing div:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck frontend compiles[0m
+  [32m$ [0m [33mBash[0m [2mCommit Task 3.2[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+**Starting Task 3.3: PostHog JS snippet**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [36m**[0m [36mGlob[0m [2m"crates/frontend/assets/**" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/Dioxus.toml[0m
+
+I need to check if Dioxus supports custom head elements. For the PostHog snippet, I'll add it via `document::Script` in the App component, and use `web_sys` for `posthog.capture()` calls.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/Cargo.toml[0m
+
+I need `web-sys` and `wasm-bindgen` to call `window.posthog.capture()`. Let me add them and implement the PostHog integration.
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/Cargo.toml[0m
 
-Now implement the full menu page with cart.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now replace the RestaurantMenu stub with real implementation:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend compiles with menu page[0m
-
-The RSX `"{}"` syntax doesn't work like `println!`. Let me fix the format strings and iteration.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend compiles[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
-
-All pass. Commit Task 1.3.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.3[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create Dioxus frontend crate with ro[0m
-
-**Starting Task 1.4: Order placement page** — cart summary, delivery address, pricing breakdown (6 lines), "Place Order" button.
-
-I need to look at the order creation API to understand the request format.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/pricing.rs[0m
-
-I need to update `CartItem` to include `menu_item_id` and `CartState` to include `restaurant_id`/`zone_id` for the API call. Then build the checkout page with pricing breakdown.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now I'll rewrite the file with all the changes for Task 1.4 — expanded CartState, checkout route, pricing breakdown, and place order server function.
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend compiles with checkout[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
-
-All pass. Commit Task 1.4.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.4[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1: Create Dioxus frontend crate with ro[0m
-
-**Starting Task 1.5: WebSocket support in axum API** — `ws://host/ws/orders/:id` for real-time status updates. Broadcast `OrderStatusChanged` events. Use tokio broadcast channel.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-I need to add WebSocket support to the axum API. Let me check axum 0.8 WebSocket API and implement the broadcast channel.
-  [34m~~[0m [34mquery-docs[0m [2m/tokio-rs/axum[0m
-  [36m**[0m [36mGlob[0m [2m"crates/api/src/routes/*.rs" ~/startups/active/openwok[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/mod.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/couriers.rs[0m
-
-This requires refactoring AppState to include a broadcast channel. Let me do all the changes together.
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
-
-Now update all route handlers to use `state.data.read()` / `state.data.write()`.
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/routes/restaurants.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/routes/couriers.rs[0m
-
-Now create the WebSocket handler:
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/routes/ws.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/mod.rs[0m
-
-Now update `main.rs` — new state init, WS route, and fix tests:
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-Now add the required dependencies to the API crate:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/Cargo.toml[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/Cargo.toml[0m
-  [32m$ [0m [33mBash[0m [2mCheck API compiles with WebSocket[0m
-  [32m$ [0m [33mBash[0m [2mFull check with tests[0m
-  [32m$ [0m [33mBash[0m [2mSee test failure details[0m
-
-The `blocking_write()` can't be used inside a tokio runtime. Let me fix the test helper to be async.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
-
-All tests pass, clippy clean, fmt clean. Commit Task 1.5.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.5[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1-1.5: Frontend crate, restaurants, men[0m
-
-**Starting Task 1.6: Order tracking page** — show order status timeline, live updates via WebSocket, open-book receipt always visible.
-
-The frontend needs to fetch an order by ID, then connect to the WebSocket for live updates. Since the WebSocket is on the API server (port 3000), I'll use a server function to fetch the initial order data, and the client-side will connect to the WebSocket directly.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now implement the order tracking page:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend error details[0m
-
-The conditional class expression is causing type inference issues in RSX. Let me pre-compute the timeline data.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend compiles[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
-
-All pass. Commit Task 1.6.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.6[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1-1.6: Frontend, restaurants, menu, che[0m
-
-**Starting Task 1.7: Node operator console** — dashboard with active orders, restaurants count, couriers online, today's revenue breakdown, list of recent orders.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.7[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1-1.7: All pages built', 'status': 'com[0m
-
-**Starting Task 1.8: Courier assignment** — operator can assign available couriers to orders from the console. The API already has `POST /orders/:id/assign` and the dropdown of available couriers.
-
-I need to add order management to the operator console — show active orders and allow courier assignment. Let me also add an API endpoint to list all orders.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-Now update the operator console frontend with order list and courier assignment:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now let me add the server function and update the operator console:
+Now add the PostHog snippet and capture helper to the frontend. I'll add the script via Dioxus `document::Script` in the App component and create a helper function:
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
 
-Now update the OperatorConsole to include orders with assignment and status controls:
+Add the PostHog helper and script after the cart state definitions:
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck both crates compile[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
-  [32m$ [0m [33mBash[0m [2mGet clippy errors[0m
-  [32m$ [0m [33mBash[0m [2mGet clippy errors[0m
+
+Now inject the PostHog script in the App component and add capture calls to key components:
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
-  [32m$ [0m [33mBash[0m [2mFormat and full check[0m
 
-All pass. Commit Task 1.8.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.8[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1-1.8: All pages and features built', '[0m
-
-**Starting Task 1.9: Responsive CSS/styling** — clean minimal design, mobile-first. Dioxus can use inline styles or a CSS file served with the app.
-
-For Dioxus fullstack, I'll add CSS via `document::Link` in the head or inline styles. The simplest approach for a Dioxus app is to add a CSS file in an `assets/` directory and reference it.
-  [32m$ [0m [33mBash[0m [2mCreate assets directory[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/assets/style.css[0m
-
-Now I need to link this CSS in the Dioxus app. In Dioxus 0.6 fullstack, I can use the `document::Link` component or the `asset!` macro. Let me add a style link in the Layout component.
+Now add `posthog_capture` calls to key user actions. First, `restaurant_view` in RestaurantMenu:
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend with CSS[0m
-  [32m$ [0m [33mBash[0m [2mFull check[0m
 
-All pass. Commit Task 1.9.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.9[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Task 1.1-1.9: All features implemented', 'stat[0m
+Add `add_to_cart` in the add button click handler:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
 
-**Starting Task 1.10: Final `make check` and commit.**
-  [32m$ [0m [33mBash[0m [2mFinal full workspace check[0m
+Add `checkout_start` at the beginning of the Checkout component (when items exist):
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
 
-All 40 tests pass, clippy clean, fmt clean. Let me update plan.md and make the final commit.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
+Add `order_placed` on successful order creation:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck frontend compiles with PostHog[0m
 
-Now also add the SHA for Task 1.1 which was missing:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/phase2-frontend/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mFinal track completion commit[0m
-  [32m$ [0m [33mBash[0m [2mGet final SHA[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 2 Frontend — all 10 tasks complete', 'st[0m
+The `posthog_capture_with_props` will be used by the error boundary in Task 3.4. Let me suppress the warning for now and it'll be used shortly.
+  [32m$ [0m [33mBash[0m [2mCommit Task 3.3[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
 
-Track complete: **phase2-frontend** (Dioxus Frontend + WebSocket)
+**Starting Task 3.4: ErrorBoundary wrapping app root**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+Let me check how Dioxus 0.6 handles error boundaries:
+  [2m--[0m [36mToolSearch[0m [2mselect:mcp__context7__resolve-library-id[0m
+  [34m~~[0m [34mresolve-library-id[0m [2mdioxus[0m
+  [2m--[0m [36mToolSearch[0m [2mselect:mcp__context7__query-docs[0m
+  [34m~~[0m [34mquery-docs[0m [2m/dioxuslabs/dioxus/v0.6.3[0m
+
+The docs didn't have ErrorBoundary specifics. Let me check the Dioxus 0.6 API directly:
+  [36m// [36mGrep[0m [2m"ErrorBoundary" ~/.cargo/registry/src[0m
+  [36m>>[0m [36mRead[0m [2m~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dioxus-core-0.6.3/src/error_boundary.rs[0m
+  [36m// [36mGrep[0m [2m"pub fn ErrorBoundary|fn ErrorBoundary|struct ErrorBoundaryProps" ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dioxus-core-0.6.3/src/error_boundary.rs[0m
+  [36m// [36mGrep[0m [2m"pub type ErrorHandler|ErrorHandler"" ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dioxus-core-0.6.3/src/error_boundary.rs[0m
+  [36m// [36mGrep[0m [2m"ErrorHandler" ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dioxus-core-0.6.3/src/error_boundary.rs[0m
+
+Now I know the API. `ErrorBoundary` takes `children` and `handle_error: impl Fn(ErrorContext) -> Element`. Let me wrap the App:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck frontend compiles with ErrorBoundary[0m
+
+Compiles clean. Commit:
+  [32m$ [0m [33mBash[0m [2mCommit Task 3.4[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+Phase 3 verification:
+  [32m$ [0m [33mBash[0m [2mPhase 3 verification[0m
+
+Clippy warnings on collapsible_if and nested ifs. Let me fix:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mRe-verify after clippy fix[0m
+  [32m$ [0m [33mBash[0m [2mFormat and verify[0m
+
+All checks pass. Mark Phase 3 complete:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit phase 3 completion[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Data Foundation (Tasks 1.1-1.3)', 'st[0m
+
+**Starting Phase 4: Deploy & Docs**
+
+**Task 4.1: Update CLAUDE.md**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
+
+Update CLAUDE.md with new endpoints, migrations, PostHog, and frontend route:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
+
+Add Migrations section and PostHog/Frontend notes:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit Task 4.1[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+**Task 4.2: Update `docs/prd.md`**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck if prd.md exists[0m
+  [36m// [36mGrep[0m [2m"Phase 7|pilot|infrastructure|Pilot" ~/startups/active/openwok/docs/prd.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit Task 4.2[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+**Task 4.3: Run `make check` — final verification**
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mFinal make check[0m
+
+All 50 tests pass, clippy clean, fmt clean. Fix the unused import warnings:
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/economics.rs[0m
+
+The `use super::*` imports are flagged as unused because the tests use specific imports. Let me just remove them:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/economics.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/metrics.rs[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/routes/metrics.rs[0m
+  [32m$ [0m [33mBash[0m [2mVerify clean after fixing warnings[0m
+
+All clean — 50 tests, zero warnings, zero format issues. Now finalize everything:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+
+Mark Phase 4 and final verification checkboxes:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/pilot-infra_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit track completion[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Data Foundation (Tasks 1.1-1.3)', 'st[0m
+
+Track complete: **Pilot Infrastructure (LA Node)** (`pilot-infra_20260320`)
 
 ```
-Phases: 1/1
-Tasks:  10/10
-Tests:  40 passing (37 core + 3 API)
+Phases: 4/4
+Tasks:  13/13
+Tests:  50 passing (13 API + 37 core)
+Clippy: clean (zero warnings)
+Fmt:    clean
 
-Task commits:
-  Task 1.1:  e99c1b3 — Dioxus crate + router
-  Task 1.2:  5a9f9eb — Restaurant listing
-  Task 1.3:  26dc382 — Menu page + cart
-  Task 1.4:  bbabe0f — Checkout + pricing breakdown
-  Task 1.5:  5488f02 — WebSocket API
-  Task 1.6:  0faf603 — Order tracking timeline
-  Task 1.7:  edb795c — Operator console
-  Task 1.8:  1f7fca4 — Courier assignment
-  Task 1.9:  a95a31c — Responsive CSS
-  Task 1.10: 7abd41c — Final check + plan complete
+Phase checkpoints:
+  Phase 1: db94c16 (data foundation)
+  Phase 2: 71cbd2b (economics + metrics API)
+  Phase 3: e79e171 (frontend pages)
+  Phase 4: fc4766d (docs)
 
-Revert entire track: git revert e99c1b3..HEAD
+Revert entire track: git revert 8846d1f..HEAD
 ```
 
-<solo:done/>Track complete: **phase2-frontend** (Dioxus Frontend + WebSocket)
+<solo:done/>Track complete: **Pilot Infrastructure (LA Node)** (`pilot-infra_20260320`)
 
 ```
-Phases: 1/1
-Tasks:  10/10
-Tests:  40 passing (37 core + 3 API)
+Phases: 4/4
+Tasks:  13/13
+Tests:  50 passing (13 API + 37 core)
+Clippy: clean (zero warnings)
+Fmt:    clean
 
-Task commits:
-  Task 1.1:  e99c1b3 — Dioxus crate + router
-  Task 1.2:  5a9f9eb — Restaurant listing
-  Task 1.3:  26dc382 — Menu page + cart
-  Task 1.4:  bbabe0f — Checkout + pricing breakdown
-  Task 1.5:  5488f02 — WebSocket API
-  Task 1.6:  0faf603 — Order tracking timeline
-  Task 1.7:  edb795c — Operator console
-  Task 1.8:  1f7fca4 — Courier assignment
-  Task 1.9:  a95a31c — Responsive CSS
-  Task 1.10: 7abd41c — Final check + plan complete
+Phase checkpoints:
+  Phase 1: db94c16 (data foundation)
+  Phase 2: 71cbd2b (economics + metrics API)
+  Phase 3: e79e171 (frontend pages)
+  Phase 4: fc4766d (docs)
 
-Revert entire track: git revert e99c1b3..HEAD
+Revert entire track: git revert 8846d1f..HEAD
 ```
 
-<solo:done/>  [2msession: e8f66fad  model: claude-opus-4-6[1m][0m
-The `dioxus-cli` installation completed in the background. The build is already done — all 10 tasks committed with `make check` passing (40 tests, clippy clean, fmt clean).The `dioxus-cli` installation completed in the background. The build is already done — all 10 tasks committed with `make check` passing (40 tests, clippy clean, fmt clean).
+<solo:done/>

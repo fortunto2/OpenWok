@@ -1,0 +1,110 @@
+  [2msession: 931fd791  model: claude-opus-4-6[1m][0m
+Let me research the codebase to find the highest-priority unimplemented item.
+  [36m**[0m [36mGlob[0m [2m"docs/plan-done/*/plan.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/backlog*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"planning/ROADMAP.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/planning/ROADMAP.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/cf-workers-deploy_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/cf-workers-deploy_20260320/spec.md[0m
+
+Now let me research the current codebase state to understand what's already built.
+  [2m--[0m [36mAgent[0m [2mResearch codebase architecture[0m
+  [32m$ [0m [33mBash[0m [2mRecent git commits[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Cargo.toml[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/wrangler.toml[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
+  [36m**[0m [36mGlob[0m [2m"**/Dockerfile" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"**/fly.toml" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"**/.dockerignore" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Dockerfile[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/fly.toml[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.dockerignore[0m
+  [36m**[0m [36mGlob[0m [2m"crates/worker/**/*.rs" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"crates/worker/*.toml" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"crates/api/src/**/*.rs" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/Cargo.toml[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/mod.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/restaurants.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/orders.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/couriers.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/economics.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/metrics.rs[0m
+  [36m**[0m [36mGlob[0m [2m"crates/core/src/**/*.rs" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/pricing.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/Cargo.toml[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/Cargo.toml[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/routes/ws.rs[0m
+  [32m$ [0m [33mBash[0m [2mList root directory to see all files[0m
+  [36m// [36mGrep[0m [2m"trait.*Repository" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"trait.*Store" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"trait.*Database" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/money.rs[0m
+
+Now let me check if there are any existing docs about what's next specifically.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
+  [36m**[0m [36mGlob[0m [2m"docs/evolution.md" ~/startups/active/openwok[0m
+  [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
+
+Good, I have a complete picture now. Let me synthesize the findings and create the plan.
+
+**Analysis summary:**
+- **Highest priority unimplemented item: Repository Abstraction** (from cf-workers-deploy, archived at 0%)
+- Retro recommendation #5 explicitly calls this out
+- Worker has 854 lines of duplicated handlers/SQL vs api crate
+- This architectural debt blocks clean Phase 6 (Auth + Payments)
+- Also includes retro recommendation #6: clean up orphaned Fly.io files
+
+Let me create the track.
+  [32m$ [0m [33mBash[0m [2mCreate plan directory[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/repo-abstraction_20260320/spec.md[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/repo-abstraction_20260320/plan.md[0m
+
+Now let me create progress tasks and present the plan for approval.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Repository Trait (core) — define trai[0m
+  [2m--[0m [36mToolSearch[0m [2mselect:AskUserQuestion[0m
+  [2m--[0m [36mAskUserQuestion[0m [2m[{'question': 'Track: repo-abstraction_20260320 (Refactor). [0m
+
+```
+Track created: repo-abstraction_20260320
+
+  Type:   Refactor
+  Phases: 4
+  Tasks:  14
+  Spec:   docs/plan/repo-abstraction_20260320/spec.md
+  Plan:   docs/plan/repo-abstraction_20260320/plan.md
+
+Research findings:
+  - Worker has 854 lines of duplicated handlers/SQL vs api crate
+  - No Repository trait exists — all DB access is inline in route handlers
+  - Worker is standalone workspace (not in main) — path deps work fine
+  - Orphaned Fly.io files exist: Dockerfile, fly.toml, .dockerignore
+  - cf-workers-deploy was archived at 0% (retro defect) — this track covers the unfinished work
+
+Next: /build repo-abstraction_20260320
+``````
+Track created: repo-abstraction_20260320
+
+  Type:   Refactor
+  Phases: 4
+  Tasks:  14
+  Spec:   docs/plan/repo-abstraction_20260320/spec.md
+  Plan:   docs/plan/repo-abstraction_20260320/plan.md
+
+Research findings:
+  - Worker has 854 lines of duplicated handlers/SQL vs api crate
+  - No Repository trait exists — all DB access is inline in route handlers
+  - Worker is standalone workspace (not in main) — path deps work fine
+  - Orphaned Fly.io files exist: Dockerfile, fly.toml, .dockerignore
+  - cf-workers-deploy was archived at 0% (retro defect) — this track covers the unfinished work
+
+Next: /build repo-abstraction_20260320
+```
