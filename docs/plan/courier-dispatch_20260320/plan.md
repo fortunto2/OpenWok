@@ -3,7 +3,7 @@
 **Track ID:** courier-dispatch_20260320
 **Spec:** [spec.md](./spec.md)
 **Created:** 2026-03-20
-**Status:** [ ] Not Started
+**Status:** [x] Complete
 
 ## Overview
 
@@ -43,20 +43,20 @@ Courier-facing endpoints and Dioxus pages for registration + delivery dashboard.
 ## Phase 3: Docs & Cleanup
 
 ### Tasks
-- [~] Task 3.1: Update CLAUDE.md — add new endpoints (`GET /api/couriers/me`, `GET /api/my/deliveries`), add new routes (`/register-courier`, `/my-deliveries`), update migration table with 0009
-- [~] Task 3.2: Remove dead code — check for unused imports, verify no orphaned functions after refactoring handlers
+- [x] Task 3.1: Update CLAUDE.md <!-- sha:99637b0 --> — add new endpoints (`GET /api/couriers/me`, `GET /api/my/deliveries`), add new routes (`/register-courier`, `/my-deliveries`), update migration table with 0009
+- [x] Task 3.2: Remove dead code — no dead code found <!-- sha:99637b0 --> — check for unused imports, verify no orphaned functions after refactoring handlers
 
 ### Verification
-- [ ] CLAUDE.md reflects current project state
-- [ ] `make check` passes (test + clippy + fmt)
+- [x] CLAUDE.md reflects current project state
+- [x] `make check` passes (test + clippy + fmt)
 
 ## Final Verification
-- [ ] All acceptance criteria from spec met
-- [ ] Tests pass (`make test`)
-- [ ] Linter clean (`make clippy`)
-- [ ] Format clean (`make fmt`)
-- [ ] Build succeeds (`cargo build`)
-- [ ] Documentation up to date
+- [x] All acceptance criteria from spec met
+- [x] Tests pass (`make test`)
+- [x] Linter clean (`make clippy`)
+- [x] Format clean (`make fmt`)
+- [x] Build succeeds (`cargo build`)
+- [x] Documentation up to date
 
 ## Context Handoff
 _Summary for /build to load at session start — keeps context compact._
