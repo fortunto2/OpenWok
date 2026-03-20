@@ -216,7 +216,7 @@ async fn load_order_d1(db: &D1Database, order_id: &str) -> Result<Option<Order>,
 // These methods are called by the worker's Router handlers.
 
 impl D1Repo {
-    async fn list_restaurants(&self) -> Result<Vec<Restaurant>, RepoError> {
+    pub async fn list_restaurants(&self) -> Result<Vec<Restaurant>, RepoError> {
         let rows = self
             .db
             .prepare("SELECT id, name, zone_id, active FROM restaurants WHERE active = 1")
@@ -244,7 +244,7 @@ impl D1Repo {
         Ok(restaurants)
     }
 
-    async fn get_restaurant(&self, id: RestaurantId) -> Result<Restaurant, RepoError> {
+    pub async fn get_restaurant(&self, id: RestaurantId) -> Result<Restaurant, RepoError> {
         let id_str = id.to_string();
         let row = self
             .db
@@ -270,7 +270,7 @@ impl D1Repo {
         Ok(row_to_restaurant(row, menu))
     }
 
-    async fn create_restaurant(
+    pub async fn create_restaurant(
         &self,
         req: CreateRestaurantRequest,
     ) -> Result<Restaurant, RepoError> {
@@ -337,7 +337,7 @@ impl D1Repo {
         })
     }
 
-    async fn list_orders(&self) -> Result<Vec<Order>, RepoError> {
+    pub async fn list_orders(&self) -> Result<Vec<Order>, RepoError> {
         let rows = self
             .db
             .prepare("SELECT id FROM orders")
@@ -357,13 +357,13 @@ impl D1Repo {
         Ok(orders)
     }
 
-    async fn get_order(&self, id: OrderId) -> Result<Order, RepoError> {
+    pub async fn get_order(&self, id: OrderId) -> Result<Order, RepoError> {
         load_order_d1(&self.db, &id.to_string())
             .await?
             .ok_or(RepoError::NotFound)
     }
 
-    async fn create_order(&self, req: CreateOrderRequest) -> Result<Order, RepoError> {
+    pub async fn create_order(&self, req: CreateOrderRequest) -> Result<Order, RepoError> {
         let rest_id_str = req.restaurant_id.to_string();
 
         // Validate restaurant exists
@@ -459,7 +459,7 @@ impl D1Repo {
         Ok(order)
     }
 
-    async fn update_order_status(
+    pub async fn update_order_status(
         &self,
         id: OrderId,
         status: OrderStatus,
@@ -497,7 +497,7 @@ impl D1Repo {
             .ok_or(RepoError::NotFound)
     }
 
-    async fn assign_courier(&self, order_id: OrderId) -> Result<AssignCourierResult, RepoError> {
+    pub async fn assign_courier(&self, order_id: OrderId) -> Result<AssignCourierResult, RepoError> {
         let order_id_str = order_id.to_string();
 
         let zone_row = self
@@ -550,7 +550,7 @@ impl D1Repo {
         })
     }
 
-    async fn list_couriers(&self) -> Result<Vec<Courier>, RepoError> {
+    pub async fn list_couriers(&self) -> Result<Vec<Courier>, RepoError> {
         let rows = self
             .db
             .prepare("SELECT id, name, kind, zone_id, available FROM couriers WHERE available = 1")
@@ -562,7 +562,7 @@ impl D1Repo {
         Ok(rows.into_iter().map(row_to_courier).collect())
     }
 
-    async fn create_courier(&self, req: CreateCourierRequest) -> Result<Courier, RepoError> {
+    pub async fn create_courier(&self, req: CreateCourierRequest) -> Result<Courier, RepoError> {
         let id = CourierId::new();
         let id_str = id.to_string();
         let zone_str = req.zone_id.to_string();
@@ -601,7 +601,7 @@ impl D1Repo {
         })
     }
 
-    async fn toggle_courier_available(
+    pub async fn toggle_courier_available(
         &self,
         id: CourierId,
         available: bool,
@@ -633,7 +633,7 @@ impl D1Repo {
         Ok(row_to_courier(row))
     }
 
-    async fn get_economics(&self) -> Result<PublicEconomics, RepoError> {
+    pub async fn get_economics(&self) -> Result<PublicEconomics, RepoError> {
         let row = self
             .db
             .prepare(
@@ -686,7 +686,7 @@ impl D1Repo {
         })
     }
 
-    async fn get_metrics(&self) -> Result<AdminMetrics, RepoError> {
+    pub async fn get_metrics(&self) -> Result<AdminMetrics, RepoError> {
         let count_row = self
             .db
             .prepare("SELECT COUNT(*) as cnt FROM orders")
