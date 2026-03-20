@@ -292,4 +292,116 @@ mod tests {
         assert_eq!(final_order["status"].as_str().unwrap(), "Delivered");
         assert!(final_order["courier_id"].as_str().is_some());
     }
+
+    #[tokio::test]
+    async fn auth_required_returns_401_without_jwt() {
+        let app = app(seeded_state());
+        // POST /orders without auth → 401
+        let resp = app
+            .oneshot(
+                Request::post("/api/orders")
+                    .header("content-type", "application/json")
+                    .body(Body::from(r#"{"restaurant_id":"x","items":[],"customer_address":"a","zone_id":"z","delivery_fee":"0","tip":"0","local_ops_fee":"0"}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn auth_required_returns_401_with_expired_jwt() {
+        use jsonwebtoken::{EncodingKey, Header};
+        let claims = serde_json::json!({
+            "sub": "user-123",
+            "email": "test@example.com",
+            "role": "authenticated",
+            "aud": "authenticated",
+            "exp": 1000, // expired long ago
+            "iat": 999,
+        });
+        let key = EncodingKey::from_secret(b"super-secret-jwt-token-for-testing-only");
+        let expired_token = jsonwebtoken::encode(&Header::default(), &claims, &key).unwrap();
+
+        let app = app(seeded_state());
+        let resp = app
+            .oneshot(
+                Request::post("/api/couriers")
+                    .header("content-type", "application/json")
+                    .header("authorization", format!("Bearer {expired_token}"))
+                    .body(Body::from(r#"{"name":"Test","zone_id":"z"}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn public_routes_work_without_auth() {
+        let app = app(seeded_state());
+        // GET /health — public
+        let resp = app.clone().oneshot(
+            Request::get("/api/health").body(Body::empty()).unwrap()
+        ).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn order_creation_creates_payment_record() {
+        let state = seeded_state();
+        let app = app(state.clone());
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+
+        let base = format!("http://{addr}/api");
+        let client = reqwest::Client::new();
+        let auth = format!("Bearer {}", test_jwt());
+
+        // Get a restaurant for order creation
+        let restaurants: Vec<serde_json::Value> = client
+            .get(format!("{base}/restaurants"))
+            .send().await.unwrap().json().await.unwrap();
+        let r = &restaurants[0];
+
+        let resp = client
+            .post(format!("{base}/orders"))
+            .header("authorization", &auth)
+            .json(&serde_json::json!({
+                "restaurant_id": r["id"],
+                "items": [{"menu_item_id": r["menu"][0]["id"], "name": "Test", "quantity": 1, "unit_price": "10.00"}],
+                "customer_address": "123 Test St",
+                "zone_id": r["zone_id"],
+                "delivery_fee": "5.00",
+                "tip": "2.00",
+                "local_ops_fee": "2.00",
+            }))
+            .send().await.unwrap();
+        assert_eq!(resp.status(), 201);
+
+        let result: serde_json::Value = resp.json().await.unwrap();
+        assert!(result["payment_id"].is_string());
+        assert!(result["order"]["id"].is_string());
+        // No Stripe key configured → checkout_url is null
+        assert!(result["checkout_url"].is_null());
+    }
+
+    #[tokio::test]
+    async fn webhook_rejects_invalid_signature() {
+        let app = app(seeded_state());
+        let resp = app
+            .oneshot(
+                Request::post("/api/webhooks/stripe")
+                    .header("content-type", "application/json")
+                    .header("stripe-signature", "t=123,v1=invalid")
+                    .body(Body::from(r#"{"id":"evt_1","type":"test","data":{"object":{}}}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        // Either 400 (invalid sig) or 500 (no webhook secret configured)
+        assert!(resp.status() == StatusCode::BAD_REQUEST || resp.status() == StatusCode::INTERNAL_SERVER_ERROR);
+    }
 }
