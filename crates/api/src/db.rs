@@ -103,9 +103,7 @@ fn migrate(conn: &Connection) {
     .expect("migration failed");
 
     // Add user_id column to orders if not present (migration 0006)
-    let has_user_id: bool = conn
-        .prepare("SELECT user_id FROM orders LIMIT 0")
-        .is_ok();
+    let has_user_id: bool = conn.prepare("SELECT user_id FROM orders LIMIT 0").is_ok();
     if !has_user_id {
         conn.execute_batch("ALTER TABLE orders ADD COLUMN user_id TEXT REFERENCES users(id);")
             .expect("failed to add user_id to orders");

@@ -1,0 +1,277 @@
+  [2msession: 230f3b0e  model: claude-opus-4-6[1m][0m
+Starting review for `auth-payments_20260320` track. Let me gather context first.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/spec.md[0m
+  [32m$ [0m [33mBash[0m [2mRecent commits[0m
+  [32m$ [0m [33mBash[0m [2mDiff stats for recent work[0m
+  [32m$ [0m [33mBash[0m [2mCLAUDE.md size check[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/auth-payments_20260320/*" ~/startups/active/openwok[0m
+
+Good — context gathered. Now running all review checks in parallel.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mRun full test suite[0m
+  [32m$ [0m [33mBash[0m [2mRun clippy linter[0m
+  [32m$ [0m [33mBash[0m [2mCheck formatting[0m
+
+Tests pass (91/91), clippy clean, but **fmt fails** across multiple files. Let me continue with remaining checks.
+  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|STRIPE_SECRET|hardcoded.*secret" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates/api/src/payments.rs[0m
+  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates/handlers/src[0m
+  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK|AI-TODO" ~/startups/active/openwok/crates[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/auth.rs[0m
+
+Good — no hardcoded secrets, unwraps only in test code + one safe `.parse().unwrap()`. Let me continue checking key files and security.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/payments.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+  [36m// [36mGrep[0m [2m"\.env" ~/startups/active/openwok/.gitignore[0m
+  [32m$ [0m [33mBash[0m [2mCheck gitignore[0m
+
+Let me check the worker JWT expiration handling and SQL patterns.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+  [36m// [36mGrep[0m [2m"format!\(.*SELECT|format!\(.*INSERT|format!\(.*UPDATE|format!\(.*DELETE" ~/startups/active/openwok/crates[0m
+
+Let me check the worker's remaining routes for auth enforcement and read the rest of lib.rs.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [32m$ [0m [33mBash[0m [2mCount SHAs in plan[0m
+  [32m$ [0m [33mBash[0m [2mCheck pipeline states[0m
+
+I've now gathered enough data. Let me verify the last acceptance criteria items before writing the report.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
+  [36m// [36mGrep[0m [2m"extract_auth|AuthUser" ~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m// [36mGrep[0m [2m"JwtConfig|jwt_config|jwt_secret" ~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+
+Now I have all the data for the review. Let me update the spec checkboxes and add fix tasks.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/spec.md[0m
+
+Now add fix tasks to plan.md:
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
+
+Now commit and output the report:
+  [32m$ [0m [33mBash[0m [2mCommit review fix tasks to plan.md[0m
+
+---
+
+# Code Review: OpenWok — auth-payments_20260320
+**Date:** 2026-03-20
+
+## Verdict: FIX FIRST
+
+### Summary
+Auth + payments feature is well-implemented in the api crate (91 tests, clean architecture, proper auth enforcement). However, the Cloudflare Worker — which is the **live production deployment** — has unguarded protected routes and missing payment flow on order creation. `cargo fmt` also fails, breaking the `make check` gate.
+
+### Tests
+- Total: 91 | Pass: 91 | Fail: 0 | Skip: 2 (doc-tests)
+- Coverage: N/A (no coverage tool configured)
+- Status: **PASS**
+
+### Linter
+- Clippy: 0 errors, 0 warnings (with `-D warnings`)
+- 1 unused import warning in test code (sqlite_repo.rs:899)
+- Status: **PASS**
+
+### Build
+- `cargo build --workspace`: PASS
+- `cargo fmt --check`: **FAIL** (8 files with formatting issues)
+- Status: **FAIL** (fmt)
+
+### Pre-Landing Checklist
+- **CRITICAL:** Worker protected routes unguarded (POST /api/orders, POST /api/couriers, PATCH routes) — anyone can create orders/couriers in production without auth
+- **CRITICAL:** Worker POST /api/orders doesn't create payment records — order flow inconsistent with api crate
+- **INFORMATIONAL:** `.unwrap()` on `DateTime::parse_from_rfc3339` in d1_repo.rs:149-151 — potential panic on malformed DB data
+- **INFORMATIONAL:** `eprintln!` in payments.rs:114 instead of `tracing::error!`
+
+### Security
+- Hardcoded secrets: **NONE** (`.env` in `.gitignore`, secrets from env vars)
+- SQL injection: **NONE** (all queries use parameterized `?1`/`?2`)
+- Fallback JWT secret: `"super-secret-jwt-token-for-testing-only"` in both api (main.rs:50) and worker (lib.rs:129/363) — **known** (deploy notes list SUPABASE_JWT_SECRET as manual step)
+- Worker auth bypass: **CRITICAL** — protected routes don't call `extract_auth()`, so auth is not enforced even with real JWT secret
+- Status: **FAIL** (worker auth bypass)
+
+### Acceptance Criteria
+- Verified: 8/11
+- Partial: Protected routes (api ✓, worker ✗), Worker parity (auth routes ✓, order payment flow ✗), `make check` (fmt fails)
+- Status: **PARTIAL**
+
+### Plan Progress
+- Tasks: 13/13 original complete + 5 new fix tasks
+- Phases: 4/4 original complete, Phase 5 added
+- SHAs: 13 tasks with SHAs
+- Status: **IN PROGRESS**
+
+### Production Logs
+- Platform: Cloudflare Workers
+- Cannot tail live logs without active `wrangler tail` session (requires credentials)
+- Deploy verified in iteration 3: health, restaurants, metrics endpoints responding
+- Status: **N/A** (no live log access)
+
+### Dev Principles
+- **SOLID (SRP):** PASS — clean separation (core types, handlers, api, worker, stripe-universal)
+- **DIP:** PASS — Repository trait with injected implementations
+- **Clean Architecture:** PASS — dependencies point inward (core ← handlers ← api/worker)
+- **Error handling:** WARN — proper `Result` returns everywhere except `unwrap()` on date parsing in d1_repo.rs
+- **Schemas-first:** PASS — all types with Serialize/Deserialize/ToSchema
+- Status: **PASS**
+
+### Commits
+- Total: 17 (auth-payments track)
+- Conventional format: 17/17 compliant
+- Atomic: YES
+- Plan SHAs: 13/13 original tasks
+- Pre-commit hooks: NOT CONFIGURED
+- Status: **PASS**
+
+### Documentation
+- CLAUDE.md: CURRENT (12,708 chars — well under 40K limit)
+- README.md: N/A (GitHub repo, docs in CLAUDE.md)
+- docs/prd.md: CURRENT
+- AI-TODO unresolved: 0
+- Dead code: 1 unused import (test only)
+- Status: **PASS**
+
+### Context Quality
+- Plan handoff: GOOD (Context Handoff section with Intent/Key Files/Decisions/Risks)
+- CLAUDE.md size: 12,708 chars — OK
+- Scratch cleanup: N/A
+- Status: **PASS**
+
+### Pre-mortem
+
+| Risk | Type | Likelihood | Impact | Mitigation |
+|------|------|-----------|--------|------------|
+| Worker auth bypass allows unauthorized orders in prod | Tiger | HIGH | HIGH | **FIX: Task 5.2** — add extract_auth() to protected worker routes |
+| Fallback JWT secret allows token forgery before secrets set | Tiger | MEDIUM | HIGH | Set `wrangler secret put SUPABASE_JWT_SECRET` (manual step documented) |
+| No payment record on worker orders → financial reconciliation gap | Tiger | HIGH | MEDIUM | **FIX: Task 5.3** — add payment flow to worker |
+| Stripe API down → orders created but payment fails silently | Paper Tiger | LOW | MEDIUM | Accept — checkout_url returns None, graceful degradation |
+| D1 date parsing panic on corrupt data | Elephant | LOW | HIGH | **FIX: Task 5.5** — replace unwrap with unwrap_or_default |
+
+### Visual Testing
+- Status: **N/A** — skipping browser testing in pipeline mode
+
+### Issues Found
+1. [CRITICAL] Worker protected routes (POST /api/orders, POST /api/couriers, PATCH routes) don't enforce auth — `crates/worker/src/lib.rs:243,280,292,312,326`
+2. [CRITICAL] Worker POST /api/orders doesn't create payment records or Stripe checkout — `crates/worker/src/lib.rs:243`
+3. [CRITICAL] `cargo fmt` fails across 8 files — blocks `make check` acceptance criterion
+4. [MODERATE] `.unwrap()` on date parsing may panic — `crates/worker/src/d1_repo.rs:149-151,842`
+5. [MINOR] Unused import in test — `crates/api/src/sqlite_repo.rs:899`
+
+### Recommendations
+- Fix Phase 5 tasks (5.1-5.5) then redeploy worker
+- Set production secrets: `wrangler secret put SUPABASE_JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+- Consider adding `tracing` instrumentation to worker (currently uses console_log only)
+- Add pre-commit hook for `cargo fmt` to prevent future fmt regressions
+
+<solo:redo/>---
+
+# Code Review: OpenWok — auth-payments_20260320
+**Date:** 2026-03-20
+
+## Verdict: FIX FIRST
+
+### Summary
+Auth + payments feature is well-implemented in the api crate (91 tests, clean architecture, proper auth enforcement). However, the Cloudflare Worker — which is the **live production deployment** — has unguarded protected routes and missing payment flow on order creation. `cargo fmt` also fails, breaking the `make check` gate.
+
+### Tests
+- Total: 91 | Pass: 91 | Fail: 0 | Skip: 2 (doc-tests)
+- Coverage: N/A (no coverage tool configured)
+- Status: **PASS**
+
+### Linter
+- Clippy: 0 errors, 0 warnings (with `-D warnings`)
+- 1 unused import warning in test code (sqlite_repo.rs:899)
+- Status: **PASS**
+
+### Build
+- `cargo build --workspace`: PASS
+- `cargo fmt --check`: **FAIL** (8 files with formatting issues)
+- Status: **FAIL** (fmt)
+
+### Pre-Landing Checklist
+- **CRITICAL:** Worker protected routes unguarded (POST /api/orders, POST /api/couriers, PATCH routes) — anyone can create orders/couriers in production without auth
+- **CRITICAL:** Worker POST /api/orders doesn't create payment records — order flow inconsistent with api crate
+- **INFORMATIONAL:** `.unwrap()` on `DateTime::parse_from_rfc3339` in d1_repo.rs:149-151 — potential panic on malformed DB data
+- **INFORMATIONAL:** `eprintln!` in payments.rs:114 instead of `tracing::error!`
+
+### Security
+- Hardcoded secrets: **NONE** (`.env` in `.gitignore`, secrets from env vars)
+- SQL injection: **NONE** (all queries use parameterized `?1`/`?2`)
+- Fallback JWT secret: `"super-secret-jwt-token-for-testing-only"` in both api (main.rs:50) and worker (lib.rs:129/363) — **known** (deploy notes list SUPABASE_JWT_SECRET as manual step)
+- Worker auth bypass: **CRITICAL** — protected routes don't call `extract_auth()`, so auth is not enforced even with real JWT secret
+- Status: **FAIL** (worker auth bypass)
+
+### Acceptance Criteria
+- Verified: 8/11
+- Partial: Protected routes (api ✓, worker ✗), Worker parity (auth routes ✓, order payment flow ✗), `make check` (fmt fails)
+- Status: **PARTIAL**
+
+### Plan Progress
+- Tasks: 13/13 original complete + 5 new fix tasks
+- Phases: 4/4 original complete, Phase 5 added
+- SHAs: 13 tasks with SHAs
+- Status: **IN PROGRESS**
+
+### Production Logs
+- Platform: Cloudflare Workers
+- Cannot tail live logs without active `wrangler tail` session (requires credentials)
+- Deploy verified in iteration 3: health, restaurants, metrics endpoints responding
+- Status: **N/A** (no live log access)
+
+### Dev Principles
+- **SOLID (SRP):** PASS — clean separation (core types, handlers, api, worker, stripe-universal)
+- **DIP:** PASS — Repository trait with injected implementations
+- **Clean Architecture:** PASS — dependencies point inward (core ← handlers ← api/worker)
+- **Error handling:** WARN — proper `Result` returns everywhere except `unwrap()` on date parsing in d1_repo.rs
+- **Schemas-first:** PASS — all types with Serialize/Deserialize/ToSchema
+- Status: **PASS**
+
+### Commits
+- Total: 17 (auth-payments track)
+- Conventional format: 17/17 compliant
+- Atomic: YES
+- Plan SHAs: 13/13 original tasks
+- Pre-commit hooks: NOT CONFIGURED
+- Status: **PASS**
+
+### Documentation
+- CLAUDE.md: CURRENT (12,708 chars — well under 40K limit)
+- README.md: N/A (GitHub repo, docs in CLAUDE.md)
+- docs/prd.md: CURRENT
+- AI-TODO unresolved: 0
+- Dead code: 1 unused import (test only)
+- Status: **PASS**
+
+### Context Quality
+- Plan handoff: GOOD (Context Handoff section with Intent/Key Files/Decisions/Risks)
+- CLAUDE.md size: 12,708 chars — OK
+- Scratch cleanup: N/A
+- Status: **PASS**
+
+### Pre-mortem
+
+| Risk | Type | Likelihood | Impact | Mitigation |
+|------|------|-----------|--------|------------|
+| Worker auth bypass allows unauthorized orders in prod | Tiger | HIGH | HIGH | **FIX: Task 5.2** — add extract_auth() to protected worker routes |
+| Fallback JWT secret allows token forgery before secrets set | Tiger | MEDIUM | HIGH | Set `wrangler secret put SUPABASE_JWT_SECRET` (manual step documented) |
+| No payment record on worker orders → financial reconciliation gap | Tiger | HIGH | MEDIUM | **FIX: Task 5.3** — add payment flow to worker |
+| Stripe API down → orders created but payment fails silently | Paper Tiger | LOW | MEDIUM | Accept — checkout_url returns None, graceful degradation |
+| D1 date parsing panic on corrupt data | Elephant | LOW | HIGH | **FIX: Task 5.5** — replace unwrap with unwrap_or_default |
+
+### Visual Testing
+- Status: **N/A** — skipping browser testing in pipeline mode
+
+### Issues Found
+1. [CRITICAL] Worker protected routes (POST /api/orders, POST /api/couriers, PATCH routes) don't enforce auth — `crates/worker/src/lib.rs:243,280,292,312,326`
+2. [CRITICAL] Worker POST /api/orders doesn't create payment records or Stripe checkout — `crates/worker/src/lib.rs:243`
+3. [CRITICAL] `cargo fmt` fails across 8 files — blocks `make check` acceptance criterion
+4. [MODERATE] `.unwrap()` on date parsing may panic — `crates/worker/src/d1_repo.rs:149-151,842`
+5. [MINOR] Unused import in test — `crates/api/src/sqlite_repo.rs:899`
+
+### Recommendations
+- Fix Phase 5 tasks (5.1-5.5) then redeploy worker
+- Set production secrets: `wrangler secret put SUPABASE_JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+- Consider adding `tracing` instrumentation to worker (currently uses console_log only)
+- Add pre-commit hook for `cargo fmt` to prevent future fmt regressions
+
+<solo:redo/>

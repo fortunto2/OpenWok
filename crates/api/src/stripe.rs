@@ -1,8 +1,8 @@
 use openwok_core::pricing::PricingBreakdown;
 use rust_decimal::prelude::ToPrimitive;
 use stripe_universal::types::{
-    CheckoutMode, CreateCheckoutSessionParams, LineItem, PaymentIntentData, PriceData,
-    ProductData, TransferData,
+    CheckoutMode, CreateCheckoutSessionParams, LineItem, PaymentIntentData, PriceData, ProductData,
+    TransferData,
 };
 
 /// Convert Money amount to Stripe cents (integer).

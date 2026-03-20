@@ -341,9 +341,11 @@ mod tests {
     async fn public_routes_work_without_auth() {
         let app = app(seeded_state());
         // GET /health — public
-        let resp = app.clone().oneshot(
-            Request::get("/api/health").body(Body::empty()).unwrap()
-        ).await.unwrap();
+        let resp = app
+            .clone()
+            .oneshot(Request::get("/api/health").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
         assert_eq!(resp.status(), StatusCode::OK);
     }
 
@@ -363,7 +365,12 @@ mod tests {
         // Get a restaurant for order creation
         let restaurants: Vec<serde_json::Value> = client
             .get(format!("{base}/restaurants"))
-            .send().await.unwrap().json().await.unwrap();
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
         let r = &restaurants[0];
 
         let resp = client
@@ -396,12 +403,17 @@ mod tests {
                 Request::post("/api/webhooks/stripe")
                     .header("content-type", "application/json")
                     .header("stripe-signature", "t=123,v1=invalid")
-                    .body(Body::from(r#"{"id":"evt_1","type":"test","data":{"object":{}}}"#))
+                    .body(Body::from(
+                        r#"{"id":"evt_1","type":"test","data":{"object":{}}}"#,
+                    ))
                     .unwrap(),
             )
             .await
             .unwrap();
         // Either 400 (invalid sig) or 500 (no webhook secret configured)
-        assert!(resp.status() == StatusCode::BAD_REQUEST || resp.status() == StatusCode::INTERNAL_SERVER_ERROR);
+        assert!(
+            resp.status() == StatusCode::BAD_REQUEST
+                || resp.status() == StatusCode::INTERNAL_SERVER_ERROR
+        );
     }
 }

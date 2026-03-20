@@ -5,8 +5,7 @@ use openwok_core::order::{Order, OrderItem, OrderStatus};
 use openwok_core::pricing::PricingBreakdown;
 use openwok_core::repo::{
     AdminMetrics, AssignCourierResult, CourierUtilization, CreateCourierRequest,
-    CreateOrderRequest, CreateRestaurantRequest,
-    PublicEconomics, RepoError, RevenueBreakdown,
+    CreateOrderRequest, CreateRestaurantRequest, PublicEconomics, RepoError, RevenueBreakdown,
 };
 use openwok_core::types::{
     Courier, CourierId, CourierKind, CreatePaymentRequest, CreateUserRequest, MenuItem, MenuItemId,
@@ -293,9 +292,7 @@ impl D1Repo {
             .map_err(d1_err)?;
 
         self.db
-            .prepare(
-                "INSERT INTO restaurants (id, name, zone_id, active) VALUES (?1, ?2, ?3, 1)",
-            )
+            .prepare("INSERT INTO restaurants (id, name, zone_id, active) VALUES (?1, ?2, ?3, 1)")
             .bind(&[
                 id_str.clone().into(),
                 req.name.clone().into(),
@@ -500,7 +497,10 @@ impl D1Repo {
             .ok_or(RepoError::NotFound)
     }
 
-    pub async fn assign_courier(&self, order_id: OrderId) -> Result<AssignCourierResult, RepoError> {
+    pub async fn assign_courier(
+        &self,
+        order_id: OrderId,
+    ) -> Result<AssignCourierResult, RepoError> {
         let order_id_str = order_id.to_string();
 
         let zone_row = self
@@ -665,18 +665,12 @@ impl D1Repo {
 
         Ok(PublicEconomics {
             total_orders: row["total_orders"].as_i64().unwrap_or(0),
-            total_food_revenue: format!(
-                "{:.2}",
-                row["total_food_revenue"].as_f64().unwrap_or(0.0)
-            ),
+            total_food_revenue: format!("{:.2}", row["total_food_revenue"].as_f64().unwrap_or(0.0)),
             total_delivery_fees: format!(
                 "{:.2}",
                 row["total_delivery_fees"].as_f64().unwrap_or(0.0)
             ),
-            total_federal_fees: format!(
-                "{:.2}",
-                row["total_federal_fees"].as_f64().unwrap_or(0.0)
-            ),
+            total_federal_fees: format!("{:.2}", row["total_federal_fees"].as_f64().unwrap_or(0.0)),
             total_local_ops_fees: format!(
                 "{:.2}",
                 row["total_local_ops_fees"].as_f64().unwrap_or(0.0)
@@ -742,9 +736,7 @@ impl D1Repo {
             .first::<serde_json::Value>(None)
             .await
             .map_err(d1_err)?;
-        let avg_eta_error_minutes = eta_row
-            .and_then(|v| v["avg_err"].as_f64())
-            .unwrap_or(0.0);
+        let avg_eta_error_minutes = eta_row.and_then(|v| v["avg_err"].as_f64()).unwrap_or(0.0);
 
         let rev = self
             .db
@@ -857,7 +849,10 @@ impl D1Repo {
 
         Ok(User {
             id: UserId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
-            supabase_user_id: row["supabase_user_id"].as_str().unwrap_or_default().to_string(),
+            supabase_user_id: row["supabase_user_id"]
+                .as_str()
+                .unwrap_or_default()
+                .to_string(),
             email: row["email"].as_str().unwrap_or_default().to_string(),
             name: row["name"].as_str().map(|s| s.to_string()),
             role: row["role"]
@@ -939,18 +934,28 @@ impl D1Repo {
         Ok(Payment {
             id: PaymentId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
             order_id,
-            stripe_payment_intent_id: row["stripe_payment_intent_id"].as_str().map(|s| s.to_string()),
-            stripe_checkout_session_id: row["stripe_checkout_session_id"].as_str().map(|s| s.to_string()),
-            status: row["status"].as_str().unwrap_or("Pending").parse().unwrap_or(PaymentStatus::Pending),
+            stripe_payment_intent_id: row["stripe_payment_intent_id"]
+                .as_str()
+                .map(|s| s.to_string()),
+            stripe_checkout_session_id: row["stripe_checkout_session_id"]
+                .as_str()
+                .map(|s| s.to_string()),
+            status: row["status"]
+                .as_str()
+                .unwrap_or("Pending")
+                .parse()
+                .unwrap_or(PaymentStatus::Pending),
             amount_total: Money::from(row["amount_total"].as_str().unwrap_or("0")),
             restaurant_amount: Money::from(row["restaurant_amount"].as_str().unwrap_or("0")),
             courier_amount: Money::from(row["courier_amount"].as_str().unwrap_or("0")),
             federal_amount: Money::from(row["federal_amount"].as_str().unwrap_or("0")),
             local_ops_amount: Money::from(row["local_ops_amount"].as_str().unwrap_or("0")),
             processing_amount: Money::from(row["processing_amount"].as_str().unwrap_or("0")),
-            created_at: chrono::DateTime::parse_from_rfc3339(row["created_at"].as_str().unwrap_or_default())
-                .unwrap_or_default()
-                .with_timezone(&chrono::Utc),
+            created_at: chrono::DateTime::parse_from_rfc3339(
+                row["created_at"].as_str().unwrap_or_default(),
+            )
+            .unwrap_or_default()
+            .with_timezone(&chrono::Utc),
         })
     }
 
@@ -964,7 +969,9 @@ impl D1Repo {
 
         if let Some(ref pi_id) = req.stripe_payment_intent_id {
             self.db
-                .prepare("UPDATE payments SET status = ?1, stripe_payment_intent_id = ?2 WHERE id = ?3")
+                .prepare(
+                    "UPDATE payments SET status = ?1, stripe_payment_intent_id = ?2 WHERE id = ?3",
+                )
                 .bind(&[status_str.into(), pi_id.clone().into(), id_str.into()])
                 .map_err(d1_err)?
                 .run()

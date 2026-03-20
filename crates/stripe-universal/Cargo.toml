@@ -1,0 +1,30 @@
+[package]
+name = "stripe-universal"
+version = "0.1.0"
+edition = "2024"
+description = "Stripe API client for native Rust and Cloudflare Workers (wasm32)"
+license = "MIT OR Apache-2.0"
+keywords = ["stripe", "payments", "cloudflare-workers", "wasm"]
+categories = ["web-programming::http-client", "wasm"]
+
+[features]
+default = ["reqwest-backend"]
+reqwest-backend = ["dep:reqwest"]
+worker-backend = ["dep:worker"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+
+# Native backend
+reqwest = { version = "0.12", optional = true, default-features = false, features = ["json", "rustls-tls"] }
+
+# Cloudflare Workers backend
+worker = { version = "0.7", optional = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

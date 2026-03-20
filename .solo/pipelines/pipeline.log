@@ -56,3 +56,72 @@
 [16:00:08] STAGE | iter 2/10 | stage 2/3: deploy
 [16:00:08] CWD | /Users/rustam/startups/active/openwok
 [16:00:08] INVOKE | /solo:deploy 
+[16:08:06] ITER | saved iter-002-deploy.log | commit: 3ca61fd | result: stage complete
+[16:08:06] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
+[16:08:08] STAGE | iter 3/10 | stage 3/3: review
+[16:08:08] PLAN | Active plan track: repo-abstraction_20260320
+[16:08:08] CWD | /Users/rustam/startups/active/openwok
+[16:08:08] INVOKE | /solo:review 
+[16:10:54] SIGNAL | <solo:done/> → creating review
+[16:10:54] ITER | saved iter-003-review.log | commit: 76c0e39 | result: stage complete
+[16:10:54] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> FOUND
+[16:10:54] RETRO | Running retro for plan: repo-abstraction_20260320...
+[16:16:06] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-repo-abstraction_20260320.log
+[16:16:06] DONE | All stages complete (no more plans in queue)
+[16:16:06] FINISH | Duration: 42m
+[16:16:06] DONE | Pipeline complete! 8 plans cycled.
+[16:16:06] ARCHIVE | Archiving: repo-abstraction_20260320 → docs/plan-done/
+[16:16:06] ARCHIVE | Archiving: tailwind-migration → docs/plan-done/
+[16:16:06] POST | Running auto-plan from backlog...
+[16:24:05] POST | Auto-plan complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/autoplan-20260320-161606.log
+[16:24:05] POST | New plan created: auth-payments_20260320 — restarting build→deploy→review
+[16:24:05] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[16:24:05] STAGE | iter 1/10 | stage 1/3: build
+[16:24:05] PLAN | Active plan track: auth-payments_20260320
+[16:24:05] CWD | /Users/rustam/startups/active/openwok
+[16:24:05] GRAPH | Updating code graph for RepoMap...
+[16:24:06] INVOKE | /solo:build 
+[16:44:53] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[16:44:53] STAGE | iter 1/10 | stage 1/3: build
+[16:44:53] PLAN | Active plan track: auth-payments_20260320
+[16:44:53] CWD | /Users/rustam/startups/active/openwok
+[16:44:53] GRAPH | Updating code graph for RepoMap...
+[16:44:53] INVOKE | /solo:build 
+[16:50:01] ITER | saved iter-001-build.log | commit: 31eb280 | result: continuing
+[16:50:01] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> NOT FOUND
+[18:52:24] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[18:52:24] STAGE | iter 1/10 | stage 1/3: build
+[18:52:24] PLAN | Active plan track: auth-payments_20260320
+[18:52:24] CWD | /Users/rustam/startups/active/openwok
+[18:52:24] GRAPH | Updating code graph for RepoMap...
+[18:52:24] INVOKE | /solo:build 
+[19:13:12] ITER | saved iter-001-build.log | commit: 9b3bcc8 | result: continuing
+[19:13:12] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> NOT FOUND
+[19:13:14] STAGE | iter 2/10 | stage 1/3: build
+[19:13:14] PLAN | Active plan track: auth-payments_20260320
+[19:13:14] CWD | /Users/rustam/startups/active/openwok
+[19:13:14] GRAPH | Updating code graph for RepoMap...
+[19:13:14] INVOKE | /solo:build 
+[19:46:01] SIGNAL | <solo:done/> → creating build
+[19:46:01] ITER | saved iter-002-build.log | commit: 134d7af | result: stage complete
+[19:46:01] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
+[19:46:03] STAGE | iter 3/10 | stage 2/3: deploy
+[19:46:03] CWD | /Users/rustam/startups/active/openwok
+[19:46:03] INVOKE | /solo:deploy 
+[19:51:59] SIGNAL | <solo:done/> → creating deploy
+[19:51:59] ITER | saved iter-003-deploy.log | commit: 134d7af | result: stage complete
+[19:51:59] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
+[19:52:01] STAGE | iter 4/10 | stage 3/3: review
+[19:52:01] PLAN | Active plan track: auth-payments_20260320
+[19:52:01] CWD | /Users/rustam/startups/active/openwok
+[19:52:01] INVOKE | /solo:review 
+[19:55:29] REDO | <solo:redo/> cycle 1/2 — going back to build
+[19:55:29] SIGNAL | <solo:redo/> → removing .solo/states/build
+[19:55:29] SIGNAL | <solo:redo/> → removing .solo/states/deploy
+[19:55:29] ITER | saved iter-004-review.log | commit: ab2e27d | result: continuing
+[19:55:29] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> NOT FOUND
+[19:55:31] STAGE | iter 5/10 | stage 1/3: build
+[19:55:31] PLAN | Active plan track: auth-payments_20260320
+[19:55:31] CWD | /Users/rustam/startups/active/openwok
+[19:55:31] GRAPH | Updating code graph for RepoMap...
+[19:55:32] INVOKE | /solo:build 

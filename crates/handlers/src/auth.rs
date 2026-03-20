@@ -45,7 +45,9 @@ impl std::fmt::Display for AuthError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AuthError::MissingHeader => write!(f, "missing Authorization header"),
-            AuthError::InvalidFormat => write!(f, "invalid Authorization format, expected: Bearer <token>"),
+            AuthError::InvalidFormat => {
+                write!(f, "invalid Authorization format, expected: Bearer <token>")
+            }
             AuthError::InvalidToken(msg) => write!(f, "invalid token: {msg}"),
         }
     }

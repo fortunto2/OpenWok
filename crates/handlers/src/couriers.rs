@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
+use crate::auth::AuthUser;
+use crate::restaurants::repo_error_to_status;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use crate::auth::AuthUser;
-use crate::restaurants::repo_error_to_status;
 use openwok_core::repo::{CreateCourierRequest, RepoError, Repository};
 use openwok_core::types::{Courier, CourierId, OrderId, ZoneId};
 use serde::Deserialize;

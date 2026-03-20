@@ -136,42 +136,53 @@ pub async fn stripe_webhook(
     headers: HeaderMap,
     body: Bytes,
 ) -> Result<StatusCode, (StatusCode, String)> {
-    let webhook_secret = state
-        .stripe_webhook_secret
-        .as_deref()
-        .ok_or((StatusCode::INTERNAL_SERVER_ERROR, "webhook secret not configured".into()))?;
+    let webhook_secret = state.stripe_webhook_secret.as_deref().ok_or((
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "webhook secret not configured".into(),
+    ))?;
 
     let signature = headers
         .get("stripe-signature")
         .and_then(|v| v.to_str().ok())
-        .ok_or((StatusCode::BAD_REQUEST, "missing stripe-signature header".into()))?;
+        .ok_or((
+            StatusCode::BAD_REQUEST,
+            "missing stripe-signature header".into(),
+        ))?;
 
     let body_str = std::str::from_utf8(&body)
         .map_err(|_| (StatusCode::BAD_REQUEST, "invalid body encoding".into()))?;
 
     // Verify webhook signature
     stripe_universal::webhook::verify_and_parse(body_str.as_bytes(), signature, webhook_secret)
-        .map_err(|e| (StatusCode::BAD_REQUEST, format!("webhook verification failed: {e}")))?;
+        .map_err(|e| {
+            (
+                StatusCode::BAD_REQUEST,
+                format!("webhook verification failed: {e}"),
+            )
+        })?;
 
     // Parse the event
-    let event: stripe_universal::types::WebhookEvent =
-        serde_json::from_str(body_str)
-            .map_err(|e| (StatusCode::BAD_REQUEST, format!("invalid event: {e}")))?;
+    let event: stripe_universal::types::WebhookEvent = serde_json::from_str(body_str)
+        .map_err(|e| (StatusCode::BAD_REQUEST, format!("invalid event: {e}")))?;
 
     match event.event_type.as_str() {
         "checkout.session.completed" => {
-            let session = event
-                .as_checkout_session()
-                .map_err(|e| (StatusCode::BAD_REQUEST, format!("invalid session data: {e}")))?;
+            let session = event.as_checkout_session().map_err(|e| {
+                (
+                    StatusCode::BAD_REQUEST,
+                    format!("invalid session data: {e}"),
+                )
+            })?;
 
-            if let Some(order_id_str) = session
-                .metadata
-                .as_ref()
-                .and_then(|m| m.get("order_id"))
-            {
+            if let Some(order_id_str) = session.metadata.as_ref().and_then(|m| m.get("order_id")) {
                 let order_id = uuid::Uuid::parse_str(order_id_str)
                     .map(openwok_core::types::OrderId::from_uuid)
-                    .map_err(|_| (StatusCode::BAD_REQUEST, "invalid order_id in metadata".into()))?;
+                    .map_err(|_| {
+                        (
+                            StatusCode::BAD_REQUEST,
+                            "invalid order_id in metadata".into(),
+                        )
+                    })?;
 
                 // Update payment status
                 let payment = state
@@ -200,15 +211,14 @@ pub async fn stripe_webhook(
             }
         }
         "checkout.session.expired" => {
-            let session = event
-                .as_checkout_session()
-                .map_err(|e| (StatusCode::BAD_REQUEST, format!("invalid session data: {e}")))?;
+            let session = event.as_checkout_session().map_err(|e| {
+                (
+                    StatusCode::BAD_REQUEST,
+                    format!("invalid session data: {e}"),
+                )
+            })?;
 
-            if let Some(order_id_str) = session
-                .metadata
-                .as_ref()
-                .and_then(|m| m.get("order_id"))
-            {
+            if let Some(order_id_str) = session.metadata.as_ref().and_then(|m| m.get("order_id")) {
                 let order_id = uuid::Uuid::parse_str(order_id_str)
                     .map(openwok_core::types::OrderId::from_uuid)
                     .map_err(|_| (StatusCode::BAD_REQUEST, "invalid order_id".into()))?;

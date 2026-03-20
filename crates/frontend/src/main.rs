@@ -275,17 +275,14 @@ fn AuthCallback() -> Element {
                 .and_then(|w| w.location().hash().ok())
                 .unwrap_or_default();
 
-            let access_token = hash
-                .trim_start_matches('#')
-                .split('&')
-                .find_map(|part| {
-                    let (key, val) = part.split_once('=')?;
-                    if key == "access_token" {
-                        Some(val.to_string())
-                    } else {
-                        None
-                    }
-                });
+            let access_token = hash.trim_start_matches('#').split('&').find_map(|part| {
+                let (key, val) = part.split_once('=')?;
+                if key == "access_token" {
+                    Some(val.to_string())
+                } else {
+                    None
+                }
+            });
 
             let Some(token) = access_token else {
                 error.set(Some("No access_token in callback URL".into()));
@@ -350,8 +347,8 @@ async fn api_post_json<T: serde::de::DeserializeOwned>(
     path: &str,
     body: &str,
 ) -> Result<T, String> {
-    let mut req = Request::post(&format!("{API_BASE}{path}"))
-        .header("Content-Type", "application/json");
+    let mut req =
+        Request::post(&format!("{API_BASE}{path}")).header("Content-Type", "application/json");
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }
@@ -369,8 +366,8 @@ async fn api_post_json<T: serde::de::DeserializeOwned>(
 }
 
 async fn api_patch_json(path: &str, body: &serde_json::Value) -> Result<(), String> {
-    let mut req = Request::patch(&format!("{API_BASE}{path}"))
-        .header("Content-Type", "application/json");
+    let mut req =
+        Request::patch(&format!("{API_BASE}{path}")).header("Content-Type", "application/json");
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }

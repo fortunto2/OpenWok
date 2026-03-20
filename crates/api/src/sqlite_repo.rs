@@ -12,8 +12,8 @@ use openwok_core::repo::{
 };
 use openwok_core::types::{
     Courier, CourierId, CourierKind, CreatePaymentRequest, CreateUserRequest, MenuItem, MenuItemId,
-    OrderId, Payment, PaymentId, PaymentStatus, Restaurant, RestaurantId, UpdatePaymentStatusRequest,
-    User, UserId, UserRole, ZoneId,
+    OrderId, Payment, PaymentId, PaymentStatus, Restaurant, RestaurantId,
+    UpdatePaymentStatusRequest, User, UserId, UserRole, ZoneId,
 };
 use rusqlite::params;
 use tokio::sync::Mutex;
@@ -573,11 +573,16 @@ impl Repository for SqliteRepo {
             params![id.to_string()],
             |row| {
                 Ok(User {
-                    id: UserId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap()),
+                    id: UserId::from_uuid(
+                        uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
+                    ),
                     supabase_user_id: row.get(1)?,
                     email: row.get(2)?,
                     name: row.get(3)?,
-                    role: row.get::<_, String>(4)?.parse::<UserRole>().unwrap_or(UserRole::Customer),
+                    role: row
+                        .get::<_, String>(4)?
+                        .parse::<UserRole>()
+                        .unwrap_or(UserRole::Customer),
                     created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
                         .unwrap()
                         .with_timezone(&chrono::Utc),
@@ -1275,10 +1280,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(updated.status, PaymentStatus::Succeeded);
-        assert_eq!(
-            updated.stripe_payment_intent_id,
-            Some("pi_test_789".into())
-        );
+        assert_eq!(updated.stripe_payment_intent_id, Some("pi_test_789".into()));
     }
 
     #[tokio::test]
