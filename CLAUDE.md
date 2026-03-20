@@ -151,9 +151,15 @@ When building or reviewing frontend changes:
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | /api/health | Health check |
-| GET | /api/restaurants | List restaurants |
+| GET | /api/restaurants | List active restaurants |
 | GET | /api/restaurants/{id} | Get restaurant |
-| POST | /api/restaurants | Create restaurant |
+| POST | /api/restaurants | Create restaurant (auth, auto-promote to RestaurantOwner) |
+| PATCH | /api/restaurants/{id} | Update restaurant info (owner only) |
+| PATCH | /api/restaurants/{id}/active | Toggle active status (owner only) |
+| POST | /api/restaurants/{id}/menu | Add menu item (owner only) |
+| PATCH | /api/menu-items/{id} | Update menu item (owner only) |
+| DELETE | /api/menu-items/{id} | Delete menu item (owner only) |
+| GET | /api/my/restaurants | List current user's restaurants (auth) |
 | POST | /api/orders | Create order + payment, returns checkout URL (auth) |
 | GET | /api/orders/{id} | Get order |
 | PATCH | /api/orders/{id}/status | Transition order status (auth) |
@@ -202,6 +208,7 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 | `migrations/0005_order_metrics.sql` | Add `estimated_eta` and `actual_delivery_at` columns to orders |
 | `migrations/0006_auth_users.sql` | Users table + orders.user_id FK |
 | `migrations/0007_payments.sql` | Payments table (Stripe tracking) |
+| `migrations/0008_restaurant_owner.sql` | Restaurant ownership: owner_id, description, address, phone, timestamps |
 
 ## Frontend Routes
 
@@ -217,6 +224,9 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 | `/economics` | PublicEconomicsPage | Open-book economics transparency page |
 | `/login` | Login | Google OAuth via Supabase |
 | `/auth/callback` | AuthCallback | OAuth callback, stores JWT |
+| `/my-restaurants` | MyRestaurants | Owner's restaurant dashboard |
+| `/my-restaurants/:id` | RestaurantSettings | Restaurant settings + menu editor |
+| `/onboard-restaurant` | OnboardRestaurant | New restaurant onboarding form |
 
 ## Analytics (PostHog)
 

@@ -3,7 +3,7 @@
 **Track ID:** restaurant-onboarding_20260320
 **Spec:** [spec.md](./spec.md)
 **Created:** 2026-03-20
-**Status:** [ ] Not Started
+**Status:** [x] Complete
 
 ## Overview
 
@@ -52,8 +52,8 @@ Restaurant owner dashboard with menu editor and onboarding form.
 Deploy updated Worker, verify live, update documentation.
 
 ### Tasks
-- [ ] Task 4.1: Build frontend (`dx build --platform web --release`), copy to worker public/, deploy (`wrangler deploy`). Run migration 0008 on D1. Verify live: create restaurant → manage menu → check public listing.
-- [ ] Task 4.2: Update `CLAUDE.md` — add new endpoints to API table, add new frontend routes, update repo structure notes. Remove dead code if any.
+- [x] Task 4.1: Build frontend (`dx build --platform web --release`), copy to worker public/, deploy (`wrangler deploy`). Run migration 0008 on D1. Verify live: create restaurant → manage menu → check public listing.
+- [x] Task 4.2: Update `CLAUDE.md` — add new endpoints to API table, add new frontend routes, update repo structure notes. Remove dead code if any.
 
 ### Verification
 - [ ] Service is live and healthy
@@ -62,11 +62,11 @@ Deploy updated Worker, verify live, update documentation.
 
 ## Final Verification
 
-- [ ] All acceptance criteria from spec met
-- [ ] Tests pass (`make check`)
-- [ ] Linter clean
-- [ ] Build succeeds (all targets)
-- [ ] Documentation up to date
+- [x] All acceptance criteria from spec met
+- [x] Tests pass (`make check`)
+- [x] Linter clean
+- [x] Build succeeds (all targets)
+- [x] Documentation up to date
 - [ ] Restaurant owner can go from login → create restaurant → add menu → go live (end-to-end on production)
 
 ## Context Handoff
