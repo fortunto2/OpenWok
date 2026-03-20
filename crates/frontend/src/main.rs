@@ -1960,7 +1960,9 @@ fn MyDeliveries() -> Element {
         let jwt = user_state.read().jwt.clone();
         async move {
             let _jwt = jwt?;
-            api_get::<Vec<serde_json::Value>>("/my/deliveries").await.ok()
+            api_get::<Vec<serde_json::Value>>("/my/deliveries")
+                .await
+                .ok()
         }
     });
 

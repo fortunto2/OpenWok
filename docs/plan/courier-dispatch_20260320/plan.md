@@ -43,8 +43,8 @@ Courier-facing endpoints and Dioxus pages for registration + delivery dashboard.
 ## Phase 3: Docs & Cleanup
 
 ### Tasks
-- [ ] Task 3.1: Update CLAUDE.md — add new endpoints (`GET /api/couriers/me`, `GET /api/my/deliveries`), add new routes (`/register-courier`, `/my-deliveries`), update migration table with 0009
-- [ ] Task 3.2: Remove dead code — check for unused imports, verify no orphaned functions after refactoring handlers
+- [~] Task 3.1: Update CLAUDE.md — add new endpoints (`GET /api/couriers/me`, `GET /api/my/deliveries`), add new routes (`/register-courier`, `/my-deliveries`), update migration table with 0009
+- [~] Task 3.2: Remove dead code — check for unused imports, verify no orphaned functions after refactoring handlers
 
 ### Verification
 - [ ] CLAUDE.md reflects current project state

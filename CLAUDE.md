@@ -165,8 +165,10 @@ When building or reviewing frontend changes:
 | PATCH | /api/orders/{id}/status | Transition order status (auth) |
 | POST | /api/orders/{id}/assign | Assign courier to order (auth) |
 | GET | /api/couriers | List available couriers |
-| POST | /api/couriers | Register courier (auth) |
+| POST | /api/couriers | Register courier (auth, auto-promote to Courier, links user) |
+| GET | /api/couriers/me | Get current user's courier profile (auth) |
 | PATCH | /api/couriers/{id}/available | Toggle availability (auth) |
+| GET | /api/my/deliveries | List orders assigned to current courier (auth) |
 | GET | /api/public/economics | Aggregate financials (public, cached 5min) |
 | GET | /api/admin/metrics | Pilot KPIs (order count, on-time rate, revenue) |
 | POST | /api/auth/callback | Verify Supabase JWT, create/get user |
@@ -192,8 +194,8 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 - `docs/mvp-deck.pdf` — full MVP concept deck
 - `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
 - `planning/ROADMAP.md` — 12-month roadmap with decision gates
-- `docs/plan-done/` — completed specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy, repo-abstraction, auth-payments, tailwind-migration)
-- `docs/plan/restaurant-onboarding_20260320/` — active: restaurant self-service (build complete, pending manual e2e verification)
+- `docs/plan-done/` — completed specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy, repo-abstraction, auth-payments, tailwind-migration, restaurant-onboarding)
+- `docs/plan/courier-dispatch_20260320/` — active: courier dispatch + dashboard
 - `docs/evolution.md` — factory evolution log (cross-retro learnings)
 - `docs/retro/` — pipeline retrospectives
 
@@ -209,6 +211,7 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 | `migrations/0006_auth_users.sql` | Users table + orders.user_id FK |
 | `migrations/0007_payments.sql` | Payments table (Stripe tracking) |
 | `migrations/0008_restaurant_owner.sql` | Restaurant ownership: owner_id, description, address, phone, timestamps |
+| `migrations/0009_courier_user.sql` | Courier user_id FK + dispatch indexes (zone_id+available, courier_id) |
 
 ## Frontend Routes
 
@@ -227,6 +230,8 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 | `/my-restaurants` | MyRestaurants | Owner's restaurant dashboard |
 | `/my-restaurants/:id` | RestaurantSettings | Restaurant settings + menu editor |
 | `/onboard-restaurant` | OnboardRestaurant | New restaurant onboarding form |
+| `/register-courier` | RegisterCourier | Courier self-registration (name + zone) |
+| `/my-deliveries` | MyDeliveries | Courier delivery dashboard + Mark Delivered |
 
 ## Analytics (PostHog)
 
