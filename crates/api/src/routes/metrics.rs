@@ -2,10 +2,11 @@ use axum::Json;
 use axum::extract::State;
 use serde::Serialize;
 use std::collections::HashMap;
+use utoipa::ToSchema;
 
 use crate::state::AppState;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RevenueBreakdown {
     pub total_food_revenue: String,
     pub total_delivery_fees: String,
@@ -14,13 +15,13 @@ pub struct RevenueBreakdown {
     pub total_processing_fees: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CourierUtilization {
     pub available: i64,
     pub total: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminMetrics {
     pub order_count: i64,
     pub orders_by_status: HashMap<String, i64>,
@@ -31,6 +32,7 @@ pub struct AdminMetrics {
     pub orders_by_zone: HashMap<String, i64>,
 }
 
+#[utoipa::path(get, path = "/admin/metrics", tag = "metrics")]
 pub async fn get(State(state): State<AppState>) -> Json<AdminMetrics> {
     let conn = state.db.lock().await;
 

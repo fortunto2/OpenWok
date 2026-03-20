@@ -5,17 +5,18 @@ use openwok_core::money::Money;
 use openwok_core::types::{MenuItem, MenuItemId, Restaurant, RestaurantId, ZoneId};
 use rusqlite::params;
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 use crate::state::AppState;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct CreateRestaurant {
     pub name: String,
     pub zone_id: ZoneId,
     pub menu: Vec<CreateMenuItem>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct CreateMenuItem {
     pub name: String,
     pub price: Money,
@@ -56,6 +57,7 @@ fn row_to_restaurant(
     }
 }
 
+#[utoipa::path(get, path = "/restaurants", tag = "restaurants")]
 pub async fn list(State(state): State<AppState>) -> Json<Vec<Restaurant>> {
     let conn = state.db.lock().await;
     let mut stmt = conn
@@ -76,6 +78,7 @@ pub async fn list(State(state): State<AppState>) -> Json<Vec<Restaurant>> {
     Json(restaurants)
 }
 
+#[utoipa::path(get, path = "/restaurants/{id}", tag = "restaurants")]
 pub async fn get(
     State(state): State<AppState>,
     Path(id): Path<RestaurantId>,
@@ -102,6 +105,7 @@ pub async fn get(
     }
 }
 
+#[utoipa::path(post, path = "/restaurants", tag = "restaurants")]
 pub async fn create(
     State(state): State<AppState>,
     Json(body): Json<CreateRestaurant>,

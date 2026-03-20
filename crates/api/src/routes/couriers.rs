@@ -4,16 +4,17 @@ use axum::http::StatusCode;
 use openwok_core::types::{Courier, CourierId, CourierKind, OrderId, ZoneId};
 use rusqlite::params;
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 use crate::state::AppState;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct CreateCourier {
     pub name: String,
     pub zone_id: ZoneId,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct SetAvailable {
     pub available: bool,
 }
@@ -31,6 +32,7 @@ fn row_to_courier(id: &str, name: String, kind: &str, zone_id: &str, available: 
     }
 }
 
+#[utoipa::path(get, path = "/couriers", tag = "couriers")]
 pub async fn list(State(state): State<AppState>) -> Json<Vec<Courier>> {
     let conn = state.db.lock().await;
     let mut stmt = conn
@@ -52,6 +54,7 @@ pub async fn list(State(state): State<AppState>) -> Json<Vec<Courier>> {
     Json(couriers)
 }
 
+#[utoipa::path(post, path = "/couriers", tag = "couriers")]
 pub async fn create(
     State(state): State<AppState>,
     Json(body): Json<CreateCourier>,
@@ -85,6 +88,7 @@ pub async fn create(
     (StatusCode::CREATED, Json(courier))
 }
 
+#[utoipa::path(patch, path = "/couriers/{id}/available", tag = "couriers")]
 pub async fn toggle_available(
     State(state): State<AppState>,
     Path(id): Path<CourierId>,
@@ -123,6 +127,7 @@ pub async fn toggle_available(
     Ok(Json(courier))
 }
 
+#[utoipa::path(post, path = "/orders/{order_id}/assign", tag = "orders")]
 pub async fn assign_to_order(
     State(state): State<AppState>,
     Path(order_id): Path<OrderId>,

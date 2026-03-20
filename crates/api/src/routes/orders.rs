@@ -8,10 +8,11 @@ use openwok_core::pricing::PricingBreakdown;
 use openwok_core::types::{CourierId, MenuItemId, OrderId, RestaurantId, ZoneId};
 use rusqlite::params;
 use serde::Deserialize;
+use utoipa::ToSchema;
 
 use crate::state::{AppState, OrderEvent};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct CreateOrder {
     pub restaurant_id: RestaurantId,
     pub items: Vec<CreateOrderItem>,
@@ -22,7 +23,7 @@ pub struct CreateOrder {
     pub local_ops_fee: Money,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct CreateOrderItem {
     pub menu_item_id: MenuItemId,
     pub name: String,
@@ -30,7 +31,7 @@ pub struct CreateOrderItem {
     pub unit_price: Money,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct TransitionStatus {
     pub status: OrderStatus,
 }
@@ -145,6 +146,7 @@ fn load_order(conn: &rusqlite::Connection, order_id: &str) -> Option<Order> {
     })
 }
 
+#[utoipa::path(get, path = "/orders", tag = "orders")]
 pub async fn list(State(state): State<AppState>) -> Json<Vec<Order>> {
     let conn = state.db.lock().await;
     let mut stmt = conn.prepare("SELECT id FROM orders").unwrap();
@@ -157,6 +159,7 @@ pub async fn list(State(state): State<AppState>) -> Json<Vec<Order>> {
     Json(orders)
 }
 
+#[utoipa::path(post, path = "/orders", tag = "orders")]
 pub async fn create(
     State(state): State<AppState>,
     Json(body): Json<CreateOrder>,
@@ -255,6 +258,7 @@ pub async fn create(
     Ok((StatusCode::CREATED, Json(order)))
 }
 
+#[utoipa::path(get, path = "/orders/{id}", tag = "orders")]
 pub async fn get(
     State(state): State<AppState>,
     Path(id): Path<OrderId>,
@@ -265,6 +269,7 @@ pub async fn get(
         .ok_or(StatusCode::NOT_FOUND)
 }
 
+#[utoipa::path(patch, path = "/orders/{id}/status", tag = "orders")]
 pub async fn transition(
     State(state): State<AppState>,
     Path(id): Path<OrderId>,

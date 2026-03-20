@@ -3,10 +3,11 @@ mod routes;
 mod state;
 
 use axum::Router;
-use axum::routing::{any, get, patch, post};
+use axum::routing::{any, get};
 use state::AppState;
 use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
+use utoipa_axum::routes;
 use utoipa_swagger_ui::SwaggerUi;
 
 #[derive(OpenApi)]
@@ -16,6 +17,7 @@ use utoipa_swagger_ui::SwaggerUi;
         description = "Fair food delivery — $1 federal fee, 100% transparency",
         version = "0.1.0"
     ),
+    servers((url = "/api")),
     components(schemas(
         openwok_core::types::Restaurant,
         openwok_core::types::MenuItem,
@@ -36,34 +38,18 @@ async fn health() -> &'static str {
 }
 
 pub fn app(state: AppState) -> Router {
-    // Build API routes using utoipa_axum for auto OpenAPI path collection
     let (api, openapi) = utoipa_axum::router::OpenApiRouter::with_openapi(ApiDoc::openapi())
         .route("/health", get(health))
-        .route(
-            "/restaurants",
-            get(routes::restaurants::list).post(routes::restaurants::create),
-        )
-        .route("/restaurants/{id}", get(routes::restaurants::get))
-        .route(
-            "/orders",
-            get(routes::orders::list).post(routes::orders::create),
-        )
-        .route("/orders/{id}", get(routes::orders::get))
-        .route("/orders/{id}/status", patch(routes::orders::transition))
-        .route(
-            "/orders/{id}/assign",
-            post(routes::couriers::assign_to_order),
-        )
-        .route(
-            "/couriers",
-            get(routes::couriers::list).post(routes::couriers::create),
-        )
-        .route(
-            "/couriers/{id}/available",
-            patch(routes::couriers::toggle_available),
-        )
-        .route("/public/economics", get(routes::economics::get))
-        .route("/admin/metrics", get(routes::metrics::get))
+        .routes(routes!(routes::restaurants::list, routes::restaurants::create))
+        .routes(routes!(routes::restaurants::get))
+        .routes(routes!(routes::orders::list, routes::orders::create))
+        .routes(routes!(routes::orders::get))
+        .routes(routes!(routes::orders::transition))
+        .routes(routes!(routes::couriers::assign_to_order))
+        .routes(routes!(routes::couriers::list, routes::couriers::create))
+        .routes(routes!(routes::couriers::toggle_available))
+        .routes(routes!(routes::economics::get))
+        .routes(routes!(routes::metrics::get))
         .route("/ws/orders/{id}", any(routes::ws::order_updates))
         .with_state(state)
         .split_for_parts();

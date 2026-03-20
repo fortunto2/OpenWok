@@ -2,10 +2,11 @@ use axum::Json;
 use axum::extract::State;
 use axum::http::HeaderMap;
 use serde::Serialize;
+use utoipa::ToSchema;
 
 use crate::state::AppState;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PublicEconomics {
     pub total_orders: i64,
     pub total_food_revenue: String,
@@ -16,6 +17,7 @@ pub struct PublicEconomics {
     pub avg_order_value: String,
 }
 
+#[utoipa::path(get, path = "/public/economics", tag = "economics")]
 pub async fn get(State(state): State<AppState>) -> (HeaderMap, Json<PublicEconomics>) {
     let conn = state.db.lock().await;
 
