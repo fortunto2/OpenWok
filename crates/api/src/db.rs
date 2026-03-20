@@ -100,6 +100,34 @@ pub fn seed_la_data(conn: &Connection) {
     )
     .unwrap();
 
+    let zone3_id = uuid::Uuid::new_v4().to_string();
+    conn.execute(
+        "INSERT INTO zones (id, name) VALUES (?1, ?2)",
+        params![zone3_id, "Venice"],
+    )
+    .unwrap();
+
+    let zone4_id = uuid::Uuid::new_v4().to_string();
+    conn.execute(
+        "INSERT INTO zones (id, name) VALUES (?1, ?2)",
+        params![zone4_id, "Santa Monica"],
+    )
+    .unwrap();
+
+    let zone5_id = uuid::Uuid::new_v4().to_string();
+    conn.execute(
+        "INSERT INTO zones (id, name) VALUES (?1, ?2)",
+        params![zone5_id, "Koreatown"],
+    )
+    .unwrap();
+
+    let zone6_id = uuid::Uuid::new_v4().to_string();
+    conn.execute(
+        "INSERT INTO zones (id, name) VALUES (?1, ?2)",
+        params![zone6_id, "Silver Lake"],
+    )
+    .unwrap();
+
     let restaurants = [
         (
             "Pad Thai Palace",
@@ -205,6 +233,6 @@ mod tests {
         let count: i64 = conn
             .query_row("SELECT COUNT(*) FROM zones", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(count, 2);
+        assert_eq!(count, 6);
     }
 }
