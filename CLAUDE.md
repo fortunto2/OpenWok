@@ -110,8 +110,61 @@ make check                      # test + clippy + fmt
 - `planning/ROADMAP.md` — 12-month roadmap with decision gates
 - `docs/plan-done/` — completed phase specs (mvp-core, phase2-frontend, phase3-payments, phase4-federation)
 
+## Architecture Standards
+
+**Layered architecture (dependencies point inward):**
+```
+[Domain types]  ←  [Use cases / services]  ←  [API handlers]  ←  [Framework (axum)]
+   crates/core         crates/core              crates/api           crates/api
+```
+- Core has ZERO framework deps — pure Rust types + logic
+- API depends on Core, never the reverse
+- New crates (payments, federation) depend on Core, not on API
+
+**Async patterns:**
+- All I/O is async (tokio) — DB queries, HTTP, WebSocket
+- Use `tokio::spawn` for background jobs (dispatch, notifications), not blocking threads
+- Channels (`mpsc`, `broadcast`) for event propagation — not shared mutable state
+- WebSocket: `broadcast::Sender<OrderEvent>` for real-time updates (already exists)
+
+**Event sourcing (for orders):**
+```rust
+// Every state change = append-only event, projections for reads
+pub trait EventStore {
+    async fn append(&self, stream_id: &str, events: &[DomainEvent]) -> Result<()>;
+    async fn load(&self, stream_id: &str) -> Result<Vec<DomainEvent>>;
+}
+// Order state = fold over events, never mutate directly
+```
+
+**Error handling:**
+- Domain errors: typed enums via `thiserror` (OrderError, PaymentError, DispatchError)
+- API errors: map domain errors → HTTP status + JSON body
+- Never `unwrap()` in production code — `?` or explicit error handling
+- Never `panic!` — use `tracing::error!` + return error
+
+**Database (when migrating from HashMap):**
+- sqlx with compile-time query checking where possible
+- Migrations in `migrations/` directory
+- Connection pool via `sqlx::PgPool` in AppState
+- Transactions for multi-table operations (order + items + pricing)
+
+**Type safety:**
+- Newtype IDs: `RestaurantId(Uuid)`, `OrderId(Uuid)` — no String IDs
+- Money: `Money` newtype over `Decimal` — already done, never use f64 for money
+- Enums for statuses: `OrderStatus`, `CourierKind` — not strings
+- All public types: `Clone + Debug + Serialize + Deserialize`
+
+**Testing:**
+- Unit tests in each module (`#[cfg(test)]`)
+- Integration tests in `tests/` for API endpoints
+- Use `axum::test::TestClient` or direct handler calls for API tests
+- Fixture data in `tests/fixtures/` (JSON files for realistic test data)
+
 ## Do
 
 - TDD for all business logic
 - Read docs/mvp-deck.pdf for full context
 - Keep pricing calculator as the core innovation (6-line receipt)
+- Event log for all order state changes (append-only, never delete)
+- Tracing spans on every API handler and service method
