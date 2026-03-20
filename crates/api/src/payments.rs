@@ -8,6 +8,8 @@ use openwok_core::repo::Repository;
 use openwok_core::types::{CreatePaymentRequest, PaymentStatus, UpdatePaymentStatusRequest};
 use serde::{Deserialize, Serialize};
 
+use openwok_handlers::auth::AuthUser;
+
 use crate::state::AppState;
 use crate::stripe::build_checkout_params;
 
@@ -41,6 +43,7 @@ pub struct OrderWithCheckout {
 
 /// POST /api/orders — creates order + payment record, returns Stripe checkout URL.
 pub async fn create_order_with_payment(
+    _auth: AuthUser,
     State(state): State<AppState>,
     Json(body): Json<CreateOrderWithPayment>,
 ) -> Result<(StatusCode, Json<OrderWithCheckout>), (StatusCode, String)> {

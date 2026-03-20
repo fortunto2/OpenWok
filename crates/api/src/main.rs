@@ -54,10 +54,8 @@ pub fn app(state: AppState) -> Router {
     let (api_handlers, openapi) =
         openwok_handlers::api_routes_with_openapi::<SqliteRepo>(ApiDoc::openapi());
 
-    // Shared handlers use Arc<SqliteRepo> state + JwtConfig extension
-    let api_handlers = api_handlers
-        .with_state(state.repo.clone())
-        .layer(axum::Extension(jwt_config));
+    // Shared handlers use Arc<SqliteRepo> state
+    let api_handlers = api_handlers.with_state(state.repo.clone());
 
     // Payment routes use full AppState (need StripeClient + repo)
     let payment_routes = Router::new()
@@ -70,10 +68,12 @@ pub fn app(state: AppState) -> Router {
         .route("/ws/orders/{id}", any(ws::order_updates))
         .with_state(state);
 
+    // JwtConfig extension applied to all API routes (used by AuthUser extractor)
     let api = Router::new()
         .merge(payment_routes) // Payment routes override generic order create
         .merge(api_handlers)
-        .merge(ws_route);
+        .merge(ws_route)
+        .layer(axum::Extension(jwt_config));
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -122,6 +122,22 @@ mod tests {
         AppState::new(repo)
     }
 
+    /// Generate a valid test JWT for authenticated requests.
+    fn test_jwt() -> String {
+        use jsonwebtoken::{EncodingKey, Header};
+        let claims = serde_json::json!({
+            "sub": "test-user-uuid-123",
+            "email": "test@example.com",
+            "role": "authenticated",
+            "aud": "authenticated",
+            "exp": chrono::Utc::now().timestamp() + 3600,
+            "iat": chrono::Utc::now().timestamp(),
+        });
+        let secret = "super-secret-jwt-token-for-testing-only";
+        let key = EncodingKey::from_secret(secret.as_bytes());
+        jsonwebtoken::encode(&Header::default(), &claims, &key).unwrap()
+    }
+
     #[tokio::test]
     async fn health_returns_ok() {
         let app = app(test_state());
@@ -162,8 +178,10 @@ mod tests {
 
         let base = format!("http://{addr}/api");
         let client = reqwest::Client::new();
+        let token = test_jwt();
+        let auth_header = format!("Bearer {token}");
 
-        // 1. List restaurants — get first one
+        // 1. List restaurants — get first one (public, no auth needed)
         let restaurants: Vec<serde_json::Value> = client
             .get(format!("{base}/restaurants"))
             .send()
@@ -178,7 +196,7 @@ mod tests {
         let zone_id = restaurant["zone_id"].as_str().unwrap();
         let menu_item = &restaurant["menu"][0];
 
-        // 2. Create order
+        // 2. Create order (auth required)
         let order_body = serde_json::json!({
             "restaurant_id": restaurant_id,
             "items": [{
@@ -196,6 +214,7 @@ mod tests {
 
         let resp = client
             .post(format!("{base}/orders"))
+            .header("authorization", &auth_header)
             .json(&order_body)
             .send()
             .await
@@ -220,36 +239,40 @@ mod tests {
         let order_id = order["id"].as_str().unwrap();
         assert_eq!(order["status"].as_str().unwrap(), "Created");
 
-        // 3. Create courier in same zone
+        // 3. Create courier in same zone (auth required)
         let courier_resp = client
             .post(format!("{base}/couriers"))
+            .header("authorization", &auth_header)
             .json(&serde_json::json!({ "name": "Alex", "zone_id": zone_id }))
             .send()
             .await
             .unwrap();
         assert_eq!(courier_resp.status(), 201);
 
-        // 4. Confirm order
+        // 4. Confirm order (auth required)
         let resp = client
             .patch(format!("{base}/orders/{order_id}/status"))
+            .header("authorization", &auth_header)
             .json(&serde_json::json!({ "status": "Confirmed" }))
             .send()
             .await
             .unwrap();
         assert_eq!(resp.status(), 200);
 
-        // 5. Assign courier
+        // 5. Assign courier (auth required)
         let resp = client
             .post(format!("{base}/orders/{order_id}/assign"))
+            .header("authorization", &auth_header)
             .send()
             .await
             .unwrap();
         assert_eq!(resp.status(), 200);
 
-        // 6. Transition through remaining states
+        // 6. Transition through remaining states (auth required)
         for status in ["Preparing", "ReadyForPickup", "InDelivery", "Delivered"] {
             let resp = client
                 .patch(format!("{base}/orders/{order_id}/status"))
+                .header("authorization", &auth_header)
                 .json(&serde_json::json!({ "status": status }))
                 .send()
                 .await
@@ -257,7 +280,7 @@ mod tests {
             assert_eq!(resp.status(), 200, "failed to transition to {status}");
         }
 
-        // 7. Verify final state
+        // 7. Verify final state (GET is public)
         let final_order: serde_json::Value = client
             .get(format!("{base}/orders/{order_id}"))
             .send()

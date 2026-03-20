@@ -7,6 +7,7 @@ use openwok_core::money::Money;
 use openwok_core::order::{Order, OrderStatus};
 use openwok_core::repo::{CreateOrderItemRequest, CreateOrderRequest, Repository};
 
+use crate::auth::AuthUser;
 use crate::restaurants::repo_error_to_status;
 use openwok_core::types::{MenuItemId, OrderId, RestaurantId, ZoneId};
 use serde::Deserialize;
@@ -83,6 +84,7 @@ pub async fn get<R: Repository>(
 
 #[utoipa::path(patch, path = "/orders/{id}/status", tag = "orders")]
 pub async fn transition<R: Repository>(
+    _auth: AuthUser,
     State(repo): State<Arc<R>>,
     Path(id): Path<OrderId>,
     Json(body): Json<TransitionStatus>,

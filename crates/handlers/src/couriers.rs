@@ -3,6 +3,7 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use crate::auth::AuthUser;
 use crate::restaurants::repo_error_to_status;
 use openwok_core::repo::{CreateCourierRequest, RepoError, Repository};
 use openwok_core::types::{Courier, CourierId, OrderId, ZoneId};
@@ -27,6 +28,7 @@ pub async fn list<R: Repository>(State(repo): State<Arc<R>>) -> Json<Vec<Courier
 
 #[utoipa::path(post, path = "/couriers", tag = "couriers")]
 pub async fn create<R: Repository>(
+    _auth: AuthUser,
     State(repo): State<Arc<R>>,
     Json(body): Json<CreateCourier>,
 ) -> Result<(StatusCode, Json<Courier>), (StatusCode, String)> {
@@ -42,6 +44,7 @@ pub async fn create<R: Repository>(
 
 #[utoipa::path(patch, path = "/couriers/{id}/available", tag = "couriers")]
 pub async fn toggle_available<R: Repository>(
+    _auth: AuthUser,
     State(repo): State<Arc<R>>,
     Path(id): Path<CourierId>,
     Json(body): Json<SetAvailable>,
@@ -54,6 +57,7 @@ pub async fn toggle_available<R: Repository>(
 
 #[utoipa::path(post, path = "/orders/{order_id}/assign", tag = "orders")]
 pub async fn assign_to_order<R: Repository>(
+    _auth: AuthUser,
     State(repo): State<Arc<R>>,
     Path(order_id): Path<OrderId>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
