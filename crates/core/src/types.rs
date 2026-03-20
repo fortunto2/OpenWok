@@ -62,6 +62,10 @@ pub struct Restaurant {
     pub zone_id: ZoneId,
     pub menu: Vec<MenuItem>,
     pub active: bool,
+    pub owner_id: Option<UserId>,
+    pub description: Option<String>,
+    pub address: Option<String>,
+    pub phone: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
@@ -213,6 +217,20 @@ pub struct UpdatePaymentStatusRequest {
     pub stripe_payment_intent_id: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct UpdateRestaurantRequest {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub address: Option<String>,
+    pub phone: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct UpdateMenuItemRequest {
+    pub name: Option<String>,
+    pub price: Option<Money>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -237,6 +255,10 @@ mod tests {
                 restaurant_id: RestaurantId::new(),
             }],
             active: true,
+            owner_id: None,
+            description: None,
+            address: None,
+            phone: None,
         };
         let json = serde_json::to_string(&r).unwrap();
         let back: Restaurant = serde_json::from_str(&json).unwrap();

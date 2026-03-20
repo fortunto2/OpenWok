@@ -240,6 +240,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                             price: Money::from(m.price.as_str()),
                         })
                         .collect(),
+                    owner_id: None,
+                    description: None,
+                    address: None,
+                    phone: None,
                 })
                 .await;
             match result {

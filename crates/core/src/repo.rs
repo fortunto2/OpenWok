@@ -6,7 +6,8 @@ use crate::money::Money;
 use crate::order::{Order, OrderStatus};
 use crate::types::{
     Courier, CourierId, CreatePaymentRequest, CreateUserRequest, MenuItemId, OrderId, Payment,
-    PaymentId, Restaurant, RestaurantId, UpdatePaymentStatusRequest, User, UserId, ZoneId,
+    PaymentId, Restaurant, RestaurantId, UpdateMenuItemRequest, UpdatePaymentStatusRequest,
+    UpdateRestaurantRequest, User, UserId, UserRole, ZoneId,
 };
 
 /// Repository errors — maps to HTTP statuses in handlers.
@@ -28,6 +29,10 @@ pub struct CreateRestaurantRequest {
     pub name: String,
     pub zone_id: ZoneId,
     pub menu: Vec<CreateMenuItemRequest>,
+    pub owner_id: Option<UserId>,
+    pub description: Option<String>,
+    pub address: Option<String>,
+    pub phone: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -151,6 +156,38 @@ pub trait Repository: Send + Sync + 'static {
         id: PaymentId,
         req: UpdatePaymentStatusRequest,
     ) -> Result<Payment, RepoError>;
+
+    // Restaurant management
+    async fn update_restaurant(
+        &self,
+        id: RestaurantId,
+        req: UpdateRestaurantRequest,
+    ) -> Result<Restaurant, RepoError>;
+    async fn toggle_restaurant_active(
+        &self,
+        id: RestaurantId,
+        active: bool,
+    ) -> Result<Restaurant, RepoError>;
+    async fn list_restaurants_by_owner(
+        &self,
+        user_id: UserId,
+    ) -> Result<Vec<Restaurant>, RepoError>;
+    async fn add_menu_item(
+        &self,
+        restaurant_id: RestaurantId,
+        req: CreateMenuItemRequest,
+    ) -> Result<crate::types::MenuItem, RepoError>;
+    async fn update_menu_item(
+        &self,
+        id: MenuItemId,
+        req: UpdateMenuItemRequest,
+    ) -> Result<crate::types::MenuItem, RepoError>;
+    async fn delete_menu_item(&self, id: MenuItemId) -> Result<(), RepoError>;
+    async fn update_user_role(
+        &self,
+        user_id: UserId,
+        role: UserRole,
+    ) -> Result<User, RepoError>;
 
     // Economics & Metrics
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError>;

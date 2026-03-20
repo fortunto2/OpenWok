@@ -7,13 +7,14 @@ use openwok_core::order::{Order, OrderItem, OrderStatus};
 use openwok_core::pricing::PricingBreakdown;
 use openwok_core::repo::{
     AdminMetrics, AssignCourierResult, CourierUtilization, CreateCourierRequest,
-    CreateOrderRequest, CreateRestaurantRequest, PublicEconomics, RepoError, Repository,
-    RevenueBreakdown,
+    CreateMenuItemRequest, CreateOrderRequest, CreateRestaurantRequest, PublicEconomics, RepoError,
+    Repository, RevenueBreakdown,
 };
 use openwok_core::types::{
     Courier, CourierId, CourierKind, CreatePaymentRequest, CreateUserRequest, MenuItem, MenuItemId,
     OrderId, Payment, PaymentId, PaymentStatus, Restaurant, RestaurantId,
-    UpdatePaymentStatusRequest, User, UserId, UserRole, ZoneId,
+    UpdateMenuItemRequest, UpdatePaymentStatusRequest, UpdateRestaurantRequest, User, UserId,
+    UserRole, ZoneId,
 };
 use rusqlite::params;
 use tokio::sync::Mutex;
@@ -34,6 +35,10 @@ fn row_to_restaurant(
     name: String,
     zone_id: &str,
     active: bool,
+    owner_id: Option<String>,
+    description: Option<String>,
+    address: Option<String>,
+    phone: Option<String>,
 ) -> Restaurant {
     let mut stmt = conn
         .prepare("SELECT id, name, price FROM menu_items WHERE restaurant_id = ?1")
@@ -60,6 +65,11 @@ fn row_to_restaurant(
         zone_id: ZoneId::from_uuid(uuid::Uuid::parse_str(zone_id).unwrap()),
         menu,
         active,
+        owner_id: owner_id
+            .map(|o| UserId::from_uuid(uuid::Uuid::parse_str(&o).unwrap())),
+        description,
+        address,
+        phone,
     }
 }
 
@@ -191,20 +201,25 @@ impl Repository for SqliteRepo {
     async fn list_restaurants(&self) -> Result<Vec<Restaurant>, RepoError> {
         let conn = self.conn.lock().await;
         let mut stmt = conn
-            .prepare("SELECT id, name, zone_id, active FROM restaurants WHERE active = 1")
+            .prepare("SELECT id, name, zone_id, active, owner_id, description, address, phone FROM restaurants WHERE active = 1")
             .map_err(|e| RepoError::Internal(e.to_string()))?;
         let restaurants: Vec<Restaurant> = stmt
             .query_map([], |row| {
-                let id: String = row.get(0)?;
-                let name: String = row.get(1)?;
-                let zone_id: String = row.get(2)?;
-                let active: bool = row.get(3)?;
-                Ok((id, name, zone_id, active))
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, bool>(3)?,
+                    row.get::<_, Option<String>>(4)?,
+                    row.get::<_, Option<String>>(5)?,
+                    row.get::<_, Option<String>>(6)?,
+                    row.get::<_, Option<String>>(7)?,
+                ))
             })
             .map_err(|e| RepoError::Internal(e.to_string()))?
             .filter_map(|r| r.ok())
-            .map(|(id, name, zone_id, active)| {
-                row_to_restaurant(&conn, &id, name, &zone_id, active)
+            .map(|(id, name, zone_id, active, owner_id, description, address, phone)| {
+                row_to_restaurant(&conn, &id, name, &zone_id, active, owner_id, description, address, phone)
             })
             .collect();
         Ok(restaurants)
@@ -214,20 +229,25 @@ impl Repository for SqliteRepo {
         let conn = self.conn.lock().await;
         let id_str = id.to_string();
         let result = conn.query_row(
-            "SELECT id, name, zone_id, active FROM restaurants WHERE id = ?1",
+            "SELECT id, name, zone_id, active, owner_id, description, address, phone FROM restaurants WHERE id = ?1",
             params![id_str],
             |row| {
-                let id: String = row.get(0)?;
-                let name: String = row.get(1)?;
-                let zone_id: String = row.get(2)?;
-                let active: bool = row.get(3)?;
-                Ok((id, name, zone_id, active))
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, bool>(3)?,
+                    row.get::<_, Option<String>>(4)?,
+                    row.get::<_, Option<String>>(5)?,
+                    row.get::<_, Option<String>>(6)?,
+                    row.get::<_, Option<String>>(7)?,
+                ))
             },
         );
 
         match result {
-            Ok((id, name, zone_id, active)) => {
-                Ok(row_to_restaurant(&conn, &id, name, &zone_id, active))
+            Ok((id, name, zone_id, active, owner_id, description, address, phone)) => {
+                Ok(row_to_restaurant(&conn, &id, name, &zone_id, active, owner_id, description, address, phone))
             }
             Err(_) => Err(RepoError::NotFound),
         }
@@ -241,6 +261,8 @@ impl Repository for SqliteRepo {
         let id = RestaurantId::new();
         let id_str = id.to_string();
         let zone_str = req.zone_id.to_string();
+        let now = chrono::Utc::now().to_rfc3339();
+        let owner_id_str = req.owner_id.map(|o| o.to_string());
 
         conn.execute(
             "INSERT OR IGNORE INTO zones (id, name) VALUES (?1, ?2)",
@@ -249,8 +271,8 @@ impl Repository for SqliteRepo {
         .map_err(|e| RepoError::Internal(e.to_string()))?;
 
         conn.execute(
-            "INSERT INTO restaurants (id, name, zone_id, active) VALUES (?1, ?2, ?3, 1)",
-            params![id_str, req.name, zone_str],
+            "INSERT INTO restaurants (id, name, zone_id, active, owner_id, description, address, phone, created_at, updated_at) VALUES (?1, ?2, ?3, 1, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![id_str, req.name, zone_str, owner_id_str, req.description, req.address, req.phone, now, now],
         )
         .map_err(|e| RepoError::Internal(e.to_string()))?;
 
@@ -281,6 +303,10 @@ impl Repository for SqliteRepo {
             zone_id: req.zone_id,
             menu,
             active: true,
+            owner_id: req.owner_id,
+            description: req.description,
+            address: req.address,
+            phone: req.phone,
         })
     }
 
@@ -734,6 +760,249 @@ impl Repository for SqliteRepo {
         .map_err(|_| RepoError::NotFound)
     }
 
+    async fn update_restaurant(
+        &self,
+        id: RestaurantId,
+        req: UpdateRestaurantRequest,
+    ) -> Result<Restaurant, RepoError> {
+        {
+            let conn = self.conn.lock().await;
+            let id_str = id.to_string();
+            let now = chrono::Utc::now().to_rfc3339();
+
+            let mut sets = vec!["updated_at = ?".to_string()];
+            let mut values: Vec<String> = vec![now];
+
+            if let Some(ref name) = req.name {
+                sets.push("name = ?".to_string());
+                values.push(name.clone());
+            }
+            if let Some(ref desc) = req.description {
+                sets.push("description = ?".to_string());
+                values.push(desc.clone());
+            }
+            if let Some(ref addr) = req.address {
+                sets.push("address = ?".to_string());
+                values.push(addr.clone());
+            }
+            if let Some(ref phone) = req.phone {
+                sets.push("phone = ?".to_string());
+                values.push(phone.clone());
+            }
+
+            values.push(id_str);
+            let sql = format!("UPDATE restaurants SET {} WHERE id = ?", sets.join(", "));
+            let params_vec: Vec<&dyn rusqlite::types::ToSql> =
+                values.iter().map(|v| v as &dyn rusqlite::types::ToSql).collect();
+            let updated = conn
+                .execute(&sql, params_vec.as_slice())
+                .map_err(|e| RepoError::Internal(e.to_string()))?;
+
+            if updated == 0 {
+                return Err(RepoError::NotFound);
+            }
+        }
+        self.get_restaurant(id).await
+    }
+
+    async fn toggle_restaurant_active(
+        &self,
+        id: RestaurantId,
+        active: bool,
+    ) -> Result<Restaurant, RepoError> {
+        {
+            let conn = self.conn.lock().await;
+            let id_str = id.to_string();
+            let now = chrono::Utc::now().to_rfc3339();
+
+            let updated = conn
+                .execute(
+                    "UPDATE restaurants SET active = ?1, updated_at = ?2 WHERE id = ?3",
+                    params![active, now, id_str],
+                )
+                .map_err(|e| RepoError::Internal(e.to_string()))?;
+
+            if updated == 0 {
+                return Err(RepoError::NotFound);
+            }
+        }
+        self.get_restaurant(id).await
+    }
+
+    async fn list_restaurants_by_owner(
+        &self,
+        user_id: UserId,
+    ) -> Result<Vec<Restaurant>, RepoError> {
+        let conn = self.conn.lock().await;
+        let user_id_str = user_id.to_string();
+        let mut stmt = conn
+            .prepare("SELECT id, name, zone_id, active, owner_id, description, address, phone FROM restaurants WHERE owner_id = ?1")
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        let restaurants: Vec<Restaurant> = stmt
+            .query_map(params![user_id_str], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, bool>(3)?,
+                    row.get::<_, Option<String>>(4)?,
+                    row.get::<_, Option<String>>(5)?,
+                    row.get::<_, Option<String>>(6)?,
+                    row.get::<_, Option<String>>(7)?,
+                ))
+            })
+            .map_err(|e| RepoError::Internal(e.to_string()))?
+            .filter_map(|r| r.ok())
+            .map(|(id, name, zone_id, active, owner_id, desc, addr, phone)| {
+                row_to_restaurant(&conn, &id, name, &zone_id, active, owner_id, desc, addr, phone)
+            })
+            .collect();
+        Ok(restaurants)
+    }
+
+    async fn add_menu_item(
+        &self,
+        restaurant_id: RestaurantId,
+        req: CreateMenuItemRequest,
+    ) -> Result<MenuItem, RepoError> {
+        let conn = self.conn.lock().await;
+        let rid_str = restaurant_id.to_string();
+
+        let exists: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM restaurants WHERE id = ?1",
+                params![rid_str],
+                |r| r.get::<_, i64>(0),
+            )
+            .map(|c| c > 0)
+            .unwrap_or(false);
+        if !exists {
+            return Err(RepoError::NotFound);
+        }
+
+        let mid = MenuItemId::new();
+        let mid_str = mid.to_string();
+        let price_str = req.price.amount().to_string();
+
+        conn.execute(
+            "INSERT INTO menu_items (id, restaurant_id, name, price) VALUES (?1, ?2, ?3, ?4)",
+            params![mid_str, rid_str, req.name, price_str],
+        )
+        .map_err(|e| RepoError::Internal(e.to_string()))?;
+
+        Ok(MenuItem {
+            id: mid,
+            name: req.name,
+            price: req.price,
+            restaurant_id,
+        })
+    }
+
+    async fn update_menu_item(
+        &self,
+        id: MenuItemId,
+        req: UpdateMenuItemRequest,
+    ) -> Result<MenuItem, RepoError> {
+        let conn = self.conn.lock().await;
+        let id_str = id.to_string();
+
+        let mut sets = Vec::new();
+        let mut values: Vec<String> = Vec::new();
+
+        if let Some(ref name) = req.name {
+            sets.push("name = ?".to_string());
+            values.push(name.clone());
+        }
+        if let Some(ref price) = req.price {
+            sets.push("price = ?".to_string());
+            values.push(price.amount().to_string());
+        }
+
+        if !sets.is_empty() {
+            values.push(id_str.clone());
+            let sql = format!("UPDATE menu_items SET {} WHERE id = ?", sets.join(", "));
+            let params_vec: Vec<&dyn rusqlite::types::ToSql> =
+                values.iter().map(|v| v as &dyn rusqlite::types::ToSql).collect();
+            let updated = conn
+                .execute(&sql, params_vec.as_slice())
+                .map_err(|e| RepoError::Internal(e.to_string()))?;
+            if updated == 0 {
+                return Err(RepoError::NotFound);
+            }
+        }
+
+        conn.query_row(
+            "SELECT id, restaurant_id, name, price FROM menu_items WHERE id = ?1",
+            params![id_str],
+            |row| {
+                Ok(MenuItem {
+                    id: MenuItemId::from_uuid(
+                        uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
+                    ),
+                    restaurant_id: RestaurantId::from_uuid(
+                        uuid::Uuid::parse_str(&row.get::<_, String>(1)?).unwrap(),
+                    ),
+                    name: row.get(2)?,
+                    price: Money::from(row.get::<_, String>(3)?.as_str()),
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
+    async fn delete_menu_item(&self, id: MenuItemId) -> Result<(), RepoError> {
+        let conn = self.conn.lock().await;
+        let id_str = id.to_string();
+        let deleted = conn
+            .execute("DELETE FROM menu_items WHERE id = ?1", params![id_str])
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        if deleted == 0 {
+            return Err(RepoError::NotFound);
+        }
+        Ok(())
+    }
+
+    async fn update_user_role(
+        &self,
+        user_id: UserId,
+        role: UserRole,
+    ) -> Result<User, RepoError> {
+        let conn = self.conn.lock().await;
+        let id_str = user_id.to_string();
+        let updated = conn
+            .execute(
+                "UPDATE users SET role = ?1 WHERE id = ?2",
+                params![role.to_string(), id_str],
+            )
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        if updated == 0 {
+            return Err(RepoError::NotFound);
+        }
+
+        conn.query_row(
+            "SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE id = ?1",
+            params![id_str],
+            |row| {
+                Ok(User {
+                    id: UserId::from_uuid(
+                        uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
+                    ),
+                    supabase_user_id: row.get(1)?,
+                    email: row.get(2)?,
+                    name: row.get(3)?,
+                    role: row
+                        .get::<_, String>(4)?
+                        .parse::<UserRole>()
+                        .unwrap_or(UserRole::Customer),
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError> {
         let conn = self.conn.lock().await;
         conn.query_row(
@@ -943,6 +1212,10 @@ mod tests {
                 name: "Pad Thai".into(),
                 price: Money::from("12.99"),
             }],
+            owner_id: None,
+            description: None,
+            address: None,
+            phone: None,
         };
         let restaurant = repo.create_restaurant(req).await.unwrap();
         assert_eq!(restaurant.name, "Test Wok");

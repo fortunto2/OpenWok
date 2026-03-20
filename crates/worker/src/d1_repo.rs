@@ -32,6 +32,10 @@ struct RestaurantRow {
     name: String,
     zone_id: String,
     active: i64,
+    owner_id: Option<String>,
+    description: Option<String>,
+    address: Option<String>,
+    phone: Option<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -113,6 +117,12 @@ fn row_to_restaurant(row: RestaurantRow, menu_rows: Vec<MenuItemRow>) -> Restaur
             })
             .collect(),
         active: row.active != 0,
+        owner_id: row
+            .owner_id
+            .map(|o| UserId::from_uuid(parse_uuid(&o))),
+        description: row.description,
+        address: row.address,
+        phone: row.phone,
     }
 }
 
@@ -221,7 +231,7 @@ impl D1Repo {
     pub async fn list_restaurants(&self) -> Result<Vec<Restaurant>, RepoError> {
         let rows = self
             .db
-            .prepare("SELECT id, name, zone_id, active FROM restaurants WHERE active = 1")
+            .prepare("SELECT id, name, zone_id, active, owner_id, description, address, phone FROM restaurants WHERE active = 1")
             .all()
             .await
             .map_err(d1_err)?
@@ -250,7 +260,7 @@ impl D1Repo {
         let id_str = id.to_string();
         let row = self
             .db
-            .prepare("SELECT id, name, zone_id, active FROM restaurants WHERE id = ?1")
+            .prepare("SELECT id, name, zone_id, active, owner_id, description, address, phone FROM restaurants WHERE id = ?1")
             .bind(&[id_str.clone().into()])
             .map_err(d1_err)?
             .first::<RestaurantRow>(None)
@@ -279,6 +289,8 @@ impl D1Repo {
         let id = RestaurantId::new();
         let id_str = id.to_string();
         let zone_str = req.zone_id.to_string();
+        let now = chrono::Utc::now().to_rfc3339();
+        let owner_id_str = req.owner_id.map(|o| o.to_string());
 
         self.db
             .prepare("INSERT OR IGNORE INTO zones (id, name) VALUES (?1, ?2)")
@@ -292,11 +304,17 @@ impl D1Repo {
             .map_err(d1_err)?;
 
         self.db
-            .prepare("INSERT INTO restaurants (id, name, zone_id, active) VALUES (?1, ?2, ?3, 1)")
+            .prepare("INSERT INTO restaurants (id, name, zone_id, active, owner_id, description, address, phone, created_at, updated_at) VALUES (?1, ?2, ?3, 1, ?4, ?5, ?6, ?7, ?8, ?9)")
             .bind(&[
                 id_str.clone().into(),
                 req.name.clone().into(),
                 zone_str.into(),
+                owner_id_str.map_or(wasm_bindgen::JsValue::NULL, |s| s.into()),
+                req.description.clone().map_or(wasm_bindgen::JsValue::NULL, |s| s.into()),
+                req.address.clone().map_or(wasm_bindgen::JsValue::NULL, |s| s.into()),
+                req.phone.clone().map_or(wasm_bindgen::JsValue::NULL, |s| s.into()),
+                now.clone().into(),
+                now.into(),
             ])
             .map_err(d1_err)?
             .run()
@@ -334,6 +352,10 @@ impl D1Repo {
             zone_id: req.zone_id,
             menu,
             active: true,
+            owner_id: req.owner_id,
+            description: req.description,
+            address: req.address,
+            phone: req.phone,
         })
     }
 

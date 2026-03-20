@@ -55,6 +55,10 @@ pub async fn create<R: Repository>(
                 price: m.price,
             })
             .collect(),
+        owner_id: None,
+        description: None,
+        address: None,
+        phone: None,
     };
     match repo.create_restaurant(req).await {
         Ok(restaurant) => Ok((StatusCode::CREATED, Json(restaurant))),
