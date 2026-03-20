@@ -8,6 +8,7 @@ openwok-core = { path = "../core" }
 dioxus = { version = "0.6", features = ["fullstack", "router"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
+rust_decimal = { workspace = true }
 reqwest = { version = "0.12", features = ["json"], optional = true }
 tokio = { workspace = true, optional = true }
 
