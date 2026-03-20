@@ -28,11 +28,11 @@ Add ownership to DB schema, implement Repository methods, create management hand
 Port new Repository methods to D1Repo and add routes to Cloudflare Worker.
 
 ### Tasks
-- [ ] Task 2.1: Implement new methods in `crates/worker/src/d1_repo.rs` — same signatures as SqliteRepo: update_restaurant, toggle_active, list_by_owner, menu CRUD, update_user_role.
-- [ ] Task 2.2: Add worker routes in `crates/worker/src/lib.rs` — mirror all new handlers: PATCH restaurant, toggle active, menu CRUD, GET /my/restaurants. Apply auth guards (extract JWT, verify ownership).
+- [x] Task 2.1: Implement new methods in `crates/worker/src/d1_repo.rs` — same signatures as SqliteRepo: update_restaurant, toggle_active, list_by_owner, menu CRUD, update_user_role.
+- [x] Task 2.2: Add worker routes in `crates/worker/src/lib.rs` — mirror all new handlers: PATCH restaurant, toggle active, menu CRUD, GET /my/restaurants. Apply auth guards (extract JWT, verify ownership).
 
 ### Verification
-- [ ] `cargo check -p openwok-worker --target wasm32-unknown-unknown` — compiles
+- [x] `cargo check -p openwok-worker --target wasm32-unknown-unknown` — compiles
 - [ ] Manual test with `wrangler dev` — new endpoints respond correctly
 
 ## Phase 3: Frontend
