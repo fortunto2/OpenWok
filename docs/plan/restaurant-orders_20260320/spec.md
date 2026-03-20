@@ -13,17 +13,17 @@ This track adds: (1) a Repository method to list orders by restaurant, (2) a `GE
 
 ## Acceptance Criteria
 
-- [ ] `list_restaurant_orders(restaurant_id)` method in Repository trait returns orders for a given restaurant, ordered by `created_at DESC`
-- [ ] SqliteRepo implements `list_restaurant_orders` with proper SQL query joining orders by `restaurant_id`
-- [ ] `GET /api/my/orders` endpoint returns orders across all restaurants owned by the current user (auth required, blocked-user check via `get_active_user`)
-- [ ] Restaurant owner can transition order: Confirmed → Preparing (accept)
-- [ ] Restaurant owner can transition order: Preparing → ReadyForPickup (mark ready)
-- [ ] Restaurant owner can cancel order from Confirmed or Preparing status
-- [ ] RestaurantSettings page has an "Orders" tab showing incoming/active orders with action buttons
-- [ ] Orders tab auto-refreshes every 15 seconds to show new incoming orders
-- [ ] D1Repo (worker crate) implements matching `list_restaurant_orders` query
-- [ ] Integration tests for `list_restaurant_orders` (returns only orders for specified restaurant, ordered correctly)
-- [ ] Existing 106 tests still pass, `make check` clean
+- [x] `list_restaurant_orders(restaurant_id)` method in Repository trait returns orders for a given restaurant, ordered by `created_at DESC`
+- [x] SqliteRepo implements `list_restaurant_orders` with proper SQL query joining orders by `restaurant_id`
+- [x] `GET /api/my/orders` endpoint returns orders across all restaurants owned by the current user (auth required, blocked-user check via `get_active_user`)
+- [x] Restaurant owner can transition order: Confirmed → Preparing (accept)
+- [x] Restaurant owner can transition order: Preparing → ReadyForPickup (mark ready)
+- [x] Restaurant owner can cancel order from Confirmed or Preparing status
+- [x] RestaurantSettings page has an "Orders" tab showing incoming/active orders with action buttons
+- [x] Orders tab auto-refreshes every 15 seconds to show new incoming orders
+- [x] D1Repo (worker crate) implements matching `list_restaurant_orders` query
+- [x] Integration tests for `list_restaurant_orders` (returns only orders for specified restaurant, ordered correctly)
+- [x] Existing 106 tests still pass, `make check` clean
 
 ## Dependencies
 
