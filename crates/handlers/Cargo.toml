@@ -13,3 +13,4 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 utoipa = { workspace = true }
 utoipa-axum = { workspace = true }
+jsonwebtoken = { workspace = true }

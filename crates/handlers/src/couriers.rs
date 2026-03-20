@@ -3,6 +3,7 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use crate::restaurants::repo_error_to_status;
 use openwok_core::repo::{CreateCourierRequest, RepoError, Repository};
 use openwok_core::types::{Courier, CourierId, OrderId, ZoneId};
 use serde::Deserialize;
@@ -28,13 +29,15 @@ pub async fn list<R: Repository>(State(repo): State<Arc<R>>) -> Json<Vec<Courier
 pub async fn create<R: Repository>(
     State(repo): State<Arc<R>>,
     Json(body): Json<CreateCourier>,
-) -> (StatusCode, Json<Courier>) {
+) -> Result<(StatusCode, Json<Courier>), (StatusCode, String)> {
     let req = CreateCourierRequest {
         name: body.name,
         zone_id: body.zone_id,
     };
-    let courier = repo.create_courier(req).await.unwrap();
-    (StatusCode::CREATED, Json(courier))
+    match repo.create_courier(req).await {
+        Ok(courier) => Ok((StatusCode::CREATED, Json(courier))),
+        Err(e) => Err((repo_error_to_status(&e), e.to_string())),
+    }
 }
 
 #[utoipa::path(patch, path = "/couriers/{id}/available", tag = "couriers")]

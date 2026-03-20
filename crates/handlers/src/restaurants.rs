@@ -43,7 +43,7 @@ pub async fn get<R: Repository>(
 pub async fn create<R: Repository>(
     State(repo): State<Arc<R>>,
     Json(body): Json<CreateRestaurant>,
-) -> (StatusCode, Json<Restaurant>) {
+) -> Result<(StatusCode, Json<Restaurant>), (StatusCode, String)> {
     let req = CreateRestaurantRequest {
         name: body.name,
         zone_id: body.zone_id,
@@ -56,8 +56,10 @@ pub async fn create<R: Repository>(
             })
             .collect(),
     };
-    let restaurant = repo.create_restaurant(req).await.unwrap();
-    (StatusCode::CREATED, Json(restaurant))
+    match repo.create_restaurant(req).await {
+        Ok(restaurant) => Ok((StatusCode::CREATED, Json(restaurant))),
+        Err(e) => Err((repo_error_to_status(&e), e.to_string())),
+    }
 }
 
 pub(crate) fn repo_error_to_status(e: &RepoError) -> StatusCode {

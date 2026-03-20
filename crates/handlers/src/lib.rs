@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod couriers;
 pub mod economics;
 pub mod metrics;
