@@ -15,8 +15,8 @@ Define the data access abstraction in core. TDD: write trait + error types, add 
 
 ### Tasks
 
-- [ ] Task 1.1: Create `crates/core/src/repo.rs` — define `Repository` trait with `#[async_trait]` and `RepoError` enum. Methods: `list_restaurants`, `get_restaurant`, `create_restaurant`, `list_orders`, `get_order`, `create_order`, `update_order_status`, `assign_courier`, `list_couriers`, `create_courier`, `toggle_courier_available`, `get_economics`, `get_metrics`. Export from `crates/core/src/lib.rs`. Add `async-trait` to workspace deps.
-- [ ] Task 1.2: Add `RepoError` variants: `NotFound`, `InvalidTransition`, `Conflict`, `Internal(String)`. Derive `Debug`, impl `Display` + `std::error::Error` via `thiserror`.
+- [x] Task 1.1: Create `crates/core/src/repo.rs` — define `Repository` trait with `#[async_trait]` and `RepoError` enum. Methods: `list_restaurants`, `get_restaurant`, `create_restaurant`, `list_orders`, `get_order`, `create_order`, `update_order_status`, `assign_courier`, `list_couriers`, `create_courier`, `toggle_courier_available`, `get_economics`, `get_metrics`. Export from `crates/core/src/lib.rs`. Add `async-trait` to workspace deps.
+- [x] Task 1.2: Add `RepoError` variants: `NotFound`, `InvalidTransition`, `Conflict`, `Internal(String)`. Derive `Debug`, impl `Display` + `std::error::Error` via `thiserror`.
 
 ### Verification
 
