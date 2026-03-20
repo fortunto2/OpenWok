@@ -72,7 +72,14 @@ crates/
   core/              — openwok-core: domain types, pricing, order state machine, Repository trait
   handlers/          — openwok-handlers: shared axum route handlers generic over Repository
   api/               — openwok-api: axum REST server with SqliteRepo + WebSocket + Stripe payments
-  frontend/          — openwok-frontend: Dioxus web SPA (10 pages: auth, checkout, tracking + operator)
+  frontend/          — openwok-frontend: Dioxus web SPA (14 routes, modular)
+    src/
+      main.rs          — mod declarations + fn main (~10 lines)
+      app.rs           — Route enum, App, Layout
+      state.rs         — UserState, CartState, JWT helpers
+      analytics.rs     — PostHog capture helpers
+      api.rs           — API client, data fetchers, helpers
+      pages/           — 8 page modules (home, auth, restaurants, checkout, order, economics, operator, owner, courier)
   worker/            — openwok-worker: Cloudflare Worker with D1Repo (standalone workspace)
   stripe-universal/  — stripe-universal: typed Stripe client (reqwest native + worker::Fetch wasm32)
 migrations/          — D1-compatible SQL migrations (shared with rusqlite)
@@ -99,6 +106,7 @@ make test                       # Run all tests
 make clippy                     # Lint
 make fmt                        # Check formatting
 make check                      # test + clippy + fmt
+make setup-hooks                # Configure pre-commit hooks (fmt + clippy)
 ```
 
 ## Development Workflow
