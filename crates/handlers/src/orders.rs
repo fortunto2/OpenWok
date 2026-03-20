@@ -3,9 +3,11 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use openwok_core::dispatch::OrderEvent;
 use openwok_core::money::Money;
 use openwok_core::order::{Order, OrderStatus};
 use openwok_core::repo::{CreateOrderItemRequest, CreateOrderRequest, Repository};
+use tokio::sync::broadcast;
 
 use crate::auth::AuthUser;
 use crate::restaurants::repo_error_to_status;
@@ -86,11 +88,22 @@ pub async fn get<R: Repository>(
 pub async fn transition<R: Repository>(
     _auth: AuthUser,
     State(repo): State<Arc<R>>,
+    tx: Option<axum::Extension<broadcast::Sender<OrderEvent>>>,
     Path(id): Path<OrderId>,
     Json(body): Json<TransitionStatus>,
 ) -> Result<Json<Order>, (StatusCode, String)> {
-    repo.update_order_status(id, body.status)
+    let order = repo
+        .update_order_status(id, body.status)
         .await
-        .map(Json)
-        .map_err(|e| (repo_error_to_status(&e), e.to_string()))
+        .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
+
+    // Broadcast order event via WebSocket channel
+    if let Some(axum::Extension(sender)) = tx {
+        let _ = sender.send(OrderEvent {
+            order_id: order.id.to_string(),
+            status: format!("{:?}", order.status),
+        });
+    }
+
+    Ok(Json(order))
 }

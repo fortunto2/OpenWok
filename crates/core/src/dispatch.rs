@@ -1,5 +1,13 @@
 use crate::repo::{AssignCourierResult, RepoError, Repository};
 use crate::types::OrderId;
+use serde::Serialize;
+
+/// Event broadcast on order status changes and courier assignments.
+#[derive(Clone, Debug, Serialize)]
+pub struct OrderEvent {
+    pub order_id: String,
+    pub status: String,
+}
 
 /// Auto-dispatch: assign an available courier in the order's zone.
 /// Returns None if no courier available (order stays at ReadyForPickup).

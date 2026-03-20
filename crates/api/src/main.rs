@@ -63,17 +63,21 @@ pub fn app(state: AppState) -> Router {
         .route("/webhooks/stripe", post(payments::stripe_webhook))
         .with_state(state.clone());
 
+    // Grab broadcast sender before state is moved
+    let order_events_tx = state.order_events.clone();
+
     // WS route uses full AppState (needs broadcast channel)
     let ws_route = Router::new()
         .route("/ws/orders/{id}", any(ws::order_updates))
         .with_state(state);
 
-    // JwtConfig extension applied to all API routes (used by AuthUser extractor)
+    // Extensions: JwtConfig (for auth) + broadcast sender (for WebSocket events)
     let api = Router::new()
         .merge(payment_routes) // Payment routes override generic order create
         .merge(api_handlers)
         .merge(ws_route)
-        .layer(axum::Extension(jwt_config));
+        .layer(axum::Extension(jwt_config))
+        .layer(axum::Extension(order_events_tx));
 
     let cors = CorsLayer::new()
         .allow_origin(Any)

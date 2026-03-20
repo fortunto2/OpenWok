@@ -1,16 +1,10 @@
 use std::sync::Arc;
 
-use serde::Serialize;
 use stripe_universal::StripeClient;
 use tokio::sync::broadcast;
 
 use crate::sqlite_repo::SqliteRepo;
-
-#[derive(Clone, Debug, Serialize)]
-pub struct OrderEvent {
-    pub order_id: String,
-    pub status: String,
-}
+pub use openwok_core::dispatch::OrderEvent;
 
 /// Combined state: shared SqliteRepo (for handlers crate) + broadcast channel (for WS).
 #[derive(Clone)]
@@ -44,5 +38,12 @@ impl AppState {
 impl axum::extract::FromRef<AppState> for Arc<SqliteRepo> {
     fn from_ref(state: &AppState) -> Self {
         state.repo.clone()
+    }
+}
+
+/// Allows handlers crate to extract the broadcast sender from AppState.
+impl axum::extract::FromRef<AppState> for broadcast::Sender<OrderEvent> {
+    fn from_ref(state: &AppState) -> Self {
+        state.order_events.clone()
     }
 }

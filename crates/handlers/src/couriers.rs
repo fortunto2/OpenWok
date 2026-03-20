@@ -5,9 +5,11 @@ use crate::restaurants::repo_error_to_status;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use openwok_core::dispatch::OrderEvent;
 use openwok_core::repo::{CreateCourierRequest, RepoError, Repository};
 use openwok_core::types::{Courier, CourierId, OrderId, ZoneId};
 use serde::Deserialize;
+use tokio::sync::broadcast;
 use utoipa::ToSchema;
 
 #[derive(Deserialize, ToSchema)]
@@ -60,6 +62,7 @@ pub async fn toggle_available<R: Repository>(
 pub async fn assign_to_order<R: Repository>(
     _auth: AuthUser,
     State(repo): State<Arc<R>>,
+    tx: Option<axum::Extension<broadcast::Sender<OrderEvent>>>,
     Path(order_id): Path<OrderId>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     let result = repo.assign_courier(order_id).await.map_err(|e| {
@@ -70,6 +73,14 @@ pub async fn assign_to_order<R: Repository>(
         };
         (status, e.to_string())
     })?;
+
+    // Broadcast courier assignment event
+    if let Some(axum::Extension(sender)) = tx {
+        let _ = sender.send(OrderEvent {
+            order_id: result.order_id.clone(),
+            status: "CourierAssigned".into(),
+        });
+    }
 
     Ok(Json(serde_json::json!({
         "order_id": result.order_id,
