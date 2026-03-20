@@ -1057,6 +1057,43 @@ impl Repository for SqliteRepo {
         .map_err(|_| RepoError::NotFound)
     }
 
+    async fn get_courier_by_user_id(&self, user_id: &str) -> Result<Courier, RepoError> {
+        let conn = self.conn.lock().await;
+        conn.query_row(
+            "SELECT id, name, kind, zone_id, available, user_id FROM couriers WHERE user_id = ?1",
+            params![user_id],
+            |row| {
+                Ok(row_to_courier(
+                    &row.get::<_, String>(0)?,
+                    row.get(1)?,
+                    &row.get::<_, String>(2)?,
+                    &row.get::<_, String>(3)?,
+                    row.get(4)?,
+                    row.get(5)?,
+                ))
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
+    async fn list_courier_orders(&self, courier_id: CourierId) -> Result<Vec<Order>, RepoError> {
+        let conn = self.conn.lock().await;
+        let cid = courier_id.to_string();
+        let mut stmt = conn
+            .prepare("SELECT id FROM orders WHERE courier_id = ?1 ORDER BY created_at DESC")
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        let order_ids: Vec<String> = stmt
+            .query_map(params![cid], |row| row.get(0))
+            .map_err(|e| RepoError::Internal(e.to_string()))?
+            .filter_map(|r| r.ok())
+            .collect();
+        let orders: Vec<Order> = order_ids
+            .iter()
+            .filter_map(|id| load_order(&conn, id))
+            .collect();
+        Ok(orders)
+    }
+
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError> {
         let conn = self.conn.lock().await;
         conn.query_row(
