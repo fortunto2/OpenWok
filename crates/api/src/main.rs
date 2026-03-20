@@ -243,7 +243,15 @@ mod tests {
         let order_id = order["id"].as_str().unwrap();
         assert_eq!(order["status"].as_str().unwrap(), "Created");
 
-        // 3. Create courier in same zone (auth required)
+        // 3. Register user via auth callback (creates user record)
+        let _auth_resp = client
+            .post(format!("{base}/auth/callback"))
+            .json(&serde_json::json!({ "access_token": token }))
+            .send()
+            .await
+            .unwrap();
+
+        // 4. Create courier in same zone (auth required, needs user record)
         let courier_resp = client
             .post(format!("{base}/couriers"))
             .header("authorization", &auth_header)
@@ -253,7 +261,7 @@ mod tests {
             .unwrap();
         assert_eq!(courier_resp.status(), 201);
 
-        // 4. Confirm order (auth required)
+        // 5. Confirm order (auth required)
         let resp = client
             .patch(format!("{base}/orders/{order_id}/status"))
             .header("authorization", &auth_header)
@@ -263,7 +271,7 @@ mod tests {
             .unwrap();
         assert_eq!(resp.status(), 200);
 
-        // 5. Assign courier (auth required)
+        // 6. Assign courier (auth required)
         let resp = client
             .post(format!("{base}/orders/{order_id}/assign"))
             .header("authorization", &auth_header)
@@ -272,7 +280,7 @@ mod tests {
             .unwrap();
         assert_eq!(resp.status(), 200);
 
-        // 6. Transition through remaining states (auth required)
+        // 7. Transition through remaining states (auth required)
         for status in ["Preparing", "ReadyForPickup", "InDelivery", "Delivered"] {
             let resp = client
                 .patch(format!("{base}/orders/{order_id}/status"))
@@ -284,7 +292,7 @@ mod tests {
             assert_eq!(resp.status(), 200, "failed to transition to {status}");
         }
 
-        // 7. Verify final state (GET is public)
+        // 8. Verify final state (GET is public)
         let final_order: serde_json::Value = client
             .get(format!("{base}/orders/{order_id}"))
             .send()

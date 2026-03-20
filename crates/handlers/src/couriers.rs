@@ -6,8 +6,9 @@ use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use openwok_core::dispatch::OrderEvent;
+use openwok_core::order::Order;
 use openwok_core::repo::{CreateCourierRequest, RepoError, Repository};
-use openwok_core::types::{Courier, CourierId, OrderId, ZoneId};
+use openwok_core::types::{Courier, CourierId, OrderId, UserRole, ZoneId};
 use serde::Deserialize;
 use tokio::sync::broadcast;
 use utoipa::ToSchema;
@@ -30,19 +31,30 @@ pub async fn list<R: Repository>(State(repo): State<Arc<R>>) -> Json<Vec<Courier
 
 #[utoipa::path(post, path = "/couriers", tag = "couriers")]
 pub async fn create<R: Repository>(
-    _auth: AuthUser,
+    auth: AuthUser,
     State(repo): State<Arc<R>>,
     Json(body): Json<CreateCourier>,
 ) -> Result<(StatusCode, Json<Courier>), (StatusCode, String)> {
+    // Look up internal user to link courier
+    let user = repo
+        .get_user_by_supabase_id(&auth.supabase_user_id)
+        .await
+        .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
+
     let req = CreateCourierRequest {
         name: body.name,
         zone_id: body.zone_id,
-        user_id: None,
+        user_id: Some(user.id.to_string()),
     };
-    match repo.create_courier(req).await {
-        Ok(courier) => Ok((StatusCode::CREATED, Json(courier))),
-        Err(e) => Err((repo_error_to_status(&e), e.to_string())),
-    }
+    let courier = repo
+        .create_courier(req)
+        .await
+        .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
+
+    // Auto-promote user role to Courier
+    let _ = repo.update_user_role(user.id, UserRole::Courier).await;
+
+    Ok((StatusCode::CREATED, Json(courier)))
 }
 
 #[utoipa::path(patch, path = "/couriers/{id}/available", tag = "couriers")]
@@ -86,4 +98,43 @@ pub async fn assign_to_order<R: Repository>(
         "order_id": result.order_id,
         "courier_id": result.courier_id,
     })))
+}
+
+/// GET /api/couriers/me — get current user's courier profile
+#[utoipa::path(get, path = "/couriers/me", tag = "couriers")]
+pub async fn me<R: Repository>(
+    auth: AuthUser,
+    State(repo): State<Arc<R>>,
+) -> Result<Json<Courier>, (StatusCode, String)> {
+    let user = repo
+        .get_user_by_supabase_id(&auth.supabase_user_id)
+        .await
+        .map_err(|_| (StatusCode::NOT_FOUND, "user not found".into()))?;
+
+    repo.get_courier_by_user_id(&user.id.to_string())
+        .await
+        .map(Json)
+        .map_err(|_| (StatusCode::NOT_FOUND, "not registered as courier".into()))
+}
+
+/// GET /api/my/deliveries — list orders assigned to current courier
+#[utoipa::path(get, path = "/my/deliveries", tag = "couriers")]
+pub async fn my_deliveries<R: Repository>(
+    auth: AuthUser,
+    State(repo): State<Arc<R>>,
+) -> Result<Json<Vec<Order>>, (StatusCode, String)> {
+    let user = repo
+        .get_user_by_supabase_id(&auth.supabase_user_id)
+        .await
+        .map_err(|_| (StatusCode::NOT_FOUND, "user not found".into()))?;
+
+    let courier = repo
+        .get_courier_by_user_id(&user.id.to_string())
+        .await
+        .map_err(|_| (StatusCode::NOT_FOUND, "not registered as courier".into()))?;
+
+    repo.list_courier_orders(courier.id)
+        .await
+        .map(Json)
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
