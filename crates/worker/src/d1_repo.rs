@@ -663,6 +663,32 @@ impl D1Repo {
         Ok(row_to_courier(row))
     }
 
+    pub async fn list_restaurant_orders(
+        &self,
+        restaurant_id: RestaurantId,
+    ) -> Result<Vec<Order>, RepoError> {
+        let rid = restaurant_id.to_string();
+        let rows = self
+            .db
+            .prepare("SELECT id FROM orders WHERE restaurant_id = ?1 ORDER BY created_at DESC")
+            .bind(&[rid.into()])
+            .map_err(d1_err)?
+            .all()
+            .await
+            .map_err(d1_err)?
+            .results::<serde_json::Value>()
+            .map_err(d1_err)?;
+
+        let mut orders = Vec::new();
+        for row in rows {
+            let oid = row["id"].as_str().unwrap_or_default().to_string();
+            if let Some(order) = load_order_d1(&self.db, &oid).await? {
+                orders.push(order);
+            }
+        }
+        Ok(orders)
+    }
+
     pub async fn get_economics(&self) -> Result<PublicEconomics, RepoError> {
         let row = self
             .db

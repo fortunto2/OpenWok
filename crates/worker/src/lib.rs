@@ -461,6 +461,30 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                 Err(e) => repo_err_to_response(e),
             }
         })
+        .get_async("/api/my/orders", |req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            let user = match require_active_user(&repo, &sub).await {
+                Ok(u) => u,
+                Err(resp) => return resp,
+            };
+            let restaurants = match repo.list_restaurants_by_owner(user.id).await {
+                Ok(r) => r,
+                Err(e) => return repo_err_to_response(e),
+            };
+            let mut all_orders = Vec::new();
+            for restaurant in &restaurants {
+                match repo.list_restaurant_orders(restaurant.id).await {
+                    Ok(orders) => all_orders.extend(orders),
+                    Err(e) => return repo_err_to_response(e),
+                }
+            }
+            all_orders.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+            json_ok(&all_orders, 200)
+        })
         // Orders
         .get_async("/api/orders", |_, ctx| async move {
             let repo = D1Repo::new(ctx.env.d1("DB")?);
