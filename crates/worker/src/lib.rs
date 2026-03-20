@@ -104,6 +104,13 @@ fn repo_err_to_response(e: openwok_core::repo::RepoError) -> Result<Response> {
 
 #[event(fetch, respond_with_errors)]
 pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
+    // Non-API routes → serve from static assets (SPA fallback via not_found_handling)
+    let path = req.url()?.path().to_string();
+    if !path.starts_with("/api/") {
+        let assets = env.assets("ASSETS")?;
+        return assets.fetch_request(req).await;
+    }
+
     let router = Router::new();
 
     router
