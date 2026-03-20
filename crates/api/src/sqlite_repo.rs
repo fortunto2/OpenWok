@@ -923,6 +923,26 @@ impl Repository for SqliteRepo {
         })
     }
 
+    async fn get_menu_item(&self, id: MenuItemId) -> Result<MenuItem, RepoError> {
+        let conn = self.conn.lock().await;
+        let id_str = id.to_string();
+        conn.query_row(
+            "SELECT id, name, price, restaurant_id FROM menu_items WHERE id = ?1",
+            params![id_str],
+            |row| {
+                let price_str: String = row.get(2)?;
+                let rid: String = row.get(3)?;
+                Ok(MenuItem {
+                    id: MenuItemId::from_uuid(row.get::<_, String>(0)?.parse().unwrap_or_default()),
+                    name: row.get(1)?,
+                    price: Money::from(price_str.as_str()),
+                    restaurant_id: RestaurantId::from_uuid(rid.parse().unwrap_or_default()),
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
     async fn update_menu_item(
         &self,
         id: MenuItemId,

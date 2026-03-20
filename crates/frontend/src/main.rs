@@ -1468,7 +1468,7 @@ fn OnboardRestaurant() -> Element {
                     let a = address.read().clone();
                     let p = phone.read().clone();
                     let z = zone_id.read().clone();
-                    let nav = nav.clone();
+                    let nav = nav;
                     submitting.set(true);
                     error.set(None);
                     spawn(async move {
@@ -1596,14 +1596,14 @@ fn RestaurantSettings(id: String) -> Element {
     let mut adding_item = use_signal(|| false);
 
     // Initialize form values from loaded restaurant
-    if let Some(Some(ref r)) = *restaurant.read() {
-        if !*initialized.read() {
-            name.set(r.name.clone());
-            description.set(r.description.clone().unwrap_or_default());
-            address.set(r.address.clone().unwrap_or_default());
-            phone.set(r.phone.clone().unwrap_or_default());
-            initialized.set(true);
-        }
+    if let Some(Some(ref r)) = *restaurant.read()
+        && !*initialized.read()
+    {
+        name.set(r.name.clone());
+        description.set(r.description.clone().unwrap_or_default());
+        address.set(r.address.clone().unwrap_or_default());
+        phone.set(r.phone.clone().unwrap_or_default());
+        initialized.set(true);
     }
 
     rsx! {

@@ -177,6 +177,7 @@ pub trait Repository: Send + Sync + 'static {
         restaurant_id: RestaurantId,
         req: CreateMenuItemRequest,
     ) -> Result<crate::types::MenuItem, RepoError>;
+    async fn get_menu_item(&self, id: MenuItemId) -> Result<crate::types::MenuItem, RepoError>;
     async fn update_menu_item(
         &self,
         id: MenuItemId,

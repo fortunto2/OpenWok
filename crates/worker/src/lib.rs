@@ -377,18 +377,19 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let body: UpdateMenuItemReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
 
-            let item = repo.update_menu_item(id, UpdateMenuItemRequest {
-                name: body.name,
-                price: body.price.map(|p| Money::from(p.as_str())),
-            }).await.map_err(|e| Error::RustError(e.to_string()))?;
-
-            // Verify ownership
+            // Verify ownership BEFORE modifying
+            let current = repo.get_menu_item(id).await.map_err(|e| Error::RustError(e.to_string()))?;
             let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
-            let restaurant = repo.get_restaurant(item.restaurant_id).await.map_err(|e| Error::RustError(e.to_string()))?;
+            let restaurant = repo.get_restaurant(current.restaurant_id).await.map_err(|e| Error::RustError(e.to_string()))?;
             match restaurant.owner_id {
                 Some(oid) if oid == user.id => {}
                 _ => return Response::error("not the owner", 403),
             }
+
+            let item = repo.update_menu_item(id, UpdateMenuItemRequest {
+                name: body.name,
+                price: body.price.map(|p| Money::from(p.as_str())),
+            }).await.map_err(|e| Error::RustError(e.to_string()))?;
 
             json_ok(&item, 200)
         })
@@ -401,9 +402,8 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             let id = MenuItemId::from_uuid(parse_uuid(&id_str));
             let repo = D1Repo::new(ctx.env.d1("DB")?);
 
-            // Get item to verify ownership
-            let item = repo.update_menu_item(id, UpdateMenuItemRequest { name: None, price: None })
-                .await.map_err(|e| Error::RustError(e.to_string()))?;
+            // Verify ownership BEFORE deleting
+            let item = repo.get_menu_item(id).await.map_err(|e| Error::RustError(e.to_string()))?;
             let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
             let restaurant = repo.get_restaurant(item.restaurant_id).await.map_err(|e| Error::RustError(e.to_string()))?;
             match restaurant.owner_id {

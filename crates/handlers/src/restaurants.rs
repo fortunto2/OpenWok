@@ -217,34 +217,23 @@ pub async fn update_menu_item<R: Repository>(
     Path(id): Path<MenuItemId>,
     Json(body): Json<UpdateMenuItem>,
 ) -> Result<Json<openwok_core::types::MenuItem>, (StatusCode, String)> {
-    // Get the menu item to find its restaurant, then verify ownership
+    // Look up menu item to find its restaurant, then verify ownership BEFORE modifying
     let current = repo
-        .get_restaurant(
-            // We need to find which restaurant this menu item belongs to.
-            // For now, do a lightweight check: update will fail if not found.
-            // We'll verify ownership via the restaurant after looking it up.
-            RestaurantId::from_uuid(uuid::Uuid::nil()), // placeholder
-        )
-        .await;
-    // Instead of the above, let's just try the update and verify ownership differently.
-    // Since menu_items have restaurant_id, we need to query it first.
-    // For simplicity: attempt update, then check ownership via the returned item.
-    drop(current);
+        .get_menu_item(id)
+        .await
+        .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
+
+    verify_ownership(&*repo, &auth, current.restaurant_id).await?;
 
     let req = UpdateMenuItemRequest {
         name: body.name,
         price: body.price,
     };
 
-    // First, get the current item to find its restaurant
-    // We'll use the update directly — if it fails, it's NotFound
     let item = repo
         .update_menu_item(id, req)
         .await
         .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
-
-    // Verify ownership after getting the item
-    verify_ownership(&*repo, &auth, item.restaurant_id).await?;
 
     Ok(Json(item))
 }
@@ -256,18 +245,9 @@ pub async fn delete_menu_item<R: Repository>(
     State(repo): State<Arc<R>>,
     Path(id): Path<MenuItemId>,
 ) -> Result<StatusCode, (StatusCode, String)> {
-    // We need to verify ownership before deleting.
-    // Get the menu item's restaurant_id first by trying to read it.
-    // Since we don't have a get_menu_item method, we'll use update with no changes
-    // to read it, or add a helper. For now, use update_menu_item with empty update.
+    // Look up menu item to verify ownership BEFORE deleting
     let item = repo
-        .update_menu_item(
-            id,
-            UpdateMenuItemRequest {
-                name: None,
-                price: None,
-            },
-        )
+        .get_menu_item(id)
         .await
         .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
 

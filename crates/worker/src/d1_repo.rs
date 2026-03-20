@@ -1155,6 +1155,28 @@ impl D1Repo {
         })
     }
 
+    pub async fn get_menu_item(&self, id: MenuItemId) -> Result<MenuItem, RepoError> {
+        let id_str = id.to_string();
+        let row = self
+            .db
+            .prepare("SELECT id, restaurant_id, name, price FROM menu_items WHERE id = ?1")
+            .bind(&[id_str.into()])
+            .map_err(d1_err)?
+            .first::<serde_json::Value>(None)
+            .await
+            .map_err(d1_err)?
+            .ok_or(RepoError::NotFound)?;
+
+        Ok(MenuItem {
+            id: MenuItemId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+            restaurant_id: RestaurantId::from_uuid(parse_uuid(
+                row["restaurant_id"].as_str().unwrap_or_default(),
+            )),
+            name: row["name"].as_str().unwrap_or_default().to_string(),
+            price: Money::from(row["price"].as_str().unwrap_or("0")),
+        })
+    }
+
     pub async fn update_menu_item(
         &self,
         id: MenuItemId,
