@@ -22,21 +22,21 @@ Backend foundation: link couriers to users, auto-dispatch on ReadyForPickup, fir
 - [x] Task 1.7: Wire auto-dispatch <!-- sha:83b5e9b --> into order status transition — in `crates/handlers/src/orders.rs::transition`, after successful transition to `ReadyForPickup`, call `auto_dispatch()`. If courier assigned, broadcast two events (CourierAssigned + status InDelivery)
 
 ### Verification
-- [ ] `cargo test` — all existing 98 tests pass + new dispatch tests
-- [ ] `make clippy` — zero warnings
+- [x] `cargo test` — all existing 98 tests pass + new dispatch tests
+- [x] `make clippy` — zero warnings
 - [ ] Manual test: create order → transition to ReadyForPickup → courier auto-assigned → WebSocket receives events
 
 ## Phase 2: Courier API Endpoints + Frontend Pages
 Courier-facing endpoints and Dioxus pages for registration + delivery dashboard.
 
 ### Tasks
-- [ ] Task 2.1: Add courier API endpoints in `crates/handlers/src/couriers.rs` — `GET /couriers/me` (get courier profile by auth user_id), `GET /my/deliveries` (list orders assigned to current courier). Both require `AuthUser` extractor
-- [ ] Task 2.2: Register routes in `crates/handlers/src/lib.rs` and `crates/api/src/main.rs` — add `/api/couriers/me` and `/api/my/deliveries` to router
-- [ ] Task 2.3: Add courier registration page in `crates/frontend/src/main.rs` — route `/register-courier`, form with name + zone dropdown (fetch zones from existing zone data). POST to `/api/couriers` with user_id from auth. Redirect to `/my-deliveries` on success
-- [ ] Task 2.4: Add courier dashboard page in `crates/frontend/src/main.rs` — route `/my-deliveries`, shows active delivery (order details, restaurant, address, status badge) + delivery history list. "Mark Delivered" button calls `PATCH /orders/{id}/status` with `Delivered`. Connect to WebSocket for real-time status updates
+- [x] Task 2.1: Add courier API endpoints <!-- sha:b3699e2 --> in `crates/handlers/src/couriers.rs` — `GET /couriers/me` (get courier profile by auth user_id), `GET /my/deliveries` (list orders assigned to current courier). Both require `AuthUser` extractor
+- [x] Task 2.2: Register routes <!-- sha:b3699e2 --> in `crates/handlers/src/lib.rs` and `crates/api/src/main.rs` — add `/api/couriers/me` and `/api/my/deliveries` to router
+- [x] Task 2.3: Add courier registration page <!-- sha:544358a --> in `crates/frontend/src/main.rs` — route `/register-courier`, form with name + zone dropdown (fetch zones from existing zone data). POST to `/api/couriers` with user_id from auth. Redirect to `/my-deliveries` on success
+- [x] Task 2.4: Add courier dashboard page <!-- sha:544358a --> in `crates/frontend/src/main.rs` — route `/my-deliveries`, shows active delivery (order details, restaurant, address, status badge) + delivery history list. "Mark Delivered" button calls `PATCH /orders/{id}/status` with `Delivered`. Connect to WebSocket for real-time status updates
 
 ### Verification
-- [ ] `cargo test` — all tests pass
+- [x] `cargo test` — all tests pass
 - [ ] `dx serve` — new pages render without console errors
 - [ ] Manual flow: register as courier → receive auto-dispatched order → mark delivered from dashboard
 
