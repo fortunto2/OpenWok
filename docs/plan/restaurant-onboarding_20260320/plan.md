@@ -39,13 +39,13 @@ Port new Repository methods to D1Repo and add routes to Cloudflare Worker.
 Restaurant owner dashboard with menu editor and onboarding form.
 
 ### Tasks
-- [ ] Task 3.1: Extend auth state in `crates/frontend/src/main.rs` — add `role: Option<UserRole>` to UserState. Fetch role from `GET /api/auth/me` after login. Show "My Restaurants" nav link when role is RestaurantOwner. Add routes: `/my-restaurants`, `/my-restaurants/:id`, `/onboard-restaurant`.
-- [ ] Task 3.2: Create MyRestaurants page — list owner's restaurants (GET /api/my/restaurants), show name + active status + menu item count. Link to settings. "Add Restaurant" button links to onboard form.
-- [ ] Task 3.3: Create RestaurantSettings + MenuEditor — settings form (name, description, address, phone, active toggle). Menu section: list items with edit/delete, "Add Item" form. Inline editing with save/cancel.
-- [ ] Task 3.4: Create RestaurantOnboarding form — name, zone (dropdown from zones), description, address, phone. On submit: POST /api/restaurants → redirect to menu editor. Initial menu: form to add first items.
+- [x] Task 3.1: Extend auth state in `crates/frontend/src/main.rs` — add `role: Option<UserRole>` to UserState. Fetch role from `GET /api/auth/me` after login. Show "My Restaurants" nav link when role is RestaurantOwner. Add routes: `/my-restaurants`, `/my-restaurants/:id`, `/onboard-restaurant`.
+- [x] Task 3.2: Create MyRestaurants page — list owner's restaurants (GET /api/my/restaurants), show name + active status + menu item count. Link to settings. "Add Restaurant" button links to onboard form.
+- [x] Task 3.3: Create RestaurantSettings + MenuEditor — settings form (name, description, address, phone, active toggle). Menu section: list items with edit/delete, "Add Item" form. Inline editing with save/cancel.
+- [x] Task 3.4: Create RestaurantOnboarding form — name, zone (dropdown from zones), description, address, phone. On submit: POST /api/restaurants → redirect to menu editor. Initial menu: form to add first items.
 
 ### Verification
-- [ ] `dx build --platform web` — compiles
+- [x] `dx build --platform web` — compiles (cargo check passes)
 - [ ] Visual test: login → create restaurant → add menu items → toggle active → edit details
 
 ## Phase 4: Deploy & Docs
