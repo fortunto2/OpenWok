@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
+use gloo_net::http::Request;
 use openwok_core::money::Money;
 use openwok_core::pricing::calculate_pricing;
 use openwok_core::types::Restaurant;
@@ -80,41 +81,106 @@ fn Home() -> Element {
     }
 }
 
-// --- Server functions ---
+// --- API helpers ---
 
-const API_BASE: &str = "http://localhost:3000";
+const API_BASE: &str = "/api";
 
-#[server]
-async fn fetch_restaurants() -> Result<Vec<Restaurant>, ServerFnError> {
-    let resp = reqwest::get(format!("{API_BASE}/restaurants")).await?;
-    let data: Vec<Restaurant> = resp.json().await?;
-    Ok(data)
-}
-
-#[server]
-async fn fetch_restaurant(id: String) -> Result<Restaurant, ServerFnError> {
-    let resp = reqwest::get(format!("{API_BASE}/restaurants/{id}")).await?;
-    if !resp.status().is_success() {
-        return Err(ServerFnError::ServerError("Restaurant not found".into()));
+async fn api_get<T: serde::de::DeserializeOwned>(path: &str) -> Result<T, String> {
+    let resp = Request::get(&format!("{API_BASE}{path}"))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !resp.ok() {
+        return Err(format!("HTTP {}", resp.status()));
     }
-    Ok(resp.json().await?)
+    resp.json().await.map_err(|e| e.to_string())
 }
 
-#[server]
-async fn place_order(body: String) -> Result<String, ServerFnError> {
-    let client = reqwest::Client::new();
-    let resp = client
-        .post(format!("{API_BASE}/orders"))
+async fn api_post_json<T: serde::de::DeserializeOwned>(
+    path: &str,
+    body: &str,
+) -> Result<T, String> {
+    let resp = Request::post(&format!("{API_BASE}{path}"))
         .header("Content-Type", "application/json")
         .body(body)
+        .map_err(|e| e.to_string())?
         .send()
-        .await?;
-    if !resp.status().is_success() {
+        .await
+        .map_err(|e| e.to_string())?;
+    if !resp.ok() {
         let msg = resp.text().await.unwrap_or_default();
-        return Err(ServerFnError::ServerError(msg));
+        return Err(msg);
     }
-    let order: serde_json::Value = resp.json().await?;
+    resp.json().await.map_err(|e| e.to_string())
+}
+
+async fn api_patch_json(path: &str, body: &serde_json::Value) -> Result<(), String> {
+    let resp = Request::patch(&format!("{API_BASE}{path}"))
+        .header("Content-Type", "application/json")
+        .body(body.to_string())
+        .map_err(|e| e.to_string())?
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !resp.ok() {
+        let msg = resp.text().await.unwrap_or_default();
+        return Err(msg);
+    }
+    Ok(())
+}
+
+// --- Data fetchers ---
+
+async fn fetch_restaurants() -> Result<Vec<Restaurant>, String> {
+    api_get("/restaurants").await
+}
+
+async fn fetch_restaurant(id: String) -> Result<Restaurant, String> {
+    api_get(&format!("/restaurants/{id}")).await
+}
+
+async fn place_order(body: String) -> Result<String, String> {
+    let order: serde_json::Value = api_post_json("/orders", &body).await?;
     Ok(order["id"].as_str().unwrap_or_default().to_string())
+}
+
+async fn fetch_order(id: String) -> Result<serde_json::Value, String> {
+    api_get(&format!("/orders/{id}")).await
+}
+
+async fn fetch_dashboard() -> Result<serde_json::Value, String> {
+    let restaurants: Vec<serde_json::Value> = api_get("/restaurants").await?;
+    let couriers: Vec<serde_json::Value> = api_get("/couriers").await?;
+    Ok(serde_json::json!({
+        "restaurant_count": restaurants.len(),
+        "couriers_online": couriers.len(),
+        "restaurants": restaurants,
+        "couriers": couriers,
+    }))
+}
+
+async fn fetch_all_orders() -> Result<Vec<serde_json::Value>, String> {
+    api_get("/orders").await
+}
+
+async fn assign_courier(order_id: String) -> Result<serde_json::Value, String> {
+    let resp = Request::post(&format!("{API_BASE}/orders/{order_id}/assign"))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !resp.ok() {
+        let msg = resp.text().await.unwrap_or_default();
+        return Err(msg);
+    }
+    resp.json().await.map_err(|e| e.to_string())
+}
+
+async fn transition_order(order_id: String, status: String) -> Result<(), String> {
+    api_patch_json(
+        &format!("/orders/{order_id}/status"),
+        &serde_json::json!({ "status": status }),
+    )
+    .await
 }
 
 // --- Helpers ---
@@ -445,15 +511,6 @@ fn Checkout() -> Element {
 
 // --- Order Tracking ---
 
-#[server]
-async fn fetch_order(id: String) -> Result<serde_json::Value, ServerFnError> {
-    let resp = reqwest::get(format!("{API_BASE}/orders/{id}")).await?;
-    if !resp.status().is_success() {
-        return Err(ServerFnError::ServerError("Order not found".into()));
-    }
-    Ok(resp.json().await?)
-}
-
 const ORDER_TIMELINE: &[&str] = &[
     "Created",
     "Confirmed",
@@ -600,67 +657,6 @@ fn OrderTracking(id: String) -> Element {
 }
 
 // --- Operator Console ---
-
-#[server]
-async fn fetch_dashboard() -> Result<serde_json::Value, ServerFnError> {
-    let client = reqwest::Client::new();
-
-    let restaurants: Vec<serde_json::Value> = client
-        .get(format!("{API_BASE}/restaurants"))
-        .send()
-        .await?
-        .json()
-        .await?;
-
-    let couriers: Vec<serde_json::Value> = client
-        .get(format!("{API_BASE}/couriers"))
-        .send()
-        .await?
-        .json()
-        .await?;
-
-    Ok(serde_json::json!({
-        "restaurant_count": restaurants.len(),
-        "couriers_online": couriers.len(),
-        "restaurants": restaurants,
-        "couriers": couriers,
-    }))
-}
-
-#[server]
-async fn fetch_all_orders() -> Result<Vec<serde_json::Value>, ServerFnError> {
-    let resp = reqwest::get(format!("{API_BASE}/orders")).await?;
-    Ok(resp.json().await?)
-}
-
-#[server]
-async fn assign_courier(order_id: String) -> Result<serde_json::Value, ServerFnError> {
-    let client = reqwest::Client::new();
-    let resp = client
-        .post(format!("{API_BASE}/orders/{order_id}/assign"))
-        .send()
-        .await?;
-    if !resp.status().is_success() {
-        let msg = resp.text().await.unwrap_or_default();
-        return Err(ServerFnError::ServerError(msg));
-    }
-    Ok(resp.json().await?)
-}
-
-#[server]
-async fn transition_order(order_id: String, status: String) -> Result<(), ServerFnError> {
-    let client = reqwest::Client::new();
-    let resp = client
-        .patch(format!("{API_BASE}/orders/{order_id}/status"))
-        .json(&serde_json::json!({ "status": status }))
-        .send()
-        .await?;
-    if !resp.status().is_success() {
-        let msg = resp.text().await.unwrap_or_default();
-        return Err(ServerFnError::ServerError(msg));
-    }
-    Ok(())
-}
 
 #[component]
 fn OperatorConsole() -> Element {

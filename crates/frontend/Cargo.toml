@@ -5,14 +5,10 @@ edition = "2024"
 
 [dependencies]
 openwok-core = { path = "../core" }
-dioxus = { version = "0.6", features = ["fullstack", "router"] }
+dioxus = { version = "0.6", features = ["web", "router"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 rust_decimal = { workspace = true }
-reqwest = { version = "0.12", features = ["json"], optional = true }
-tokio = { workspace = true, optional = true }
-
-[features]
-default = ["server"]
-server = ["dioxus/server", "dep:reqwest", "dep:tokio"]
-web = ["dioxus/web"]
+uuid = { workspace = true, features = ["js"] }
+gloo-net = "0.6"
+wasm-bindgen-futures = "0.4"
