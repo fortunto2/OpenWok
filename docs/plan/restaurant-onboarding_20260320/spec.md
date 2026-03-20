@@ -18,7 +18,7 @@ This track adds: database ownership linkage, role-based auth guards, CRUD endpoi
 - [x] Restaurant owner can edit name, description, address, phone, active status
 - [x] Restaurant owner can add, edit, and delete menu items
 - [x] `GET /api/my/restaurants` returns only restaurants owned by current user
-- [ ] Non-owner cannot modify another owner's restaurant (403) — TOCTOU: update_menu_item runs BEFORE ownership check
+- [x] Non-owner cannot modify another owner's restaurant (403) — fixed: ownership checked before mutation
 - [x] Frontend has `/my-restaurants` dashboard, `/my-restaurants/:id` settings, menu editor
 - [x] All new endpoints work in both axum API and Cloudflare Worker
 - [x] Tests cover ownership enforcement and role-based access
