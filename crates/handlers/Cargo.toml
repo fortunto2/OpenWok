@@ -1,0 +1,15 @@
+[package]
+name = "openwok-handlers"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+openwok-core = { path = "../core" }
+axum = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+utoipa = { workspace = true }
+utoipa-axum = { workspace = true }
