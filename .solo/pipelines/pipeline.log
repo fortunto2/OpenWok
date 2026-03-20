@@ -209,3 +209,9 @@
 [21:27:42] CWD | /Users/rustam/startups/active/openwok
 [21:27:42] GRAPH | Updating code graph for RepoMap...
 [21:27:44] INVOKE | /solo:build 
+[22:11:50] SIGNAL | <solo:done/> → creating build
+[22:11:50] ITER | saved iter-001-build.log | commit: 71aff04 | result: stage complete
+[22:11:50] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
+[22:11:52] STAGE | iter 2/10 | stage 2/3: deploy
+[22:11:52] CWD | /Users/rustam/startups/active/openwok
+[22:11:52] INVOKE | /solo:deploy 
