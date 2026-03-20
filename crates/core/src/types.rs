@@ -12,7 +12,7 @@ macro_rules! id_newtype {
 
         impl $name {
             pub fn new() -> Self {
-                Self(Uuid::new_v4())
+                Self(Uuid::now_v7())
             }
 
             pub fn from_uuid(id: Uuid) -> Self {

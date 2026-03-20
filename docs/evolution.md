@@ -264,3 +264,47 @@ Missing capabilities:
 Top factory defects:
 1. No restart recovery → `scripts/solo-dev.sh` → detect prior commits, skip completed phases
 2. No plan size guard → `skills/plan/SKILL.md` → warn/split when >30 tasks
+
+## 2026-03-20 | openwok | Factory Score: 8/10 | Retro #9 (admin-tools)
+
+Pipeline: 1 start, 1 redo cycle | Iters: 7 (5 productive) | Waste: 29%
+Track completed: admin-tools_20260320 (block/unblock + dispute resolution, 45 tasks, 4 phases)
+Deployed: CF Workers updated, 106 tests passing
+
+### Defects
+- **HIGH** | solo-lib.sh signal detection: `grep -q '<solo:redo/>'` matches signal quoted in natural language text → false redo cycle
+  - Fix: `scripts/solo-lib.sh:89` — `tail -20 "$OUTFILE" | grep -q` instead of full-file grep
+  - Evidence: iter-004-build.log line 2: `The review returned '<solo:redo/>', so I need to find...`
+- **LOW** | Build skill quotes previous review signals in opening narrative → triggers false match (see above)
+
+### Harness Gaps
+- **Context:** Excellent — CLAUDE.md 14.9KB, plan Context Handoff with key files + decisions + risks
+- **Constraints:** Clean — Repository pattern maintained, blocked-user enforcement after review fix
+- **Precedents:**
+  - GOOD: Review caught real security gap (blocked-user enforcement scope) — quality gate working
+  - GOOD: Build completed 45-task plan across 2 iterations (redo fix + instant recovery)
+  - GOOD: Deploy 8th consecutive 0-waste deploy
+  - GOOD: Dynamic Phase 4 from review findings — pipeline self-heals
+  - BAD: Signal detection too greedy — matches in quoted text
+  - LESSON: Signal grep must be scoped to output tail, not full output
+
+### Missing
+- Signal detection scoping (tail-20 instead of full output grep) — **new, concrete fix available**
+- Partial progress recovery on restart (still unimplemented — 4th retro)
+- Auto-split for large plans (still unimplemented — 3rd retro)
+
+### What worked well
+- Review skill: caught non-obvious blocked-user enforcement gap on first pass
+- Build skill: 9th track, completed Phase 4 fix tasks in 13 min
+- Deploy: 8th consecutive 0-waste deploy (3 min)
+- Pipeline redo: correctly went back to build, Phase 4 added and executed
+- Test growth: 101 → 106 tests, 0 failures
+- Commit discipline: 92.4% conventional (146/158)
+- CLAUDE.md discipline: 14.9KB, lean and current
+
+### Full Pipeline Session (7 tracks)
+- Tracks: pilot-infra, repo-abstraction, auth-payments, restaurant-onboarding, courier-dispatch, frontend-split, admin-tools
+- 35 total iterations (27 productive, 8 wasted), 23% waste
+- 363 min effective, ~6 hours total
+- 106 tests, 158 commits, 12 completed plan tracks
+- Factory improving: pre-commit hooks closed (retro #5-7), signal detection new finding

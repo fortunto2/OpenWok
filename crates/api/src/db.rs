@@ -178,42 +178,42 @@ pub fn seed_la_data(conn: &Connection) {
         return;
     }
 
-    let zone_id = uuid::Uuid::new_v4().to_string();
+    let zone_id = uuid::Uuid::now_v7().to_string();
     conn.execute(
         "INSERT INTO zones (id, name) VALUES (?1, ?2)",
         params![zone_id, "Downtown LA"],
     )
     .unwrap();
 
-    let zone2_id = uuid::Uuid::new_v4().to_string();
+    let zone2_id = uuid::Uuid::now_v7().to_string();
     conn.execute(
         "INSERT INTO zones (id, name) VALUES (?1, ?2)",
         params![zone2_id, "Hollywood"],
     )
     .unwrap();
 
-    let zone3_id = uuid::Uuid::new_v4().to_string();
+    let zone3_id = uuid::Uuid::now_v7().to_string();
     conn.execute(
         "INSERT INTO zones (id, name) VALUES (?1, ?2)",
         params![zone3_id, "Venice"],
     )
     .unwrap();
 
-    let zone4_id = uuid::Uuid::new_v4().to_string();
+    let zone4_id = uuid::Uuid::now_v7().to_string();
     conn.execute(
         "INSERT INTO zones (id, name) VALUES (?1, ?2)",
         params![zone4_id, "Santa Monica"],
     )
     .unwrap();
 
-    let zone5_id = uuid::Uuid::new_v4().to_string();
+    let zone5_id = uuid::Uuid::now_v7().to_string();
     conn.execute(
         "INSERT INTO zones (id, name) VALUES (?1, ?2)",
         params![zone5_id, "Koreatown"],
     )
     .unwrap();
 
-    let zone6_id = uuid::Uuid::new_v4().to_string();
+    let zone6_id = uuid::Uuid::now_v7().to_string();
     conn.execute(
         "INSERT INTO zones (id, name) VALUES (?1, ?2)",
         params![zone6_id, "Silver Lake"],
@@ -425,7 +425,7 @@ pub fn seed_la_data(conn: &Connection) {
     ];
 
     for (name, zid, items) in &restaurants {
-        let rid = uuid::Uuid::new_v4().to_string();
+        let rid = uuid::Uuid::now_v7().to_string();
         conn.execute(
             "INSERT INTO restaurants (id, name, zone_id, active) VALUES (?1, ?2, ?3, 1)",
             params![rid, name, zid],
@@ -433,7 +433,7 @@ pub fn seed_la_data(conn: &Connection) {
         .unwrap();
 
         for (item_name, price) in items {
-            let mid = uuid::Uuid::new_v4().to_string();
+            let mid = uuid::Uuid::now_v7().to_string();
             conn.execute(
                 "INSERT INTO menu_items (id, restaurant_id, name, price) VALUES (?1, ?2, ?3, ?4)",
                 params![mid, rid, item_name, price],

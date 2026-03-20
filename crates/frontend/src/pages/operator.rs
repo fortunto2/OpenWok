@@ -71,29 +71,29 @@ pub fn OperatorConsole() -> Element {
         div { class: "operator-console",
             h1 { "Node Operator Console" }
 
-            div { class: "tab-bar",
+            div { class: "flex items-center gap-1 border-b border-gray-200 mb-6",
                 button {
-                    class: if *active_tab.read() == "overview" { "tab-btn active" } else { "tab-btn" },
+                    class: if *active_tab.read() == "overview" { "px-4 py-2 text-sm font-medium border-b-2 border-orange-500 text-orange-600" } else { "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" },
                     onclick: move |_| active_tab.set("overview".to_string()),
                     "Overview"
                 }
                 button {
-                    class: if *active_tab.read() == "metrics" { "tab-btn active" } else { "tab-btn" },
+                    class: if *active_tab.read() == "metrics" { "px-4 py-2 text-sm font-medium border-b-2 border-orange-500 text-orange-600" } else { "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" },
                     onclick: move |_| active_tab.set("metrics".to_string()),
                     "Metrics"
                 }
                 button {
-                    class: if *active_tab.read() == "users" { "tab-btn active" } else { "tab-btn" },
+                    class: if *active_tab.read() == "users" { "px-4 py-2 text-sm font-medium border-b-2 border-orange-500 text-orange-600" } else { "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" },
                     onclick: move |_| active_tab.set("users".to_string()),
                     "Users"
                 }
                 button {
-                    class: if *active_tab.read() == "disputes" { "tab-btn active" } else { "tab-btn" },
+                    class: if *active_tab.read() == "disputes" { "px-4 py-2 text-sm font-medium border-b-2 border-orange-500 text-orange-600" } else { "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" },
                     onclick: move |_| active_tab.set("disputes".to_string()),
                     "Disputes"
                 }
                 button {
-                    class: "refresh-btn",
+                    class: "ml-auto px-3 py-1.5 text-sm text-gray-500 border border-gray-300 rounded hover:bg-gray-50",
                     onclick: move |_| refresh += 1,
                     "Refresh"
                 }
