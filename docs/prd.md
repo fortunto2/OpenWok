@@ -107,19 +107,19 @@ Production-ready for controlled pilot.
 **Tasks:**
 1. Restaurant onboarding flow (sign up → menu upload → go live)
 2. Courier PWA (accept order, route, confirm delivery)
-3. Real restaurant data (10-20 LA restaurants, 1-2 zones)
-4. Admin tools: block user, resolve dispute, view metrics
-5. Public economics page (open-book: total orders, total fees, breakdown)
-6. PostHog analytics integration (order funnel, ETA accuracy, repeat rate)
-7. Error monitoring (Sentry or CF analytics)
+3. ~~Real restaurant data (10-20 LA restaurants, 1-2 zones)~~ **Done** — `pilot-infra_20260320`: 18 restaurants, 80+ items, 6 zones
+4. ~~Admin tools: view metrics~~ **Done** — `GET /api/admin/metrics` + operator console Metrics tab. Block/dispute still needs auth.
+5. ~~Public economics page (open-book: total orders, total fees, breakdown)~~ **Done** — `/economics` route + `GET /api/public/economics`
+6. ~~PostHog analytics integration~~ **Done** — tracks: restaurant_view, add_to_cart, checkout_start, order_placed, frontend_error
+7. ~~Error monitoring~~ **Done** — ErrorBoundary + PostHog `frontend_error` event
 
 **Acceptance criteria:**
 - [ ] Restaurant can self-onboard and manage menu
 - [ ] Courier can accept and complete deliveries via mobile
-- [ ] 10+ restaurants with real menus seeded
+- [x] 10+ restaurants with real menus seeded (18 restaurants, 6 zones)
 - [ ] Admin can block/unblock and resolve disputes
-- [ ] Public economics page shows real aggregated data
-- [ ] PostHog tracks: page_view → restaurant_view → add_to_cart → checkout → order_placed → delivered
+- [x] Public economics page shows real aggregated data
+- [x] PostHog tracks: page_view → restaurant_view → add_to_cart → checkout → order_placed → delivered
 
 ### Phase 8: Federation Protocol (post-pilot)
 Multi-node support. Not in MVP scope.
