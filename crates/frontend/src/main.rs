@@ -444,11 +444,157 @@ fn Checkout() -> Element {
 
 // --- Order Tracking ---
 
+#[server]
+async fn fetch_order(id: String) -> Result<serde_json::Value, ServerFnError> {
+    let resp = reqwest::get(format!("{API_BASE}/orders/{id}")).await?;
+    if !resp.status().is_success() {
+        return Err(ServerFnError::ServerError("Order not found".into()));
+    }
+    Ok(resp.json().await?)
+}
+
+const ORDER_TIMELINE: &[&str] = &[
+    "Created",
+    "Confirmed",
+    "Preparing",
+    "ReadyForPickup",
+    "InDelivery",
+    "Delivered",
+];
+
 #[component]
 fn OrderTracking(id: String) -> Element {
-    rsx! {
-        h1 { "Order Tracking" }
-        p { "Order: {id}" }
+    let mut refresh = use_signal(|| 0u32);
+    let order = use_resource(move || {
+        let _ = refresh();
+        let id = id.clone();
+        async move { fetch_order(id).await }
+    });
+
+    match &*order.read_unchecked() {
+        Some(Ok(data)) => {
+            let status = data["status"].as_str().unwrap_or("Unknown").to_string();
+            let pricing = &data["pricing"];
+
+            let food_total = pricing["food_total"].as_str().unwrap_or("0").to_string();
+            let delivery_fee = pricing["delivery_fee"].as_str().unwrap_or("0").to_string();
+            let tip = pricing["tip"].as_str().unwrap_or("0").to_string();
+            let federal_fee = pricing["federal_fee"].as_str().unwrap_or("0").to_string();
+            let local_ops_fee = pricing["local_ops_fee"].as_str().unwrap_or("0").to_string();
+            let processing_fee = pricing["processing_fee"]
+                .as_str()
+                .unwrap_or("0")
+                .to_string();
+
+            let items: Vec<(String, u64, String)> = data["items"]
+                .as_array()
+                .map(|arr| {
+                    arr.iter()
+                        .map(|i| {
+                            (
+                                i["name"].as_str().unwrap_or("").to_string(),
+                                i["quantity"].as_u64().unwrap_or(1),
+                                i["unit_price"].as_str().unwrap_or("0").to_string(),
+                            )
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            let current_idx = ORDER_TIMELINE
+                .iter()
+                .position(|s| *s == status)
+                .unwrap_or(0);
+            let is_terminal = status == "Delivered" || status == "Cancelled";
+
+            let timeline: Vec<(&str, &str)> = ORDER_TIMELINE
+                .iter()
+                .enumerate()
+                .map(|(idx, step)| {
+                    let class = if idx < current_idx {
+                        "step done"
+                    } else if idx == current_idx {
+                        "step current"
+                    } else {
+                        "step"
+                    };
+                    (class, *step)
+                })
+                .collect();
+
+            rsx! {
+                div { class: "order-tracking",
+                    h1 { "Order Tracking" }
+
+                    // Status timeline
+                    div { class: "timeline",
+                        for (class, step) in timeline {
+                            div {
+                                class: "{class}",
+                                span { class: "step-dot" }
+                                span { class: "step-label", "{step}" }
+                            }
+                        }
+                    }
+
+                    if !is_terminal {
+                        button {
+                            class: "refresh-btn",
+                            onclick: move |_| refresh += 1,
+                            "Refresh Status"
+                        }
+                    }
+
+                    // Order items
+                    div { class: "order-items",
+                        h3 { "Items" }
+                        for (name, qty, price) in items {
+                            div { class: "order-item",
+                                span { "{name} x{qty}" }
+                                span { "${price}" }
+                            }
+                        }
+                    }
+
+                    // Pricing breakdown (always visible)
+                    div { class: "pricing-breakdown",
+                        h3 { "Open-Book Receipt" }
+                        div { class: "price-line",
+                            span { "Food Total" }
+                            span { "${food_total}" }
+                        }
+                        div { class: "price-line",
+                            span { "Delivery Fee" }
+                            span { "${delivery_fee}" }
+                        }
+                        div { class: "price-line",
+                            span { "Tip" }
+                            span { "${tip}" }
+                        }
+                        div { class: "price-line",
+                            span { "Federal Fee" }
+                            span { "${federal_fee}" }
+                        }
+                        div { class: "price-line",
+                            span { "Local Ops Fee" }
+                            span { "${local_ops_fee}" }
+                        }
+                        div { class: "price-line",
+                            span { "Processing (Stripe)" }
+                            span { "${processing_fee}" }
+                        }
+                    }
+                }
+            }
+        }
+        Some(Err(e)) => rsx! {
+            h1 { "Order Tracking" }
+            p { class: "error", "Error: {e}" }
+        },
+        None => rsx! {
+            h1 { "Order Tracking" }
+            p { "Loading order..." }
+        },
     }
 }
 
