@@ -23,7 +23,7 @@ Define the data access abstraction in core. TDD: write trait + error types, add 
 - [x] `cargo check -p openwok-core` compiles
 - [x] Repository trait is exported from `openwok_core`
 
-## Phase 2: SqliteRepo + API Refactor
+## Phase 2: SqliteRepo + API Refactor <!-- checkpoint:e7532eb -->
 
 Implement SqliteRepo and refactor api handlers to use Repository trait. Existing tests must pass throughout.
 
@@ -33,13 +33,13 @@ Implement SqliteRepo and refactor api handlers to use Repository trait. Existing
 - [x] Task 2.2: Write unit tests for `SqliteRepo` <!-- sha:6f5c2f0 --> — test each Repository method against an in-memory SQLite database with seeded test data. At minimum: list_restaurants (returns seeded), create_order (returns pricing breakdown), update_order_status (valid + invalid transitions), get_economics (aggregation).
 - [x] Task 2.3: Create `crates/handlers/` crate <!-- sha:a1b57bd --> (`openwok-handlers`). Add to workspace members. Dependencies: `openwok-core`, `axum` (workspace), `serde`, `serde_json`, `uuid`, `chrono`, `async-trait`. Move route handler functions from `crates/api/src/routes/{restaurants,orders,couriers,economics,metrics}.rs` into handlers — make them generic: `async fn list_restaurants<R: Repository>(State(repo): State<Arc<R>>) -> ...`. Export `pub fn api_routes<R>() -> Router<Arc<R>>` that builds the shared router.
 - [x] Task 2.4: Refactor `crates/api/` <!-- sha:59ac51f --> — depend on `openwok-handlers`. In `main.rs`: create `SqliteRepo`, wrap in `Arc`, call `openwok_handlers::api_routes::<SqliteRepo>()`, merge with WebSocket route (stays in api). Remove old route modules (restaurants.rs, orders.rs, couriers.rs, economics.rs, metrics.rs) — keep only ws.rs and db.rs.
-- [x] Task 2.5: Run `make check` — all 37+ tests pass, clippy clean, fmt clean. Fix any compilation or test issues.
+- [x] Task 2.5: Run `make check` <!-- sha:e7532eb --> — all 37+ tests pass, clippy clean, fmt clean. Fix any compilation or test issues.
 
 ### Verification
 
-- [ ] `cargo test --workspace` passes with no regressions
-- [ ] `cargo run -p openwok-api` starts, all 12 endpoints work (curl smoke test)
-- [ ] WebSocket endpoint still works for order tracking
+- [x] `cargo test --workspace` passes with no regressions
+- [x] `cargo run -p openwok-api` starts, all 12 endpoints work (curl smoke test)
+- [x] WebSocket endpoint still works for order tracking
 
 ## Phase 3: D1Repo + Worker Refactor
 
@@ -47,7 +47,7 @@ Implement D1Repo and wire worker to use shared handlers.
 
 ### Tasks
 
-- [ ] Task 3.1: Create `crates/worker/src/d1_repo.rs` — `D1Repo` struct wrapping `D1Database`. Implement all `Repository` trait methods by extracting D1 queries from current `lib.rs`. Same SQL as SqliteRepo but via D1 prepared statement API (`prepare().bind()?.all()`).
+- [x] Task 3.1: Create `crates/worker/src/d1_repo.rs` — `D1Repo` struct wrapping `D1Database`. Implement all `Repository` trait methods by extracting D1 queries from current `lib.rs`. Same SQL as SqliteRepo but via D1 prepared statement API (`prepare().bind()?.all()`).
 - [ ] Task 3.2: Update `crates/worker/Cargo.toml` — add `openwok-handlers` path dependency. Verify it compiles for wasm32-unknown-unknown target (handlers depends only on core + axum + serde, all wasm32-safe).
 - [ ] Task 3.3: Rewrite `crates/worker/src/lib.rs` — replace 854 lines of inline handlers with: create `D1Repo` from env, wrap in `Arc`, call `openwok_handlers::api_routes::<D1Repo>()`, dispatch request. Keep seed-on-first-request logic. Target: ~50-80 lines.
 - [ ] Task 3.4: Build worker (`make build-worker`) and deploy (`wrangler deploy`). Verify live URL: `/api/health` returns 200, `/api/restaurants` returns data, order flow works.
