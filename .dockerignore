@@ -1,9 +1,0 @@
-target/
-.git/
-.solo/
-docs/
-planning/
-public/
-data/
-*.pdf
-.env*

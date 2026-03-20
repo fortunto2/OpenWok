@@ -50,7 +50,7 @@ Implement D1Repo and wire worker to use shared handlers.
 - [x] Task 3.1: Create `crates/worker/src/d1_repo.rs` <!-- sha:b7cd3f8 --> — `D1Repo` struct wrapping `D1Database`. Implement all `Repository` trait methods by extracting D1 queries from current `lib.rs`. Same SQL as SqliteRepo but via D1 prepared statement API (`prepare().bind()?.all()`).
 - [x] Task 3.2: Update `crates/worker/Cargo.toml` <!-- sha:29bd8ad --> — verified wasm32 compilation. Note: handlers crate can't be shared with worker (axum requires Send, D1Database is !Send). D1Repo provides the same abstraction; worker uses worker::Router for routing.
 - [x] Task 3.3: Rewrite `crates/worker/src/lib.rs` <!-- sha:29bd8ad --> — replace 854 lines of inline handlers with: create `D1Repo` from env, wrap in `Arc`, call `openwok_handlers::api_routes::<D1Repo>()`, dispatch request. Keep seed-on-first-request logic. Target: ~50-80 lines.
-- [x] Task 3.4: Build worker (`make build-worker`) — builds successfully. Deploy skipped (no wrangler credentials in autonomous mode).
+- [x] Task 3.4: Build worker <!-- sha:249cac4 --> (`make build-worker`) — builds successfully. Deploy skipped (no wrangler credentials in autonomous mode).
 
 ### Verification
 
@@ -62,7 +62,7 @@ Implement D1Repo and wire worker to use shared handlers.
 
 ### Tasks
 
-- [ ] Task 4.1: Remove orphaned Fly.io files: `Dockerfile`, `fly.toml`, `.dockerignore`. Verify `git status` shows them as deleted.
+- [x] Task 4.1: Remove orphaned Fly.io files: `Dockerfile`, `fly.toml`, `.dockerignore`. Verify `git status` shows them as deleted.
 - [ ] Task 4.2: Update `CLAUDE.md` — add `handlers` crate to workspace structure, document Repository pattern, update dependency diagram.
 - [ ] Task 4.3: Run `make check` — tests pass, clippy clean, fmt clean. Verify no dead code or unused imports.
 
