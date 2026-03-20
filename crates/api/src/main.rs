@@ -23,20 +23,21 @@ use utoipa_swagger_ui::SwaggerUi;
         openwok_core::types::CourierKind,
         openwok_core::types::Zone,
         openwok_core::order::Order,
+        openwok_core::order::OrderItem,
         openwok_core::order::OrderStatus,
         openwok_core::pricing::PricingBreakdown,
         openwok_core::money::Money,
     ))
 )]
 struct ApiDoc;
-// TODO: Add #[utoipa::path] annotations to each handler to populate paths
 
 async fn health() -> &'static str {
     "ok"
 }
 
 pub fn app(state: AppState) -> Router {
-    let api = Router::new()
+    // Build API routes using utoipa_axum for auto OpenAPI path collection
+    let (api, openapi) = utoipa_axum::router::OpenApiRouter::with_openapi(ApiDoc::openapi())
         .route("/health", get(health))
         .route(
             "/restaurants",
@@ -64,7 +65,8 @@ pub fn app(state: AppState) -> Router {
         .route("/public/economics", get(routes::economics::get))
         .route("/admin/metrics", get(routes::metrics::get))
         .route("/ws/orders/{id}", any(routes::ws::order_updates))
-        .with_state(state);
+        .with_state(state)
+        .split_for_parts();
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -72,7 +74,7 @@ pub fn app(state: AppState) -> Router {
         .allow_headers(Any);
 
     Router::new()
-        .merge(SwaggerUi::new("/api/docs").url("/api/openapi.json", ApiDoc::openapi()))
+        .merge(SwaggerUi::new("/api/docs").url("/api/openapi.json", openapi))
         .nest("/api", api)
         .layer(cors)
 }
