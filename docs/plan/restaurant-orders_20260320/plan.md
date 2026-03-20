@@ -28,16 +28,16 @@ Add `list_restaurant_orders` to the Repository trait and expose via `GET /api/my
 Add Orders tab to RestaurantSettings page with order cards and action buttons.
 
 ### Tasks
-- [ ] Task 2.1: Add `fetch_my_orders` helper in `crates/frontend/src/api.rs` — `GET /api/my/orders` with JWT auth header. Returns `Vec<serde_json::Value>` (same pattern as other API helpers).
-- [ ] Task 2.2: Add Orders tab to RestaurantSettings in `crates/frontend/src/pages/owner.rs`. Tab navigation: Info | Menu | Orders. Orders tab shows list of orders filtered to current restaurant ID.
-- [ ] Task 2.3: Implement order card component in the Orders tab — show order ID (truncated), status badge (color-coded), items list, total price, customer address, and created_at timestamp.
-- [ ] Task 2.4: Add action buttons per order status: "Accept" (Confirmed→Preparing), "Mark Ready" (Preparing→ReadyForPickup), "Cancel" (Confirmed/Preparing→Cancelled). Each calls `PATCH /api/orders/{id}/status` with the target status. Refresh order list after action.
-- [ ] Task 2.5: Add auto-refresh: `use_future` with 15-second interval to re-fetch orders, showing a subtle "New orders" indicator when the count changes.
+- [x] Task 2.1: Add `fetch_my_orders` helper in `crates/frontend/src/api.rs` — `GET /api/my/orders` with JWT auth header. Returns `Vec<serde_json::Value>` (same pattern as other API helpers). <!-- sha:85d1e1d -->
+- [x] Task 2.2: Add Orders tab to RestaurantSettings in `crates/frontend/src/pages/owner.rs`. Tab navigation: Info | Menu | Orders. Orders tab shows list of orders filtered to current restaurant ID. <!-- sha:85d1e1d -->
+- [x] Task 2.3: Implement order card component in the Orders tab — show order ID (truncated), status badge (color-coded), items list, total price, customer address, and created_at timestamp. <!-- sha:85d1e1d -->
+- [x] Task 2.4: Add action buttons per order status: "Accept" (Confirmed→Preparing), "Mark Ready" (Preparing→ReadyForPickup), "Cancel" (Confirmed/Preparing→Cancelled). Each calls `PATCH /api/orders/{id}/status` with the target status. Refresh order list after action. <!-- sha:85d1e1d -->
+- [x] Task 2.5: Add auto-refresh: `use_future` with 15-second interval to re-fetch orders, showing a subtle "New orders" indicator when the count changes. <!-- sha:85d1e1d -->
 
 ### Verification
-- [ ] `dx build --platform web` compiles successfully
-- [ ] Orders tab renders with mock/real data
-- [ ] Action buttons trigger correct status transitions
+- [x] `dx build --platform web` compiles successfully
+- [x] Orders tab renders with mock/real data
+- [x] Action buttons trigger correct status transitions
 
 ## Phase 3: Deploy + Docs
 Deploy to CF Workers and update documentation.
