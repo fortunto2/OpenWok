@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use dioxus::prelude::*;
+use openwok_core::types::Restaurant;
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 #[rustfmt::skip]
@@ -52,11 +53,56 @@ fn Home() -> Element {
     }
 }
 
+const API_BASE: &str = "http://localhost:3000";
+
+#[server]
+async fn fetch_restaurants() -> Result<Vec<Restaurant>, ServerFnError> {
+    let resp = reqwest::get(format!("{API_BASE}/restaurants")).await?;
+    let data: Vec<Restaurant> = resp.json().await?;
+    Ok(data)
+}
+
 #[component]
 fn RestaurantList() -> Element {
+    let restaurants = use_resource(fetch_restaurants);
+
     rsx! {
         h1 { "Restaurants" }
-        p { "Loading restaurants..." }
+        match &*restaurants.read_unchecked() {
+            Some(Ok(list)) if list.is_empty() => rsx! {
+                p { "No restaurants available yet." }
+            },
+            Some(Ok(list)) => rsx! {
+                div { class: "restaurant-grid",
+                    for r in list {
+                        RestaurantCard { key: "{r.id}", restaurant: r.clone() }
+                    }
+                }
+            },
+            Some(Err(e)) => rsx! {
+                p { class: "error", "Failed to load restaurants: {e}" }
+            },
+            None => rsx! {
+                p { "Loading restaurants..." }
+            },
+        }
+    }
+}
+
+#[component]
+fn RestaurantCard(restaurant: Restaurant) -> Element {
+    rsx! {
+        Link {
+            to: Route::RestaurantMenu { id: restaurant.id.to_string() },
+            class: "restaurant-card",
+            h3 { "{restaurant.name}" }
+            p { class: "item-count", "{restaurant.menu.len()} items" }
+            div { class: "menu-preview",
+                for item in restaurant.menu.iter().take(3) {
+                    span { class: "menu-item", "{item.name} {item.price}" }
+                }
+            }
+        }
     }
 }
 

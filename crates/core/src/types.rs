@@ -42,7 +42,7 @@ id_newtype!(NodeId);
 id_newtype!(ZoneId);
 id_newtype!(MenuItemId);
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct MenuItem {
     pub id: MenuItemId,
     pub name: String,
@@ -50,7 +50,7 @@ pub struct MenuItem {
     pub restaurant_id: RestaurantId,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Restaurant {
     pub id: RestaurantId,
     pub name: String,
@@ -59,14 +59,14 @@ pub struct Restaurant {
     pub active: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Zone {
     pub id: ZoneId,
     pub name: String,
     pub node_id: NodeId,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Node {
     pub id: NodeId,
     pub name: String,
@@ -79,7 +79,7 @@ pub enum CourierKind {
     Human,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Courier {
     pub id: CourierId,
     pub name: String,
