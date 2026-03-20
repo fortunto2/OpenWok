@@ -5,10 +5,13 @@ use openwok_core::order::{Order, OrderItem, OrderStatus};
 use openwok_core::pricing::PricingBreakdown;
 use openwok_core::repo::{
     AdminMetrics, AssignCourierResult, CourierUtilization, CreateCourierRequest,
-    CreateOrderRequest, CreateRestaurantRequest, PublicEconomics, RepoError, RevenueBreakdown,
+    CreateOrderRequest, CreateRestaurantRequest,
+    PublicEconomics, RepoError, RevenueBreakdown,
 };
 use openwok_core::types::{
-    Courier, CourierId, CourierKind, MenuItem, MenuItemId, OrderId, Restaurant, RestaurantId, ZoneId,
+    Courier, CourierId, CourierKind, CreatePaymentRequest, CreateUserRequest, MenuItem, MenuItemId,
+    OrderId, Payment, PaymentId, PaymentStatus, Restaurant, RestaurantId,
+    UpdatePaymentStatusRequest, User, UserId, ZoneId,
 };
 use worker::d1::D1Database;
 
@@ -800,5 +803,182 @@ impl D1Repo {
             },
             orders_by_zone,
         })
+    }
+
+    // ── User methods ──────────────────────────────────────────────────
+
+    pub async fn create_user(&self, req: CreateUserRequest) -> Result<User, RepoError> {
+        let id = UserId::new();
+        let id_str = id.to_string();
+        let now = chrono::Utc::now().to_rfc3339();
+        let role_enum = req.role.unwrap_or(openwok_core::types::UserRole::Customer);
+        let role = format!("{:?}", role_enum);
+
+        self.db
+            .prepare(
+                "INSERT INTO users (id, supabase_user_id, email, name, role, created_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            )
+            .bind(&[
+                id_str.clone().into(),
+                req.supabase_user_id.clone().into(),
+                req.email.clone().into(),
+                req.name.clone().unwrap_or_default().into(),
+                role.into(),
+                now.clone().into(),
+            ])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        Ok(User {
+            id,
+            supabase_user_id: req.supabase_user_id,
+            email: req.email,
+            name: req.name,
+            role: role_enum,
+            created_at: chrono::DateTime::parse_from_rfc3339(&now)
+                .unwrap()
+                .with_timezone(&chrono::Utc),
+        })
+    }
+
+    pub async fn get_user_by_supabase_id(&self, supabase_id: &str) -> Result<User, RepoError> {
+        let row = self
+            .db
+            .prepare("SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE supabase_user_id = ?1")
+            .bind(&[supabase_id.into()])
+            .map_err(d1_err)?
+            .first::<serde_json::Value>(None)
+            .await
+            .map_err(d1_err)?
+            .ok_or(RepoError::NotFound)?;
+
+        Ok(User {
+            id: UserId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+            supabase_user_id: row["supabase_user_id"].as_str().unwrap_or_default().to_string(),
+            email: row["email"].as_str().unwrap_or_default().to_string(),
+            name: row["name"].as_str().map(|s| s.to_string()),
+            role: row["role"]
+                .as_str()
+                .unwrap_or("Customer")
+                .parse()
+                .unwrap_or(openwok_core::types::UserRole::Customer),
+            created_at: chrono::DateTime::parse_from_rfc3339(
+                row["created_at"].as_str().unwrap_or_default(),
+            )
+            .unwrap_or_default()
+            .with_timezone(&chrono::Utc),
+        })
+    }
+
+    // ── Payment methods ───────────────────────────────────────────────
+
+    pub async fn create_payment(&self, req: CreatePaymentRequest) -> Result<Payment, RepoError> {
+        let id = PaymentId::new();
+        let id_str = id.to_string();
+        let order_id_str = req.order_id.to_string();
+        let now = chrono::Utc::now().to_rfc3339();
+
+        self.db
+            .prepare(
+                "INSERT INTO payments (id, order_id, stripe_payment_intent_id, stripe_checkout_session_id,
+                 status, amount_total, restaurant_amount, courier_amount, federal_amount,
+                 local_ops_amount, processing_amount, created_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+            )
+            .bind(&[
+                id_str.into(),
+                order_id_str.into(),
+                wasm_bindgen::JsValue::NULL,
+                req.stripe_checkout_session_id.clone().map_or(wasm_bindgen::JsValue::NULL, |s: String| s.into()),
+                "Pending".into(),
+                req.amount_total.amount().to_string().into(),
+                req.restaurant_amount.amount().to_string().into(),
+                req.courier_amount.amount().to_string().into(),
+                req.federal_amount.amount().to_string().into(),
+                req.local_ops_amount.amount().to_string().into(),
+                req.processing_amount.amount().to_string().into(),
+                now.clone().into(),
+            ])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        Ok(Payment {
+            id,
+            order_id: req.order_id,
+            stripe_payment_intent_id: None,
+            stripe_checkout_session_id: req.stripe_checkout_session_id,
+            status: PaymentStatus::Pending,
+            amount_total: req.amount_total,
+            restaurant_amount: req.restaurant_amount,
+            courier_amount: req.courier_amount,
+            federal_amount: req.federal_amount,
+            local_ops_amount: req.local_ops_amount,
+            processing_amount: req.processing_amount,
+            created_at: chrono::DateTime::parse_from_rfc3339(&now)
+                .unwrap()
+                .with_timezone(&chrono::Utc),
+        })
+    }
+
+    pub async fn get_payment_by_order(&self, order_id: OrderId) -> Result<Payment, RepoError> {
+        let row = self
+            .db
+            .prepare("SELECT id, order_id, stripe_payment_intent_id, stripe_checkout_session_id, status, amount_total, restaurant_amount, courier_amount, federal_amount, local_ops_amount, processing_amount, created_at FROM payments WHERE order_id = ?1")
+            .bind(&[order_id.to_string().into()])
+            .map_err(d1_err)?
+            .first::<serde_json::Value>(None)
+            .await
+            .map_err(d1_err)?
+            .ok_or(RepoError::NotFound)?;
+
+        Ok(Payment {
+            id: PaymentId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+            order_id,
+            stripe_payment_intent_id: row["stripe_payment_intent_id"].as_str().map(|s| s.to_string()),
+            stripe_checkout_session_id: row["stripe_checkout_session_id"].as_str().map(|s| s.to_string()),
+            status: row["status"].as_str().unwrap_or("Pending").parse().unwrap_or(PaymentStatus::Pending),
+            amount_total: Money::from(row["amount_total"].as_str().unwrap_or("0")),
+            restaurant_amount: Money::from(row["restaurant_amount"].as_str().unwrap_or("0")),
+            courier_amount: Money::from(row["courier_amount"].as_str().unwrap_or("0")),
+            federal_amount: Money::from(row["federal_amount"].as_str().unwrap_or("0")),
+            local_ops_amount: Money::from(row["local_ops_amount"].as_str().unwrap_or("0")),
+            processing_amount: Money::from(row["processing_amount"].as_str().unwrap_or("0")),
+            created_at: chrono::DateTime::parse_from_rfc3339(row["created_at"].as_str().unwrap_or_default())
+                .unwrap_or_default()
+                .with_timezone(&chrono::Utc),
+        })
+    }
+
+    pub async fn update_payment_status(
+        &self,
+        id: PaymentId,
+        req: UpdatePaymentStatusRequest,
+    ) -> Result<(), RepoError> {
+        let status_str = format!("{:?}", req.status);
+        let id_str = id.to_string();
+
+        if let Some(ref pi_id) = req.stripe_payment_intent_id {
+            self.db
+                .prepare("UPDATE payments SET status = ?1, stripe_payment_intent_id = ?2 WHERE id = ?3")
+                .bind(&[status_str.into(), pi_id.clone().into(), id_str.into()])
+                .map_err(d1_err)?
+                .run()
+                .await
+                .map_err(d1_err)?;
+        } else {
+            self.db
+                .prepare("UPDATE payments SET status = ?1 WHERE id = ?2")
+                .bind(&[status_str.into(), id_str.into()])
+                .map_err(d1_err)?
+                .run()
+                .await
+                .map_err(d1_err)?;
+        }
+        Ok(())
     }
 }

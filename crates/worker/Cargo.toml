@@ -8,12 +8,16 @@ crate-type = ["cdylib"]
 
 [dependencies]
 openwok-core = { path = "../core" }
+stripe-universal = { path = "../stripe-universal", default-features = false, features = ["worker-backend"] }
 worker = { version = "0.7", features = ["d1"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uuid = { version = "1", features = ["v4", "serde", "js"] }
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
 rust_decimal = { version = "1", features = ["serde"] }
+hmac = "0.12"
+sha2 = "0.10"
+base64 = "0.22"
 wasm-bindgen = "0.2"
 
 # Standalone crate — not part of main workspace (rusqlite can't compile to wasm32)

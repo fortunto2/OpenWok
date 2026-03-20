@@ -8,7 +8,8 @@ use openwok_core::repo::{
     CreateRestaurantRequest,
 };
 use openwok_core::types::{
-    CourierId, MenuItemId, OrderId, RestaurantId, ZoneId,
+    CourierId, CreatePaymentRequest, CreateUserRequest, MenuItemId, OrderId, PaymentStatus,
+    RestaurantId, UpdatePaymentStatusRequest, ZoneId,
 };
 use serde::Deserialize;
 use worker::*;
@@ -61,6 +62,83 @@ struct CreateCourierReq {
 #[derive(Deserialize)]
 struct SetAvailableReq {
     available: bool,
+}
+
+// ── Auth DTOs ─────────────────────────────────────────────────────────
+
+#[derive(Deserialize)]
+struct AuthCallbackReq {
+    access_token: String,
+}
+
+// ── JWT Verification (manual HS256 — no ring dependency) ──────────────
+
+fn verify_jwt(token: &str, secret: &str) -> Result<(String, Option<String>)> {
+    use base64::Engine;
+    use hmac::{Hmac, Mac};
+    use sha2::Sha256;
+
+    let engine = base64::engine::general_purpose::URL_SAFE_NO_PAD;
+
+    let parts: Vec<&str> = token.split('.').collect();
+    if parts.len() != 3 {
+        return Err(Error::RustError("invalid JWT format".into()));
+    }
+
+    // Verify HMAC-SHA256 signature
+    let signing_input = format!("{}.{}", parts[0], parts[1]);
+    let signature = engine
+        .decode(parts[2])
+        .map_err(|_| Error::RustError("invalid JWT signature encoding".into()))?;
+
+    let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes())
+        .map_err(|_| Error::RustError("HMAC key error".into()))?;
+    mac.update(signing_input.as_bytes());
+    mac.verify_slice(&signature)
+        .map_err(|_| Error::RustError("invalid JWT signature".into()))?;
+
+    // Decode payload
+    let payload_bytes = engine
+        .decode(parts[1])
+        .map_err(|_| Error::RustError("invalid JWT payload encoding".into()))?;
+    let claims: serde_json::Value = serde_json::from_slice(&payload_bytes)
+        .map_err(|_| Error::RustError("invalid JWT payload JSON".into()))?;
+
+    // Check expiration
+    if let Some(exp) = claims["exp"].as_u64() {
+        let now = (js_sys::Date::now() / 1000.0) as u64;
+        if now > exp {
+            return Err(Error::RustError("JWT expired".into()));
+        }
+    }
+
+    let sub = claims["sub"]
+        .as_str()
+        .ok_or_else(|| Error::RustError("missing sub claim".into()))?
+        .to_string();
+    let email = claims["email"].as_str().map(|s| s.to_string());
+
+    Ok((sub, email))
+}
+
+/// Extract and verify JWT from Authorization: Bearer header.
+fn extract_auth(req: &Request, env: &Env) -> Result<(String, Option<String>)> {
+    let secret = env
+        .secret("SUPABASE_JWT_SECRET")
+        .map(|s| s.to_string())
+        .unwrap_or_else(|_| "super-secret-jwt-token-for-testing-only".into());
+
+    let auth_header = req
+        .headers()
+        .get("Authorization")
+        .map_err(|_| Error::RustError("missing header".into()))?
+        .ok_or_else(|| Error::RustError("missing Authorization header".into()))?;
+
+    let token = auth_header
+        .strip_prefix("Bearer ")
+        .ok_or_else(|| Error::RustError("invalid Authorization format".into()))?;
+
+    verify_jwt(token, &secret)
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -275,6 +353,115 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                 Ok(metrics) => json_ok(&metrics, 200),
                 Err(e) => repo_err_to_response(e),
             }
+        })
+        // Auth
+        .post_async("/api/auth/callback", |mut req, ctx| async move {
+            let body: AuthCallbackReq = req.json().await?;
+            let secret = ctx.env
+                .secret("SUPABASE_JWT_SECRET")
+                .map(|s| s.to_string())
+                .unwrap_or_else(|_| "super-secret-jwt-token-for-testing-only".into());
+
+            let (sub, email) = verify_jwt(&body.access_token, &secret)?;
+
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            let user = match repo.get_user_by_supabase_id(&sub).await {
+                Ok(user) => user,
+                Err(_) => {
+                    repo.create_user(CreateUserRequest {
+                        supabase_user_id: sub,
+                        email: email.unwrap_or_default(),
+                        name: None,
+                        role: None,
+                    })
+                    .await
+                    .map_err(|e| Error::RustError(e.to_string()))?
+                }
+            };
+
+            json_ok(
+                &serde_json::json!({ "user": user, "access_token": body.access_token }),
+                200,
+            )
+        })
+        .get_async("/api/auth/me", |req, ctx| async move {
+            let (sub, _) = extract_auth(&req, &ctx.env)?;
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            match repo.get_user_by_supabase_id(&sub).await {
+                Ok(user) => json_ok(&user, 200),
+                Err(_) => Response::error("user not found", 404),
+            }
+        })
+        // Stripe webhook
+        .post_async("/api/webhooks/stripe", |mut req, ctx| async move {
+            let webhook_secret = ctx
+                .env
+                .secret("STRIPE_WEBHOOK_SECRET")
+                .map(|s| s.to_string())
+                .map_err(|_| Error::RustError("webhook secret not configured".into()))?;
+
+            let signature = req
+                .headers()
+                .get("stripe-signature")
+                .map_err(|_| Error::RustError("missing header".into()))?
+                .ok_or_else(|| Error::RustError("missing stripe-signature".into()))?;
+
+            let body_bytes = req.bytes().await?;
+
+            stripe_universal::webhook::verify_and_parse(&body_bytes, &signature, &webhook_secret)
+                .map_err(|e| Error::RustError(format!("webhook verify failed: {e}")))?;
+
+            let body_str = String::from_utf8_lossy(&body_bytes);
+            let event: stripe_universal::types::WebhookEvent = serde_json::from_str(&body_str)
+                .map_err(|e| Error::RustError(format!("invalid event: {e}")))?;
+
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+
+            match event.event_type.as_str() {
+                "checkout.session.completed" => {
+                    let session = event
+                        .as_checkout_session()
+                        .map_err(|e| Error::RustError(e.to_string()))?;
+                    if let Some(order_id_str) = session.metadata.as_ref().and_then(|m| m.get("order_id")) {
+                        let order_id = OrderId::from_uuid(parse_uuid(order_id_str));
+                        if let Ok(payment) = repo.get_payment_by_order(order_id).await {
+                            let _ = repo
+                                .update_payment_status(
+                                    payment.id,
+                                    UpdatePaymentStatusRequest {
+                                        status: PaymentStatus::Succeeded,
+                                        stripe_payment_intent_id: session.payment_intent,
+                                    },
+                                )
+                                .await;
+                            let _ = repo.update_order_status(order_id, OrderStatus::Confirmed).await;
+                        }
+                    }
+                }
+                "checkout.session.expired" => {
+                    let session = event
+                        .as_checkout_session()
+                        .map_err(|e| Error::RustError(e.to_string()))?;
+                    if let Some(order_id_str) = session.metadata.as_ref().and_then(|m| m.get("order_id")) {
+                        let order_id = OrderId::from_uuid(parse_uuid(order_id_str));
+                        if let Ok(payment) = repo.get_payment_by_order(order_id).await {
+                            let _ = repo
+                                .update_payment_status(
+                                    payment.id,
+                                    UpdatePaymentStatusRequest {
+                                        status: PaymentStatus::Failed,
+                                        stripe_payment_intent_id: None,
+                                    },
+                                )
+                                .await;
+                            let _ = repo.update_order_status(order_id, OrderStatus::Cancelled).await;
+                        }
+                    }
+                }
+                _ => {}
+            }
+
+            Response::ok("ok")
         })
         .run(req, env)
         .await
