@@ -11,8 +11,9 @@ use openwok_core::repo::{
     RevenueBreakdown,
 };
 use openwok_core::types::{
-    Courier, CourierId, CourierKind, MenuItem, MenuItemId, OrderId, Restaurant, RestaurantId,
-    ZoneId,
+    Courier, CourierId, CourierKind, CreatePaymentRequest, CreateUserRequest, MenuItem, MenuItemId,
+    OrderId, Payment, PaymentId, PaymentStatus, Restaurant, RestaurantId, UpdatePaymentStatusRequest,
+    User, UserId, UserRole, ZoneId,
 };
 use rusqlite::params;
 use tokio::sync::Mutex;
@@ -535,6 +536,199 @@ impl Repository for SqliteRepo {
         .map_err(|_| RepoError::NotFound)
     }
 
+    async fn create_user(&self, req: CreateUserRequest) -> Result<User, RepoError> {
+        let conn = self.conn.lock().await;
+        let id = UserId::new();
+        let id_str = id.to_string();
+        let role = req.role.unwrap_or(UserRole::Customer);
+        let now = chrono::Utc::now();
+        let created_at = now.to_rfc3339();
+
+        conn.execute(
+            "INSERT INTO users (id, supabase_user_id, email, name, role, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![id_str, req.supabase_user_id, req.email, req.name, role.to_string(), created_at],
+        )
+        .map_err(|e| {
+            if e.to_string().contains("UNIQUE") {
+                RepoError::Conflict("user with this supabase_user_id already exists".into())
+            } else {
+                RepoError::Internal(e.to_string())
+            }
+        })?;
+
+        Ok(User {
+            id,
+            supabase_user_id: req.supabase_user_id,
+            email: req.email,
+            name: req.name,
+            role,
+            created_at: now,
+        })
+    }
+
+    async fn get_user(&self, id: UserId) -> Result<User, RepoError> {
+        let conn = self.conn.lock().await;
+        conn.query_row(
+            "SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE id = ?1",
+            params![id.to_string()],
+            |row| {
+                Ok(User {
+                    id: UserId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap()),
+                    supabase_user_id: row.get(1)?,
+                    email: row.get(2)?,
+                    name: row.get(3)?,
+                    role: row.get::<_, String>(4)?.parse::<UserRole>().unwrap_or(UserRole::Customer),
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
+    async fn get_user_by_supabase_id(&self, supabase_user_id: &str) -> Result<User, RepoError> {
+        let conn = self.conn.lock().await;
+        conn.query_row(
+            "SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE supabase_user_id = ?1",
+            params![supabase_user_id],
+            |row| {
+                Ok(User {
+                    id: UserId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap()),
+                    supabase_user_id: row.get(1)?,
+                    email: row.get(2)?,
+                    name: row.get(3)?,
+                    role: row.get::<_, String>(4)?.parse::<UserRole>().unwrap_or(UserRole::Customer),
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
+    async fn create_payment(&self, req: CreatePaymentRequest) -> Result<Payment, RepoError> {
+        let conn = self.conn.lock().await;
+        let id = PaymentId::new();
+        let id_str = id.to_string();
+        let now = chrono::Utc::now();
+        let created_at = now.to_rfc3339();
+
+        conn.execute(
+            "INSERT INTO payments (id, order_id, stripe_checkout_session_id, status, amount_total, restaurant_amount, courier_amount, federal_amount, local_ops_amount, processing_amount, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            params![
+                id_str,
+                req.order_id.to_string(),
+                req.stripe_checkout_session_id,
+                "Pending",
+                req.amount_total.amount().to_string(),
+                req.restaurant_amount.amount().to_string(),
+                req.courier_amount.amount().to_string(),
+                req.federal_amount.amount().to_string(),
+                req.local_ops_amount.amount().to_string(),
+                req.processing_amount.amount().to_string(),
+                created_at,
+            ],
+        )
+        .map_err(|e| RepoError::Internal(e.to_string()))?;
+
+        Ok(Payment {
+            id,
+            order_id: req.order_id,
+            stripe_payment_intent_id: None,
+            stripe_checkout_session_id: req.stripe_checkout_session_id,
+            status: PaymentStatus::Pending,
+            amount_total: req.amount_total,
+            restaurant_amount: req.restaurant_amount,
+            courier_amount: req.courier_amount,
+            federal_amount: req.federal_amount,
+            local_ops_amount: req.local_ops_amount,
+            processing_amount: req.processing_amount,
+            created_at: now,
+        })
+    }
+
+    async fn get_payment_by_order(&self, order_id: OrderId) -> Result<Payment, RepoError> {
+        let conn = self.conn.lock().await;
+        conn.query_row(
+            "SELECT id, order_id, stripe_payment_intent_id, stripe_checkout_session_id, status, amount_total, restaurant_amount, courier_amount, federal_amount, local_ops_amount, processing_amount, created_at
+             FROM payments WHERE order_id = ?1",
+            params![order_id.to_string()],
+            |row| {
+                Ok(Payment {
+                    id: PaymentId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap()),
+                    order_id: OrderId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(1)?).unwrap()),
+                    stripe_payment_intent_id: row.get(2)?,
+                    stripe_checkout_session_id: row.get(3)?,
+                    status: row.get::<_, String>(4)?.parse::<PaymentStatus>().unwrap_or(PaymentStatus::Pending),
+                    amount_total: Money::from(row.get::<_, String>(5)?.as_str()),
+                    restaurant_amount: Money::from(row.get::<_, String>(6)?.as_str()),
+                    courier_amount: Money::from(row.get::<_, String>(7)?.as_str()),
+                    federal_amount: Money::from(row.get::<_, String>(8)?.as_str()),
+                    local_ops_amount: Money::from(row.get::<_, String>(9)?.as_str()),
+                    processing_amount: Money::from(row.get::<_, String>(10)?.as_str()),
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(11)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
+    async fn update_payment_status(
+        &self,
+        id: PaymentId,
+        req: UpdatePaymentStatusRequest,
+    ) -> Result<Payment, RepoError> {
+        let conn = self.conn.lock().await;
+        let id_str = id.to_string();
+
+        let updated = if let Some(ref pi_id) = req.stripe_payment_intent_id {
+            conn.execute(
+                "UPDATE payments SET status = ?1, stripe_payment_intent_id = ?2 WHERE id = ?3",
+                params![req.status.to_string(), pi_id, id_str],
+            )
+        } else {
+            conn.execute(
+                "UPDATE payments SET status = ?1 WHERE id = ?2",
+                params![req.status.to_string(), id_str],
+            )
+        }
+        .map_err(|e| RepoError::Internal(e.to_string()))?;
+
+        if updated == 0 {
+            return Err(RepoError::NotFound);
+        }
+
+        conn.query_row(
+            "SELECT id, order_id, stripe_payment_intent_id, stripe_checkout_session_id, status, amount_total, restaurant_amount, courier_amount, federal_amount, local_ops_amount, processing_amount, created_at
+             FROM payments WHERE id = ?1",
+            params![id_str],
+            |row| {
+                Ok(Payment {
+                    id: PaymentId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap()),
+                    order_id: OrderId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(1)?).unwrap()),
+                    stripe_payment_intent_id: row.get(2)?,
+                    stripe_checkout_session_id: row.get(3)?,
+                    status: row.get::<_, String>(4)?.parse::<PaymentStatus>().unwrap_or(PaymentStatus::Pending),
+                    amount_total: Money::from(row.get::<_, String>(5)?.as_str()),
+                    restaurant_amount: Money::from(row.get::<_, String>(6)?.as_str()),
+                    courier_amount: Money::from(row.get::<_, String>(7)?.as_str()),
+                    federal_amount: Money::from(row.get::<_, String>(8)?.as_str()),
+                    local_ops_amount: Money::from(row.get::<_, String>(9)?.as_str()),
+                    processing_amount: Money::from(row.get::<_, String>(10)?.as_str()),
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(11)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError> {
         let conn = self.conn.lock().await;
         conn.query_row(
@@ -704,6 +898,9 @@ mod tests {
     use openwok_core::repo::{
         CreateCourierRequest, CreateMenuItemRequest, CreateOrderItemRequest, CreateOrderRequest,
         CreateRestaurantRequest, Repository,
+    };
+    use openwok_core::types::{
+        CreatePaymentRequest, CreateUserRequest, PaymentStatus, UpdatePaymentStatusRequest,
     };
 
     fn test_repo() -> SqliteRepo {
@@ -906,5 +1103,188 @@ mod tests {
         let metrics = repo.get_metrics().await.unwrap();
         assert_eq!(metrics.order_count, 0);
         assert_eq!(metrics.on_time_delivery_rate, 0.0);
+    }
+
+    #[tokio::test]
+    async fn create_and_get_user() {
+        let repo = test_repo();
+        let user = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "sub_abc123".into(),
+                email: "test@example.com".into(),
+                name: Some("Test User".into()),
+                role: None,
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(user.email, "test@example.com");
+        assert_eq!(user.role, UserRole::Customer);
+
+        let fetched = repo.get_user(user.id).await.unwrap();
+        assert_eq!(fetched.email, "test@example.com");
+        assert_eq!(fetched.supabase_user_id, "sub_abc123");
+    }
+
+    #[tokio::test]
+    async fn get_user_by_supabase_id() {
+        let repo = test_repo();
+        let user = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "sub_xyz".into(),
+                email: "user@test.com".into(),
+                name: None,
+                role: Some(UserRole::RestaurantOwner),
+            })
+            .await
+            .unwrap();
+
+        let fetched = repo.get_user_by_supabase_id("sub_xyz").await.unwrap();
+        assert_eq!(fetched.id, user.id);
+        assert_eq!(fetched.role, UserRole::RestaurantOwner);
+    }
+
+    #[tokio::test]
+    async fn create_user_duplicate_supabase_id() {
+        let repo = test_repo();
+        repo.create_user(CreateUserRequest {
+            supabase_user_id: "dup_id".into(),
+            email: "a@test.com".into(),
+            name: None,
+            role: None,
+        })
+        .await
+        .unwrap();
+
+        let result = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "dup_id".into(),
+                email: "b@test.com".into(),
+                name: None,
+                role: None,
+            })
+            .await;
+        assert!(matches!(result, Err(RepoError::Conflict(_))));
+    }
+
+    #[tokio::test]
+    async fn get_user_not_found() {
+        let repo = test_repo();
+        let result = repo.get_user(UserId::new()).await;
+        assert!(matches!(result, Err(RepoError::NotFound)));
+    }
+
+    #[tokio::test]
+    async fn create_and_get_payment() {
+        let repo = seeded_repo();
+        let restaurants = repo.list_restaurants().await.unwrap();
+        let rest = &restaurants[0];
+        let item = &rest.menu[0];
+
+        let order = repo
+            .create_order(CreateOrderRequest {
+                restaurant_id: rest.id,
+                items: vec![CreateOrderItemRequest {
+                    menu_item_id: item.id,
+                    name: item.name.clone(),
+                    quantity: 1,
+                    unit_price: item.price,
+                }],
+                customer_address: "123 Pay St".into(),
+                zone_id: rest.zone_id,
+                delivery_fee: Money::from("5.00"),
+                tip: Money::from("2.00"),
+                local_ops_fee: Money::from("2.50"),
+            })
+            .await
+            .unwrap();
+
+        let payment = repo
+            .create_payment(CreatePaymentRequest {
+                order_id: order.id,
+                stripe_checkout_session_id: Some("cs_test_123".into()),
+                amount_total: Money::from("30.00"),
+                restaurant_amount: Money::from("20.00"),
+                courier_amount: Money::from("5.00"),
+                federal_amount: Money::from("1.00"),
+                local_ops_amount: Money::from("2.50"),
+                processing_amount: Money::from("1.50"),
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(payment.status, PaymentStatus::Pending);
+        assert_eq!(payment.amount_total, Money::from("30.00"));
+
+        let fetched = repo.get_payment_by_order(order.id).await.unwrap();
+        assert_eq!(fetched.id, payment.id);
+        assert_eq!(
+            fetched.stripe_checkout_session_id,
+            Some("cs_test_123".into())
+        );
+    }
+
+    #[tokio::test]
+    async fn update_payment_status_to_succeeded() {
+        let repo = seeded_repo();
+        let restaurants = repo.list_restaurants().await.unwrap();
+        let rest = &restaurants[0];
+        let item = &rest.menu[0];
+
+        let order = repo
+            .create_order(CreateOrderRequest {
+                restaurant_id: rest.id,
+                items: vec![CreateOrderItemRequest {
+                    menu_item_id: item.id,
+                    name: item.name.clone(),
+                    quantity: 1,
+                    unit_price: item.price,
+                }],
+                customer_address: "456 Pay Ave".into(),
+                zone_id: rest.zone_id,
+                delivery_fee: Money::from("5.00"),
+                tip: Money::from("0.00"),
+                local_ops_fee: Money::from("2.00"),
+            })
+            .await
+            .unwrap();
+
+        let payment = repo
+            .create_payment(CreatePaymentRequest {
+                order_id: order.id,
+                stripe_checkout_session_id: Some("cs_test_456".into()),
+                amount_total: Money::from("25.00"),
+                restaurant_amount: Money::from("15.00"),
+                courier_amount: Money::from("5.00"),
+                federal_amount: Money::from("1.00"),
+                local_ops_amount: Money::from("2.00"),
+                processing_amount: Money::from("2.00"),
+            })
+            .await
+            .unwrap();
+
+        let updated = repo
+            .update_payment_status(
+                payment.id,
+                UpdatePaymentStatusRequest {
+                    status: PaymentStatus::Succeeded,
+                    stripe_payment_intent_id: Some("pi_test_789".into()),
+                },
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(updated.status, PaymentStatus::Succeeded);
+        assert_eq!(
+            updated.stripe_payment_intent_id,
+            Some("pi_test_789".into())
+        );
+    }
+
+    #[tokio::test]
+    async fn get_payment_not_found() {
+        let repo = test_repo();
+        let result = repo.get_payment_by_order(OrderId::new()).await;
+        assert!(matches!(result, Err(RepoError::NotFound)));
     }
 }

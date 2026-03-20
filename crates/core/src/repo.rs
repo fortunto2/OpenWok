@@ -4,7 +4,10 @@ use async_trait::async_trait;
 
 use crate::money::Money;
 use crate::order::{Order, OrderStatus};
-use crate::types::{Courier, CourierId, MenuItemId, OrderId, Restaurant, RestaurantId, ZoneId};
+use crate::types::{
+    Courier, CourierId, CreatePaymentRequest, CreateUserRequest, MenuItemId, OrderId, Payment,
+    PaymentId, Restaurant, RestaurantId, UpdatePaymentStatusRequest, User, UserId, ZoneId,
+};
 
 /// Repository errors — maps to HTTP statuses in handlers.
 #[derive(Debug, thiserror::Error)]
@@ -134,6 +137,20 @@ pub trait Repository: Send + Sync + 'static {
         id: CourierId,
         available: bool,
     ) -> Result<Courier, RepoError>;
+
+    // Users
+    async fn create_user(&self, req: CreateUserRequest) -> Result<User, RepoError>;
+    async fn get_user(&self, id: UserId) -> Result<User, RepoError>;
+    async fn get_user_by_supabase_id(&self, supabase_user_id: &str) -> Result<User, RepoError>;
+
+    // Payments
+    async fn create_payment(&self, req: CreatePaymentRequest) -> Result<Payment, RepoError>;
+    async fn get_payment_by_order(&self, order_id: OrderId) -> Result<Payment, RepoError>;
+    async fn update_payment_status(
+        &self,
+        id: PaymentId,
+        req: UpdatePaymentStatusRequest,
+    ) -> Result<Payment, RepoError>;
 
     // Economics & Metrics
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError>;
