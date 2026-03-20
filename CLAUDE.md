@@ -69,12 +69,25 @@ GitHub: https://github.com/fortunto2/OpenWok
 
 ```
 crates/
-  core/      — openwok-core: domain types, pricing calculator, order state machine
-  api/       — openwok-api: axum REST server with SQLite (D1-compatible), WebSocket
+  core/      — openwok-core: domain types, pricing, order state machine, Repository trait
+  handlers/  — openwok-handlers: shared axum route handlers generic over Repository
+  api/       — openwok-api: axum REST server with SqliteRepo + WebSocket
   frontend/  — openwok-frontend: Dioxus web SPA (7 pages + operator console)
-  worker/    — openwok-worker: Cloudflare Worker entry point + D1 handlers
+  worker/    — openwok-worker: Cloudflare Worker with D1Repo (standalone workspace)
 migrations/  — D1-compatible SQL migrations (shared with rusqlite)
 ```
+
+**Repository pattern:**
+```
+[Repository trait]  ←  [handlers crate]  ←  [api: SqliteRepo]
+   crates/core          crates/handlers      crates/api
+                                         ←  [worker: D1Repo]
+                                             crates/worker
+```
+- `Repository` trait in core defines async data access methods
+- `handlers` crate has axum handlers generic over `R: Repository`
+- `api` uses SqliteRepo (implements Repository) + handlers crate
+- `worker` uses D1Repo (same method signatures, can't impl trait due to !Send D1Database) + worker::Router
 
 ## Run Commands
 

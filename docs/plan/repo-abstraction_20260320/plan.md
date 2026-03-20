@@ -62,8 +62,8 @@ Implement D1Repo and wire worker to use shared handlers.
 
 ### Tasks
 
-- [x] Task 4.1: Remove orphaned Fly.io files: `Dockerfile`, `fly.toml`, `.dockerignore`. Verify `git status` shows them as deleted.
-- [ ] Task 4.2: Update `CLAUDE.md` — add `handlers` crate to workspace structure, document Repository pattern, update dependency diagram.
+- [x] Task 4.1: Remove orphaned Fly.io files <!-- sha:0c2e9f3 -->: `Dockerfile`, `fly.toml`, `.dockerignore`. Verify `git status` shows them as deleted.
+- [x] Task 4.2: Update `CLAUDE.md` — add `handlers` crate to workspace structure, document Repository pattern, update dependency diagram.
 - [ ] Task 4.3: Run `make check` — tests pass, clippy clean, fmt clean. Verify no dead code or unused imports.
 
 ### Verification
