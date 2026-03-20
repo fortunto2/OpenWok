@@ -1562,4 +1562,224 @@ mod tests {
         let result = repo.get_payment_by_order(OrderId::new()).await;
         assert!(matches!(result, Err(RepoError::NotFound)));
     }
+
+    // --- Restaurant management tests ---
+
+    #[tokio::test]
+    async fn create_restaurant_with_owner() {
+        let repo = test_repo();
+        let user = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "owner_sub".into(),
+                email: "owner@test.com".into(),
+                name: Some("Owner".into()),
+                role: None,
+            })
+            .await
+            .unwrap();
+
+        let req = CreateRestaurantRequest {
+            name: "My Wok".into(),
+            zone_id: ZoneId::new(),
+            menu: vec![],
+            owner_id: Some(user.id),
+            description: Some("Great food".into()),
+            address: Some("123 Main St".into()),
+            phone: Some("555-1234".into()),
+        };
+        let r = repo.create_restaurant(req).await.unwrap();
+        assert_eq!(r.owner_id, Some(user.id));
+        assert_eq!(r.description, Some("Great food".into()));
+        assert_eq!(r.address, Some("123 Main St".into()));
+        assert_eq!(r.phone, Some("555-1234".into()));
+    }
+
+    #[tokio::test]
+    async fn update_restaurant_changes_name() {
+        let repo = test_repo();
+        let r = repo
+            .create_restaurant(CreateRestaurantRequest {
+                name: "Old Name".into(),
+                zone_id: ZoneId::new(),
+                menu: vec![],
+                owner_id: None,
+                description: None,
+                address: None,
+                phone: None,
+            })
+            .await
+            .unwrap();
+
+        let updated = repo
+            .update_restaurant(
+                r.id,
+                openwok_core::types::UpdateRestaurantRequest {
+                    name: Some("New Name".into()),
+                    description: Some("Desc".into()),
+                    address: None,
+                    phone: None,
+                },
+            )
+            .await
+            .unwrap();
+        assert_eq!(updated.name, "New Name");
+        assert_eq!(updated.description, Some("Desc".into()));
+    }
+
+    #[tokio::test]
+    async fn toggle_restaurant_active() {
+        let repo = test_repo();
+        let r = repo
+            .create_restaurant(CreateRestaurantRequest {
+                name: "Toggle Me".into(),
+                zone_id: ZoneId::new(),
+                menu: vec![],
+                owner_id: None,
+                description: None,
+                address: None,
+                phone: None,
+            })
+            .await
+            .unwrap();
+        assert!(r.active);
+
+        let toggled = repo.toggle_restaurant_active(r.id, false).await.unwrap();
+        assert!(!toggled.active);
+
+        let toggled_back = repo.toggle_restaurant_active(r.id, true).await.unwrap();
+        assert!(toggled_back.active);
+    }
+
+    #[tokio::test]
+    async fn list_restaurants_by_owner() {
+        let repo = test_repo();
+        let user = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "owner2".into(),
+                email: "own2@test.com".into(),
+                name: None,
+                role: None,
+            })
+            .await
+            .unwrap();
+
+        // Create 2 restaurants for this owner
+        for name in ["R1", "R2"] {
+            repo.create_restaurant(CreateRestaurantRequest {
+                name: name.into(),
+                zone_id: ZoneId::new(),
+                menu: vec![],
+                owner_id: Some(user.id),
+                description: None,
+                address: None,
+                phone: None,
+            })
+            .await
+            .unwrap();
+        }
+
+        // Create 1 without owner
+        repo.create_restaurant(CreateRestaurantRequest {
+            name: "No Owner".into(),
+            zone_id: ZoneId::new(),
+            menu: vec![],
+            owner_id: None,
+            description: None,
+            address: None,
+            phone: None,
+        })
+        .await
+        .unwrap();
+
+        let owned = repo.list_restaurants_by_owner(user.id).await.unwrap();
+        assert_eq!(owned.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn add_and_update_and_delete_menu_item() {
+        let repo = test_repo();
+        let r = repo
+            .create_restaurant(CreateRestaurantRequest {
+                name: "Menu Test".into(),
+                zone_id: ZoneId::new(),
+                menu: vec![],
+                owner_id: None,
+                description: None,
+                address: None,
+                phone: None,
+            })
+            .await
+            .unwrap();
+
+        // Add
+        let item = repo
+            .add_menu_item(
+                r.id,
+                CreateMenuItemRequest {
+                    name: "Pad Thai".into(),
+                    price: Money::from("12.99"),
+                },
+            )
+            .await
+            .unwrap();
+        assert_eq!(item.name, "Pad Thai");
+        assert_eq!(item.restaurant_id, r.id);
+
+        // Update
+        let updated = repo
+            .update_menu_item(
+                item.id,
+                openwok_core::types::UpdateMenuItemRequest {
+                    name: Some("Pad See Ew".into()),
+                    price: Some(Money::from("13.99")),
+                },
+            )
+            .await
+            .unwrap();
+        assert_eq!(updated.name, "Pad See Ew");
+        assert_eq!(updated.price, Money::from("13.99"));
+
+        // Delete
+        repo.delete_menu_item(item.id).await.unwrap();
+
+        // Verify deleted
+        let result = repo.delete_menu_item(item.id).await;
+        assert!(matches!(result, Err(RepoError::NotFound)));
+    }
+
+    #[tokio::test]
+    async fn update_user_role() {
+        let repo = test_repo();
+        let user = repo
+            .create_user(CreateUserRequest {
+                supabase_user_id: "role_test".into(),
+                email: "role@test.com".into(),
+                name: None,
+                role: None,
+            })
+            .await
+            .unwrap();
+        assert_eq!(user.role, UserRole::Customer);
+
+        let updated = repo
+            .update_user_role(user.id, UserRole::RestaurantOwner)
+            .await
+            .unwrap();
+        assert_eq!(updated.role, UserRole::RestaurantOwner);
+    }
+
+    #[tokio::test]
+    async fn add_menu_item_nonexistent_restaurant() {
+        let repo = test_repo();
+        let result = repo
+            .add_menu_item(
+                RestaurantId::new(),
+                CreateMenuItemRequest {
+                    name: "Ghost Item".into(),
+                    price: Money::from("10.00"),
+                },
+            )
+            .await;
+        assert!(matches!(result, Err(RepoError::NotFound)));
+    }
 }
