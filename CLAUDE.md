@@ -177,6 +177,7 @@ When building or reviewing frontend changes:
 | GET | /api/couriers/me | Get current user's courier profile (auth) |
 | PATCH | /api/couriers/{id}/available | Toggle availability (auth) |
 | GET | /api/my/deliveries | List orders assigned to current courier (auth) |
+| GET | /api/my/orders | List orders across all owner's restaurants (auth) |
 | GET | /api/public/economics | Aggregate financials (public, cached 5min) |
 | GET | /api/admin/metrics | Pilot KPIs (order count, on-time rate, revenue) |
 | GET | /api/admin/users | List all users with blocked status (admin) |
@@ -242,7 +243,7 @@ See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
 | `/login` | Login | Google OAuth via Supabase |
 | `/auth/callback` | AuthCallback | OAuth callback, stores JWT |
 | `/my-restaurants` | MyRestaurants | Owner's restaurant dashboard |
-| `/my-restaurants/:id` | RestaurantSettings | Restaurant settings + menu editor |
+| `/my-restaurants/:id` | RestaurantSettings | Restaurant settings (Info/Menu/Orders tabs) |
 | `/onboard-restaurant` | OnboardRestaurant | New restaurant onboarding form |
 | `/register-courier` | RegisterCourier | Courier self-registration (name + zone) |
 | `/my-deliveries` | MyDeliveries | Courier delivery dashboard + Mark Delivered |
@@ -277,6 +278,11 @@ pub trait EventStore {
 }
 // Order state = fold over events, never mutate directly
 ```
+
+**Auth & blocked-user enforcement:**
+- All authenticated endpoints MUST call `get_active_user()` (checks `blocked == false`)
+- Do NOT use `get_user_by_supabase_id()` directly in handlers — it skips the blocked check
+- Admin endpoints additionally check `role == NodeOperator`
 
 **Error handling:**
 - Domain errors: typed enums via `thiserror` (OrderError, PaymentError, DispatchError)
