@@ -69,7 +69,6 @@ pub async fn get(State(state): State<AppState>) -> (HeaderMap, Json<PublicEconom
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::app;
     use crate::db;
     use crate::state::AppState;

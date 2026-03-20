@@ -163,7 +163,6 @@ pub async fn get(State(state): State<AppState>) -> Json<AdminMetrics> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::app;
     use crate::db;
     use crate::state::AppState;
