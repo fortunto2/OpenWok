@@ -1,4 +1,5 @@
 pub mod db;
+pub mod payments;
 pub mod sqlite_repo;
 pub mod state;
 pub mod stripe;
@@ -7,7 +8,7 @@ mod ws;
 use std::sync::Arc;
 
 use axum::Router;
-use axum::routing::any;
+use axum::routing::{any, post};
 use openwok_handlers::auth::JwtConfig;
 use sqlite_repo::SqliteRepo;
 use state::AppState;
@@ -58,12 +59,21 @@ pub fn app(state: AppState) -> Router {
         .with_state(state.repo.clone())
         .layer(axum::Extension(jwt_config));
 
+    // Payment routes use full AppState (need StripeClient + repo)
+    let payment_routes = Router::new()
+        .route("/orders", post(payments::create_order_with_payment))
+        .route("/webhooks/stripe", post(payments::stripe_webhook))
+        .with_state(state.clone());
+
     // WS route uses full AppState (needs broadcast channel)
     let ws_route = Router::new()
         .route("/ws/orders/{id}", any(ws::order_updates))
         .with_state(state);
 
-    let api = Router::new().merge(api_handlers).merge(ws_route);
+    let api = Router::new()
+        .merge(payment_routes) // Payment routes override generic order create
+        .merge(api_handlers)
+        .merge(ws_route);
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -191,7 +201,11 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(resp.status(), 201);
-        let order: serde_json::Value = resp.json().await.unwrap();
+        let result: serde_json::Value = resp.json().await.unwrap();
+
+        // Response is { order, checkout_url, payment_id }
+        let order = &result["order"];
+        assert!(result["payment_id"].is_string(), "payment record created");
 
         // Verify pricing breakdown has 6 fields
         let pricing = &order["pricing"];

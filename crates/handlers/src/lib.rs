@@ -20,7 +20,8 @@ pub fn api_routes<R: Repository>() -> Router<Arc<R>> {
         .route("/health", get(health))
         .routes(routes!(restaurants::list, restaurants::create))
         .routes(routes!(restaurants::get))
-        .routes(routes!(orders::list, orders::create))
+        .routes(routes!(orders::list))
+        .routes(routes!(orders::create))
         .routes(routes!(orders::get))
         .routes(routes!(orders::transition))
         .routes(routes!(couriers::assign_to_order))
@@ -35,6 +36,7 @@ pub fn api_routes<R: Repository>() -> Router<Arc<R>> {
 }
 
 /// Build the shared API router and return both the router and OpenAPI spec.
+/// Excludes POST /orders so the api crate can provide its own payment-aware handler.
 pub fn api_routes_with_openapi<R: Repository>(
     openapi: utoipa::openapi::OpenApi,
 ) -> (Router<Arc<R>>, utoipa::openapi::OpenApi) {
@@ -42,7 +44,7 @@ pub fn api_routes_with_openapi<R: Repository>(
         .route("/health", get(health))
         .routes(routes!(restaurants::list, restaurants::create))
         .routes(routes!(restaurants::get))
-        .routes(routes!(orders::list, orders::create))
+        .routes(routes!(orders::list))
         .routes(routes!(orders::get))
         .routes(routes!(orders::transition))
         .routes(routes!(couriers::assign_to_order))
