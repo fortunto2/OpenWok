@@ -110,19 +110,30 @@ pub trait Repository: Send + Sync + 'static {
     // Restaurants
     async fn list_restaurants(&self) -> Result<Vec<Restaurant>, RepoError>;
     async fn get_restaurant(&self, id: RestaurantId) -> Result<Restaurant, RepoError>;
-    async fn create_restaurant(&self, req: CreateRestaurantRequest) -> Result<Restaurant, RepoError>;
+    async fn create_restaurant(
+        &self,
+        req: CreateRestaurantRequest,
+    ) -> Result<Restaurant, RepoError>;
 
     // Orders
     async fn list_orders(&self) -> Result<Vec<Order>, RepoError>;
     async fn get_order(&self, id: OrderId) -> Result<Order, RepoError>;
     async fn create_order(&self, req: CreateOrderRequest) -> Result<Order, RepoError>;
-    async fn update_order_status(&self, id: OrderId, status: OrderStatus) -> Result<Order, RepoError>;
+    async fn update_order_status(
+        &self,
+        id: OrderId,
+        status: OrderStatus,
+    ) -> Result<Order, RepoError>;
     async fn assign_courier(&self, order_id: OrderId) -> Result<AssignCourierResult, RepoError>;
 
     // Couriers
     async fn list_couriers(&self) -> Result<Vec<Courier>, RepoError>;
     async fn create_courier(&self, req: CreateCourierRequest) -> Result<Courier, RepoError>;
-    async fn toggle_courier_available(&self, id: CourierId, available: bool) -> Result<Courier, RepoError>;
+    async fn toggle_courier_available(
+        &self,
+        id: CourierId,
+        available: bool,
+    ) -> Result<Courier, RepoError>;
 
     // Economics & Metrics
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError>;

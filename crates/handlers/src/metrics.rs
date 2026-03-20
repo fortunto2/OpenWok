@@ -5,9 +5,7 @@ use axum::extract::State;
 use openwok_core::repo::{AdminMetrics, Repository};
 
 #[utoipa::path(get, path = "/admin/metrics", tag = "metrics")]
-pub async fn get<R: Repository>(
-    State(repo): State<Arc<R>>,
-) -> Json<AdminMetrics> {
+pub async fn get<R: Repository>(State(repo): State<Arc<R>>) -> Json<AdminMetrics> {
     Json(repo.get_metrics().await.unwrap_or(AdminMetrics {
         order_count: 0,
         orders_by_status: Default::default(),

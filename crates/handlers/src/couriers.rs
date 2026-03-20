@@ -20,9 +20,7 @@ pub struct SetAvailable {
 }
 
 #[utoipa::path(get, path = "/couriers", tag = "couriers")]
-pub async fn list<R: Repository>(
-    State(repo): State<Arc<R>>,
-) -> Json<Vec<Courier>> {
+pub async fn list<R: Repository>(State(repo): State<Arc<R>>) -> Json<Vec<Courier>> {
     Json(repo.list_couriers().await.unwrap_or_default())
 }
 

@@ -37,9 +37,7 @@ pub struct TransitionStatus {
 }
 
 #[utoipa::path(get, path = "/orders", tag = "orders")]
-pub async fn list<R: Repository>(
-    State(repo): State<Arc<R>>,
-) -> Json<Vec<Order>> {
+pub async fn list<R: Repository>(State(repo): State<Arc<R>>) -> Json<Vec<Order>> {
     Json(repo.list_orders().await.unwrap_or_default())
 }
 
@@ -94,4 +92,3 @@ pub async fn transition<R: Repository>(
         .map(Json)
         .map_err(|e| (repo_error_to_status(&e), e.to_string()))
 }
-

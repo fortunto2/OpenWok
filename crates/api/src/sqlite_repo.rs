@@ -11,7 +11,8 @@ use openwok_core::repo::{
     RevenueBreakdown,
 };
 use openwok_core::types::{
-    Courier, CourierId, CourierKind, MenuItem, MenuItemId, OrderId, Restaurant, RestaurantId, ZoneId,
+    Courier, CourierId, CourierKind, MenuItem, MenuItemId, OrderId, Restaurant, RestaurantId,
+    ZoneId,
 };
 use rusqlite::params;
 use tokio::sync::Mutex;
@@ -576,7 +577,6 @@ impl Repository for SqliteRepo {
         let order_count: i64 = conn
             .query_row("SELECT COUNT(*) FROM orders", [], |r| r.get(0))
             .unwrap_or(0);
-
 
         let mut orders_by_status = HashMap::new();
         {

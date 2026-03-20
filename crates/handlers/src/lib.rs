@@ -1,8 +1,8 @@
-pub mod restaurants;
-pub mod orders;
 pub mod couriers;
 pub mod economics;
 pub mod metrics;
+pub mod orders;
+pub mod restaurants;
 
 use std::sync::Arc;
 
@@ -14,20 +14,19 @@ use utoipa_axum::routes;
 /// Build the shared API router, generic over any Repository implementation.
 /// Does NOT include WebSocket route (that's api-only).
 pub fn api_routes<R: Repository>() -> Router<Arc<R>> {
-    let (router, _openapi) =
-        utoipa_axum::router::OpenApiRouter::<Arc<R>>::new()
-            .route("/health", get(health))
-            .routes(routes!(restaurants::list, restaurants::create))
-            .routes(routes!(restaurants::get))
-            .routes(routes!(orders::list, orders::create))
-            .routes(routes!(orders::get))
-            .routes(routes!(orders::transition))
-            .routes(routes!(couriers::assign_to_order))
-            .routes(routes!(couriers::list, couriers::create))
-            .routes(routes!(couriers::toggle_available))
-            .routes(routes!(economics::get))
-            .routes(routes!(metrics::get))
-            .split_for_parts();
+    let (router, _openapi) = utoipa_axum::router::OpenApiRouter::<Arc<R>>::new()
+        .route("/health", get(health))
+        .routes(routes!(restaurants::list, restaurants::create))
+        .routes(routes!(restaurants::get))
+        .routes(routes!(orders::list, orders::create))
+        .routes(routes!(orders::get))
+        .routes(routes!(orders::transition))
+        .routes(routes!(couriers::assign_to_order))
+        .routes(routes!(couriers::list, couriers::create))
+        .routes(routes!(couriers::toggle_available))
+        .routes(routes!(economics::get))
+        .routes(routes!(metrics::get))
+        .split_for_parts();
     router
 }
 

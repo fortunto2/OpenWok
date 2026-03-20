@@ -2304,11 +2304,13 @@ dependencies = [
 name = "openwok-api"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "axum",
  "chrono",
  "futures-util",
  "http-body-util",
  "openwok-core",
+ "openwok-handlers",
  "reqwest",
  "rusqlite",
  "serde",
@@ -2326,6 +2328,7 @@ dependencies = [
 name = "openwok-core"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "chrono",
  "rust_decimal",
  "serde",
@@ -2350,6 +2353,21 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "openwok-handlers"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "chrono",
+ "openwok-core",
+ "serde",
+ "serde_json",
+ "utoipa",
+ "utoipa-axum",
+ "uuid",
 ]
 
 [[package]]

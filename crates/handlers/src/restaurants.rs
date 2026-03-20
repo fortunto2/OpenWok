@@ -23,9 +23,7 @@ pub struct CreateMenuItem {
 }
 
 #[utoipa::path(get, path = "/restaurants", tag = "restaurants")]
-pub async fn list<R: Repository>(
-    State(repo): State<Arc<R>>,
-) -> Json<Vec<Restaurant>> {
+pub async fn list<R: Repository>(State(repo): State<Arc<R>>) -> Json<Vec<Restaurant>> {
     // list_restaurants shouldn't fail in practice; unwrap_or empty
     Json(repo.list_restaurants().await.unwrap_or_default())
 }
