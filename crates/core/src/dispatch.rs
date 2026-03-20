@@ -239,6 +239,35 @@ mod tests {
         async fn get_metrics(&self) -> Result<AdminMetrics, RepoError> {
             Err(RepoError::NotFound)
         }
+        async fn list_users(&self) -> Result<Vec<User>, RepoError> {
+            unimplemented!()
+        }
+        async fn set_user_blocked(
+            &self,
+            _user_id: UserId,
+            _blocked: bool,
+        ) -> Result<User, RepoError> {
+            unimplemented!()
+        }
+        async fn create_dispute(
+            &self,
+            _order_id: OrderId,
+            _user_id: UserId,
+            _reason: String,
+        ) -> Result<crate::types::Dispute, RepoError> {
+            unimplemented!()
+        }
+        async fn list_disputes(&self) -> Result<Vec<crate::types::Dispute>, RepoError> {
+            unimplemented!()
+        }
+        async fn resolve_dispute(
+            &self,
+            _id: crate::types::DisputeId,
+            _status: crate::types::DisputeStatus,
+            _resolution: Option<String>,
+        ) -> Result<crate::types::Dispute, RepoError> {
+            unimplemented!()
+        }
     }
 
     #[tokio::test]

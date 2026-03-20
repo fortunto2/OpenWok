@@ -87,6 +87,7 @@ fn migrate(conn: &Connection) {
             email            TEXT NOT NULL,
             name             TEXT,
             role             TEXT NOT NULL DEFAULT 'Customer',
+            blocked          INTEGER NOT NULL DEFAULT 0,
             created_at       TEXT NOT NULL
         );
 
@@ -142,6 +143,30 @@ fn migrate(conn: &Connection) {
          CREATE INDEX IF NOT EXISTS idx_orders_courier_id ON orders(courier_id);",
     )
     .expect("failed to create dispatch indexes");
+
+    // Add blocked column to users if not present (migration 0010)
+    let has_blocked: bool = conn.prepare("SELECT blocked FROM users LIMIT 0").is_ok();
+    if !has_blocked {
+        conn.execute_batch("ALTER TABLE users ADD COLUMN blocked INTEGER NOT NULL DEFAULT 0;")
+            .expect("failed to add blocked to users");
+    }
+
+    // Create disputes table (migration 0010)
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS disputes (
+            id          TEXT PRIMARY KEY,
+            order_id    TEXT NOT NULL REFERENCES orders(id),
+            user_id     TEXT NOT NULL REFERENCES users(id),
+            reason      TEXT NOT NULL,
+            status      TEXT NOT NULL DEFAULT 'Open',
+            resolution  TEXT,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            resolved_at TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_disputes_order_id ON disputes(order_id);
+        CREATE INDEX IF NOT EXISTS idx_disputes_status ON disputes(status);",
+    )
+    .expect("failed to create disputes table");
 }
 
 pub fn seed_la_data(conn: &Connection) {
@@ -425,15 +450,15 @@ mod tests {
     #[test]
     fn migrations_run_without_error() {
         let conn = open(":memory:");
-        // Tables should exist (6 original + users + payments = 8)
+        // Tables should exist (6 original + users + payments + disputes = 9)
         let count: i64 = conn
             .query_row(
-                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('zones','restaurants','menu_items','couriers','orders','order_items','users','payments')",
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('zones','restaurants','menu_items','couriers','orders','order_items','users','payments','disputes')",
                 [],
                 |r| r.get(0),
             )
             .unwrap();
-        assert_eq!(count, 8);
+        assert_eq!(count, 9);
     }
 
     #[test]

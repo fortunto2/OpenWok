@@ -46,6 +46,7 @@ id_newtype!(ZoneId);
 id_newtype!(MenuItemId);
 id_newtype!(UserId);
 id_newtype!(PaymentId);
+id_newtype!(DisputeId);
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct MenuItem {
@@ -139,6 +140,7 @@ pub struct User {
     pub email: String,
     pub name: Option<String>,
     pub role: UserRole,
+    pub blocked: bool,
     pub created_at: DateTime<Utc>,
 }
 
@@ -190,6 +192,49 @@ pub struct Payment {
     pub created_at: DateTime<Utc>,
 }
 
+// --- Disputes ---
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema)]
+pub enum DisputeStatus {
+    Open,
+    Resolved,
+    Dismissed,
+}
+
+impl std::fmt::Display for DisputeStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DisputeStatus::Open => write!(f, "Open"),
+            DisputeStatus::Resolved => write!(f, "Resolved"),
+            DisputeStatus::Dismissed => write!(f, "Dismissed"),
+        }
+    }
+}
+
+impl std::str::FromStr for DisputeStatus {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Open" => Ok(DisputeStatus::Open),
+            "Resolved" => Ok(DisputeStatus::Resolved),
+            "Dismissed" => Ok(DisputeStatus::Dismissed),
+            _ => Err(format!("unknown dispute status: {s}")),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct Dispute {
+    pub id: DisputeId,
+    pub order_id: OrderId,
+    pub user_id: UserId,
+    pub reason: String,
+    pub status: DisputeStatus,
+    pub resolution: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub resolved_at: Option<DateTime<Utc>>,
+}
+
 // --- Request types ---
 
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
@@ -230,6 +275,22 @@ pub struct UpdateRestaurantRequest {
 pub struct UpdateMenuItemRequest {
     pub name: Option<String>,
     pub price: Option<Money>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct CreateDisputeRequest {
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct ResolveDisputeRequest {
+    pub status: DisputeStatus,
+    pub resolution: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct SetBlockedRequest {
+    pub blocked: bool,
 }
 
 #[cfg(test)]
@@ -304,6 +365,7 @@ mod tests {
             email: "test@example.com".into(),
             name: Some("Test User".into()),
             role: UserRole::Customer,
+            blocked: false,
             created_at: chrono::Utc::now(),
         };
         let json = serde_json::to_string(&u).unwrap();

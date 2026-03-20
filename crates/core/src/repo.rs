@@ -5,9 +5,9 @@ use async_trait::async_trait;
 use crate::money::Money;
 use crate::order::{Order, OrderStatus};
 use crate::types::{
-    Courier, CourierId, CreatePaymentRequest, CreateUserRequest, MenuItemId, OrderId, Payment,
-    PaymentId, Restaurant, RestaurantId, UpdateMenuItemRequest, UpdatePaymentStatusRequest,
-    UpdateRestaurantRequest, User, UserId, UserRole, ZoneId,
+    Courier, CourierId, CreatePaymentRequest, CreateUserRequest, Dispute, DisputeId, DisputeStatus,
+    MenuItemId, OrderId, Payment, PaymentId, Restaurant, RestaurantId, UpdateMenuItemRequest,
+    UpdatePaymentStatusRequest, UpdateRestaurantRequest, User, UserId, UserRole, ZoneId,
 };
 
 /// Repository errors — maps to HTTP statuses in handlers.
@@ -194,4 +194,21 @@ pub trait Repository: Send + Sync + 'static {
     // Economics & Metrics
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError>;
     async fn get_metrics(&self) -> Result<AdminMetrics, RepoError>;
+
+    // Admin: users + disputes
+    async fn list_users(&self) -> Result<Vec<User>, RepoError>;
+    async fn set_user_blocked(&self, user_id: UserId, blocked: bool) -> Result<User, RepoError>;
+    async fn create_dispute(
+        &self,
+        order_id: OrderId,
+        user_id: UserId,
+        reason: String,
+    ) -> Result<Dispute, RepoError>;
+    async fn list_disputes(&self) -> Result<Vec<Dispute>, RepoError>;
+    async fn resolve_dispute(
+        &self,
+        id: DisputeId,
+        status: DisputeStatus,
+        resolution: Option<String>,
+    ) -> Result<Dispute, RepoError>;
 }

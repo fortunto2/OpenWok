@@ -857,6 +857,7 @@ impl D1Repo {
             email: req.email,
             name: req.name,
             role: role_enum,
+            blocked: false,
             created_at: chrono::DateTime::parse_from_rfc3339(&now)
                 .unwrap_or_default()
                 .with_timezone(&chrono::Utc),
@@ -866,7 +867,7 @@ impl D1Repo {
     pub async fn get_user_by_supabase_id(&self, supabase_id: &str) -> Result<User, RepoError> {
         let row = self
             .db
-            .prepare("SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE supabase_user_id = ?1")
+            .prepare("SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users WHERE supabase_user_id = ?1")
             .bind(&[supabase_id.into()])
             .map_err(d1_err)?
             .first::<serde_json::Value>(None)
@@ -887,6 +888,7 @@ impl D1Repo {
                 .unwrap_or("Customer")
                 .parse()
                 .unwrap_or(openwok_core::types::UserRole::Customer),
+            blocked: row["blocked"].as_i64().unwrap_or(0) != 0,
             created_at: chrono::DateTime::parse_from_rfc3339(
                 row["created_at"].as_str().unwrap_or_default(),
             )
@@ -1269,7 +1271,7 @@ impl D1Repo {
         // Reload
         let row = self
             .db
-            .prepare("SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE id = ?1")
+            .prepare("SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users WHERE id = ?1")
             .bind(&[id_str.into()])
             .map_err(d1_err)?
             .first::<serde_json::Value>(None)
@@ -1290,11 +1292,201 @@ impl D1Repo {
                 .unwrap_or("Customer")
                 .parse()
                 .unwrap_or(UserRole::Customer),
+            blocked: row["blocked"].as_i64().unwrap_or(0) != 0,
             created_at: chrono::DateTime::parse_from_rfc3339(
                 row["created_at"].as_str().unwrap_or_default(),
             )
             .unwrap_or_default()
             .with_timezone(&chrono::Utc),
+        })
+    }
+
+    // ── Admin: users + disputes ──────────────────────────────────────
+
+    pub async fn list_users(&self) -> Result<Vec<User>, RepoError> {
+        let rows = self
+            .db
+            .prepare("SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users ORDER BY created_at DESC")
+            .bind(&[])
+            .map_err(d1_err)?
+            .all()
+            .await
+            .map_err(d1_err)?
+            .results::<serde_json::Value>()
+            .map_err(d1_err)?;
+
+        let mut users = Vec::new();
+        for row in rows {
+            users.push(User {
+                id: UserId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+                supabase_user_id: row["supabase_user_id"].as_str().unwrap_or_default().to_string(),
+                email: row["email"].as_str().unwrap_or_default().to_string(),
+                name: row["name"].as_str().map(|s| s.to_string()),
+                role: row["role"].as_str().unwrap_or("Customer").parse().unwrap_or(UserRole::Customer),
+                blocked: row["blocked"].as_i64().unwrap_or(0) != 0,
+                created_at: chrono::DateTime::parse_from_rfc3339(row["created_at"].as_str().unwrap_or_default())
+                    .unwrap_or_default()
+                    .with_timezone(&chrono::Utc),
+            });
+        }
+        Ok(users)
+    }
+
+    pub async fn set_user_blocked(&self, user_id: UserId, blocked: bool) -> Result<User, RepoError> {
+        let id_str = user_id.to_string();
+        let blocked_val: i64 = if blocked { 1 } else { 0 };
+
+        self.db
+            .prepare("UPDATE users SET blocked = ?1 WHERE id = ?2")
+            .bind(&[blocked_val.into(), id_str.clone().into()])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        let row = self
+            .db
+            .prepare("SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users WHERE id = ?1")
+            .bind(&[id_str.into()])
+            .map_err(d1_err)?
+            .first::<serde_json::Value>(None)
+            .await
+            .map_err(d1_err)?
+            .ok_or(RepoError::NotFound)?;
+
+        Ok(User {
+            id: UserId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+            supabase_user_id: row["supabase_user_id"].as_str().unwrap_or_default().to_string(),
+            email: row["email"].as_str().unwrap_or_default().to_string(),
+            name: row["name"].as_str().map(|s| s.to_string()),
+            role: row["role"].as_str().unwrap_or("Customer").parse().unwrap_or(UserRole::Customer),
+            blocked: row["blocked"].as_i64().unwrap_or(0) != 0,
+            created_at: chrono::DateTime::parse_from_rfc3339(row["created_at"].as_str().unwrap_or_default())
+                .unwrap_or_default()
+                .with_timezone(&chrono::Utc),
+        })
+    }
+
+    pub async fn create_dispute(
+        &self,
+        order_id: OrderId,
+        user_id: UserId,
+        reason: String,
+    ) -> Result<openwok_core::types::Dispute, RepoError> {
+        use openwok_core::types::{Dispute, DisputeId, DisputeStatus};
+        let id = DisputeId::new();
+        let now = chrono::Utc::now();
+        let now_str = now.to_rfc3339();
+
+        self.db
+            .prepare("INSERT INTO disputes (id, order_id, user_id, reason, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
+            .bind(&[
+                id.to_string().into(),
+                order_id.to_string().into(),
+                user_id.to_string().into(),
+                reason.clone().into(),
+                "Open".into(),
+                now_str.into(),
+            ])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        Ok(Dispute {
+            id,
+            order_id,
+            user_id,
+            reason,
+            status: DisputeStatus::Open,
+            resolution: None,
+            created_at: now,
+            resolved_at: None,
+        })
+    }
+
+    pub async fn list_disputes(&self) -> Result<Vec<openwok_core::types::Dispute>, RepoError> {
+        use openwok_core::types::{Dispute, DisputeId, DisputeStatus};
+        let rows = self
+            .db
+            .prepare("SELECT id, order_id, user_id, reason, status, resolution, created_at, resolved_at FROM disputes ORDER BY created_at DESC")
+            .bind(&[])
+            .map_err(d1_err)?
+            .all()
+            .await
+            .map_err(d1_err)?
+            .results::<serde_json::Value>()
+            .map_err(d1_err)?;
+
+        let mut disputes = Vec::new();
+        for row in rows {
+            disputes.push(Dispute {
+                id: DisputeId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+                order_id: OrderId::from_uuid(parse_uuid(row["order_id"].as_str().unwrap_or_default())),
+                user_id: UserId::from_uuid(parse_uuid(row["user_id"].as_str().unwrap_or_default())),
+                reason: row["reason"].as_str().unwrap_or_default().to_string(),
+                status: row["status"].as_str().unwrap_or("Open").parse().unwrap_or(DisputeStatus::Open),
+                resolution: row["resolution"].as_str().map(|s| s.to_string()),
+                created_at: chrono::DateTime::parse_from_rfc3339(row["created_at"].as_str().unwrap_or_default())
+                    .unwrap_or_default()
+                    .with_timezone(&chrono::Utc),
+                resolved_at: row["resolved_at"].as_str().and_then(|s| {
+                    chrono::DateTime::parse_from_rfc3339(s).ok().map(|d| d.with_timezone(&chrono::Utc))
+                }),
+            });
+        }
+        Ok(disputes)
+    }
+
+    pub async fn resolve_dispute(
+        &self,
+        id: openwok_core::types::DisputeId,
+        status: openwok_core::types::DisputeStatus,
+        resolution: Option<String>,
+    ) -> Result<openwok_core::types::Dispute, RepoError> {
+        use openwok_core::types::{Dispute, DisputeId, DisputeStatus};
+        let id_str = id.to_string();
+        let now = chrono::Utc::now();
+        let now_str = now.to_rfc3339();
+        let status_str = status.to_string();
+        let resolution_val = resolution.clone().unwrap_or_default();
+
+        self.db
+            .prepare("UPDATE disputes SET status = ?1, resolution = ?2, resolved_at = ?3 WHERE id = ?4")
+            .bind(&[
+                status_str.into(),
+                resolution_val.into(),
+                now_str.into(),
+                id_str.clone().into(),
+            ])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        let row = self
+            .db
+            .prepare("SELECT id, order_id, user_id, reason, status, resolution, created_at, resolved_at FROM disputes WHERE id = ?1")
+            .bind(&[id_str.into()])
+            .map_err(d1_err)?
+            .first::<serde_json::Value>(None)
+            .await
+            .map_err(d1_err)?
+            .ok_or(RepoError::NotFound)?;
+
+        Ok(Dispute {
+            id: DisputeId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+            order_id: OrderId::from_uuid(parse_uuid(row["order_id"].as_str().unwrap_or_default())),
+            user_id: UserId::from_uuid(parse_uuid(row["user_id"].as_str().unwrap_or_default())),
+            reason: row["reason"].as_str().unwrap_or_default().to_string(),
+            status: row["status"].as_str().unwrap_or("Open").parse().unwrap_or(DisputeStatus::Open),
+            resolution: row["resolution"].as_str().map(|s| s.to_string()),
+            created_at: chrono::DateTime::parse_from_rfc3339(row["created_at"].as_str().unwrap_or_default())
+                .unwrap_or_default()
+                .with_timezone(&chrono::Utc),
+            resolved_at: row["resolved_at"].as_str().and_then(|s| {
+                chrono::DateTime::parse_from_rfc3339(s).ok().map(|d| d.with_timezone(&chrono::Utc))
+            }),
         })
     }
 }

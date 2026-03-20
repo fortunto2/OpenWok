@@ -245,3 +245,27 @@
 [22:40:54] STAGE | iter 2/10 | stage 2/3: deploy
 [22:40:54] CWD | /Users/rustam/startups/active/openwok
 [22:40:54] INVOKE | /solo:deploy 
+[22:44:57] ITER | saved iter-002-deploy.log | commit: 10edf54 | result: stage complete
+[22:44:57] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
+[22:44:59] STAGE | iter 3/10 | stage 3/3: review
+[22:44:59] PLAN | Active plan track: frontend-split_20260320
+[22:44:59] CWD | /Users/rustam/startups/active/openwok
+[22:44:59] INVOKE | /solo:review 
+[22:47:09] SIGNAL | <solo:done/> → creating review
+[22:47:09] ITER | saved iter-003-review.log | commit: 7368b73 | result: stage complete
+[22:47:09] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> FOUND
+[22:47:09] RETRO | Running retro for plan: frontend-split_20260320...
+[22:52:45] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-frontend-split_20260320.log
+[22:52:45] DONE | All stages complete (no more plans in queue)
+[22:52:45] FINISH | Duration: 21m
+[22:52:45] DONE | Pipeline complete! 12 plans cycled.
+[22:52:45] ARCHIVE | Archiving: frontend-split_20260320 → docs/plan-done/
+[22:52:45] POST | Running auto-plan from backlog...
+[22:58:23] POST | Auto-plan complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/autoplan-20260320-225245.log
+[22:58:23] POST | New plan created: admin-tools_20260320 — restarting build→deploy→review
+[22:58:23] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[22:58:23] STAGE | iter 1/10 | stage 1/3: build
+[22:58:23] PLAN | Active plan track: admin-tools_20260320
+[22:58:23] CWD | /Users/rustam/startups/active/openwok
+[22:58:23] GRAPH | Updating code graph for RepoMap...
+[22:58:23] INVOKE | /solo:build 

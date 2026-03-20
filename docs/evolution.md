@@ -203,3 +203,64 @@ Deployed: CF Workers updated, 101 tests passing
 - Test suite: 0 → 101 tests across session
 - Architecture: 5 crates, Repository pattern, federation-ready
 - Recurring gap: pre-commit hooks never implemented despite 3 retro recommendations — harness engineering failure
+
+## 2026-03-20 | openwok | Factory Score: 8.5/10 | Retro #8 (frontend-split) — Final Session Retro
+
+Pipeline: 1 start, 0 redo cycles | Iters: 3 | Waste: 0%
+Track completed: frontend-split_20260320 (2060-line monolith → 11 modules + pre-commit hooks)
+Full session: 6 tracks, 26 iters, 316m, 15.4% waste, overall 7.4/10
+
+### Defects
+- None for this track — cleanest run of the session (3 iters, 16 min, 0 waste)
+
+### Harness Gaps
+- **Context:** Excellent — CLAUDE.md 14.5KB, plan clear, auto-plan from retro recommendations worked perfectly
+- **Constraints:** Clean — Dioxus module boundaries respected, all `#[component]` functions properly re-exported
+- **Precedents:**
+  - GOOD: Build skill 8th consecutive 0-waste run (15 tasks, 10 min, single pass)
+  - GOOD: Review SHIP verdict first pass — zero redo
+  - GOOD: Deploy 6th consecutive 0-waste deploy (4 min)
+  - GOOD: Pre-commit hooks finally implemented (3 retros of recommendations → action)
+  - GOOD: Auto-plan closed the retro feedback loop (retro #5,6,7 → frontend-split track)
+  - FIXED: Pre-commit hooks (fmt + clippy) — recurring gap from retros #5, #6, #7
+  - LESSON: Refactors are fast when well-scoped (16 min total vs 83 min for auth-payments)
+
+### Missing
+- Partial progress recovery on restart (still unimplemented)
+- Auto-split for large plans (>30 tasks)
+- Real-time iter log streaming (tee)
+- Observation masking (scratch/) for complex builds
+- Handler-level tests (handlers crate: 0 tests)
+
+### What worked well
+- Build skill: 8th clean run, 15 tasks in single iteration (10 min)
+- Review: SHIP, 2 minutes, no issues
+- Deploy: 4 minutes, zero waste
+- Auto-plan feedback loop: retro recommendations → track generation → execution → ship
+- Pre-commit hooks close the longest-running gap (3 retros)
+- Frontend: 2060 lines → 11 modules, max file 444 lines (owner.rs)
+- Test stability: 101 tests maintained, 0 failures
+- Commit discipline: 94% conventional (142/151)
+- CLAUDE.md: 14.5KB, lean and current
+
+### Factory Critique (Full Session)
+
+**Factory Score: 8/10**
+
+Skill quality:
+- build: 10/10 — 8 consecutive 0-waste runs, handled 15-48 task plans, most reliable skill
+- deploy: 9/10 — 6 consecutive 0-waste deploys, self-healed SPA routing, only weakness was AskUserQuestion in early runs (already fixed)
+- review: 8/10 — caught real bugs (TOCTOU, fmt, auth gaps), legitimate redos, but doubled signals are cosmetic noise
+- plan (via auto-plan): 8/10 — good track scoping, retro feedback loop working, but no size guard (48-task plan caused pain)
+
+Pipeline reliability: 7/10 — auto-plan cycling excellent, but restart recovery missing (3 restarts = lost work)
+
+Missing capabilities:
+- Partial progress recovery (biggest pipeline weakness)
+- Plan size guard (>30 tasks warning)
+- Real-time log streaming
+- Observation masking convention
+
+Top factory defects:
+1. No restart recovery → `scripts/solo-dev.sh` → detect prior commits, skip completed phases
+2. No plan size guard → `skills/plan/SKILL.md` → warn/split when >30 tasks

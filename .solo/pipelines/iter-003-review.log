@@ -1,75 +1,68 @@
-  [2msession: 11f9764e  model: claude-opus-4-6[1m][0m
-Starting review for courier-dispatch track. Let me gather context and run checks in parallel.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/spec.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
+  [2msession: 8ab8355a  model: claude-opus-4-6[1m][0m
+Starting review for `frontend-split_20260320`. Let me gather context and run checks in parallel.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/spec.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
-  [32m$ [0m [33mBash[0m [2mRecent git log for courier-dispatch track[0m
-  [32m$ [0m [33mBash[0m [2mCount recent commits[0m
-
-Now running all checks in parallel.
   [32m$ [0m [33mBash[0m [2mRun full test suite[0m
-  [32m$ [0m [33mBash[0m [2mRun clippy linter[0m
+  [32m$ [0m [33mBash[0m [2mRun clippy lint[0m
   [32m$ [0m [33mBash[0m [2mCheck formatting[0m
-  [32m$ [0m [33mBash[0m [2mBuild verification[0m
-  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|secret\s*=\s*['"]|api_key\s*=\s*['"]" ~/startups/active/openwok/crates[0m
-  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates[0m
+  [32m$ [0m [33mBash[0m [2mRecent commit history[0m
+  [32m$ [0m [33mBash[0m [2mDiff stats for the track[0m
 
-Tests pass (101), clippy clean, fmt clean, build succeeds. Now spot-checking code quality and remaining dimensions.
-  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates/core/src/dispatch.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/dispatch.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0009_courier_user.sql[0m
-  [32m$ [0m [33mBash[0m [2mCheck .gitignore for env files[0m
+Tests: 101 pass, 0 fail. Clippy clean. Fmt clean. Now running remaining checks in parallel.
+  [32m$ [0m [33mBash[0m [2mCheck main.rs line count[0m
+  [32m$ [0m [33mBash[0m [2mCheck all frontend file sizes[0m
+  [32m$ [0m [33mBash[0m [2mCheck pre-commit hook[0m
+  [32m$ [0m [33mBash[0m [2mCheck hooks path config[0m
+  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|SUPABASE_JWT_SECRET\s*=\s*['"]" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates/frontend/src[0m
+  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK|AI-TODO|AI-ASK" ~/startups/active/openwok/crates[0m
   [32m$ [0m [33mBash[0m [2mCheck CLAUDE.md size[0m
-  [36m// [36mGrep[0m [2m"AI-TODO|AI-ASK" ~/startups/active/openwok/crates[0m
-  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK" ~/startups/active/openwok/crates[0m
+  [32m$ [0m [33mBash[0m [2mCheck .gitignore for .env[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/app.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/api.rs[0m
 
-Good — code quality looks solid. Let me check remaining dimensions: SQL safety, acceptance criteria verification, commit quality, and production logs.
-  [36m// [36mGrep[0m [2m"format!\(.*SELECT|format!\(.*INSERT|format!\(.*UPDATE|format!\(.*DELETE" ~/startups/active/openwok/crates[0m
-  [32m$ [0m [33mBash[0m [2mCommits in courier-dispatch track[0m
-  [32m$ [0m [33mBash[0m [2mCount conventional commits[0m
-  [32m$ [0m [33mBash[0m [2mCount SHA references in plan[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
-  [32m$ [0m [33mBash[0m [2mFrontend main.rs size[0m
+Now let me check the stripe secret reference and do remaining spot checks.
+  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['\"]" ~/startups/active/openwok/crates/stripe-universal/src/lib.rs[0m
+  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates/frontend/src[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/state.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/pages/mod.rs[0m
+  [32m$ [0m [33mBash[0m [2mCount SHAs in plan[0m
+  [32m$ [0m [33mBash[0m [2mTrack commits for conventional check[0m
+  [32m$ [0m [33mBash[0m [2mCheck scratch directory[0m
 
-Let me check the dynamic SQL in update_restaurant and update_menu_item for injection risk.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m// [36mGrep[0m [2m"console_log|println!" ~/startups/active/openwok/crates[0m
+Let me check the `unwrap()` usages in context and verify the stripe doc comment is just an example.
+  [36m// [36mGrep[0m [2m"\.unwrap\(\)" ~/startups/active/openwok/crates/frontend/src/pages/courier.rs[0m
+  [36m// [36mGrep[0m [2m"\.unwrap\(\)" ~/startups/active/openwok/crates/frontend/src/pages/owner.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/stripe-universal/src/lib.rs[0m
 
-All acceptance criteria verified. Let me update spec checkboxes and check remaining items.
-  [32m$ [0m [33mBash[0m [2mCheck pre-commit hooks[0m
-  [32m$ [0m [33mBash[0m [2mCheck pipeline state directory[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/README.md[0m
-  [32m$ [0m [33mBash[0m [2mCheck pipeline state directory[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/README.md[0m
+Let me verify the frontend build and check a few more things.
+  [32m$ [0m [33mBash[0m [2mBuild frontend crate[0m
+  [32m$ [0m [33mBash[0m [2mBuild API crate[0m
+  [32m$ [0m [33mBash[0m [2mCheck pipeline states[0m
 
-Now let me update the spec checkboxes and commit.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/spec.md[0m
+All builds pass. Now let me update spec.md checkboxes and write the review report.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/spec.md[0m
   [32m$ [0m [33mBash[0m [2mCommit spec checkbox updates[0m
 
-Now generating the review report.
+Now the full review report:
 
 ---
 
 ```
-Code Review: OpenWok — Courier Dispatch & Dashboard
+Code Review: openwok (frontend-split_20260320)
 Date: 2026-03-20
-Track: courier-dispatch_20260320
 
 ## Verdict: SHIP
 
 ### Summary
-Courier dispatch track fully implemented: auto-dispatch on ReadyForPickup, WebSocket event broadcasting,
-courier self-registration, delivery dashboard. All 101 tests pass, clippy clean, build succeeds.
-All 11 acceptance criteria verified against code.
+Clean refactor: 2060-line monolith split into 11 focused modules (max 444 lines).
+Pre-commit hooks added. All tests pass, builds clean, no security issues.
 
 ### Tests
 - Total: 101 | Pass: 101 | Fail: 0 | Skip: 0
-- Ignored: 2 (doc-tests in stripe-universal)
-- New dispatch tests: 3 (auto_dispatch_assigns_courier, no_courier, wrong_zone)
+- Coverage: N/A (no coverage tool configured for Rust)
 - Status: PASS
 
 ### Linter
@@ -78,111 +71,225 @@ All 11 acceptance criteria verified against code.
 - Status: PASS
 
 ### Build
-- `cargo build --workspace`: SUCCESS
-- Warnings: 0
+- cargo build -p openwok-frontend: PASS (0 warnings)
+- cargo build -p openwok-api: PASS
 - Status: PASS
 
 ### Pre-Landing Checklist
-- SQL Safety: PASS — all queries use parameterized `?` placeholders via `params![]`
-  - Dynamic SQL in update_restaurant/update_menu_item: column names are hardcoded, only values parameterized — safe
-- Race Conditions: ACCEPTABLE — assign_courier uses SELECT+UPDATE without transaction,
-  but SQLite serializes writes (single-writer), safe for single-node pilot
-- TOCTOU: Previously fixed (sha:17fb4be) — menu item ownership checks patched
-- Critical: 0 | Informational: 0
+- Pass 1 (CRITICAL): 0 issues — pure refactor, no new SQL/data/race conditions
+- Pass 2 (INFORMATIONAL): 1 note — 5 unwrap() on Request::body() in frontend
+  (pre-existing from monolith, gloo_net body builder, practically infallible for string bodies)
 - Status: PASS
 
 ### Security
-- Hardcoded secrets: NONE (only test-context strings: "sk_test_..." in doc comments, "super-secret-jwt-token-for-testing-only" in test setup)
-- SQL injection: NONE — parameterized queries throughout
-- .gitignore: covers .env, target/, node_modules/
-- Auth: all courier endpoints require AuthUser extractor
+- Hardcoded secrets: NONE (sk_test_... in doc comment only — lib.rs:13)
+- SQL injection: N/A (no SQL changes in this track)
+- .gitignore: .env covered
 - Status: PASS
 
 ### Acceptance Criteria
-- Verified: 11/11
-- Missing: none
+- Verified: 10/10
+  - [x] main.rs under 30 lines — 11 lines
+  - [x] No file > 500 lines — max 444 (owner.rs)
+  - [x] 14 routes wired correctly in app.rs
+  - [x] cargo build clean
+  - [x] clippy clean
+  - [x] fmt clean
+  - [x] 101 tests pass
+  - [x] Pre-commit hook at .githooks/pre-commit
+  - [x] core.hooksPath = .githooks
+  - [x] Build verified (dx serve visual check N/A)
 - Status: PASS
 
 ### Plan Progress
-- Tasks: 12/12 complete (all [x])
-- Phases: 3/3 complete
-- SHAs: 13/12 (all tasks annotated)
+- Tasks: 19/19 complete
+- Phases: 5/5 complete
+- SHAs: 22 SHA references in plan.md
 - Status: COMPLETE
 
 ### Production Logs
-- Platform: Cloudflare Workers (deployed in iteration 2)
-- Cannot check live logs (no wrangler auth in this session)
-- Status: N/A — skipped (no credentials)
+- Platform: Cloudflare Workers
+- Status: N/A — no wrangler tail in scope (credentials required)
 
 ### Dev Principles
-- SOLID/SRP: PASS — dispatch.rs is single-purpose, handlers separated by domain
-- DIP: PASS — Repository trait, handlers generic over R: Repository
-- Schemas-first: PASS — typed IDs (OrderId, CourierId), Money newtype, OrderEvent struct
-- Error handling: PASS — Result<T, RepoError> throughout, no unwrap() in production code
-  (221 unwrap() total but all in tests or seed/parsing code)
-- Clean Architecture: PASS — core → handlers → api dependency chain, core has zero framework deps
+- SRP: PASS — monolith split into focused modules by domain
+- DIP: PASS — state/api/analytics are injected via Dioxus context
+- KISS: PASS — no over-engineering, pure file reorganization
+- Clean Architecture: PASS — domain types in core, UI in frontend, no inward violations
+- Error handling: WARN — 5 unwrap() on Request::body() (pre-existing, low risk)
 - Status: PASS
 
 ### Commits
-- Track commits: 14 (4bae4d1..c2028eb)
-- Conventional format: 10/14 compliant (4 chore commits use abbreviated format)
-- Atomic: YES — each commit is one logical change
-- Plan SHAs: 13/12 tasks have SHAs
-- Pre-commit hooks: NOT CONFIGURED (no husky/pre-commit/lefthook found)
-- Status: WARN (no pre-commit hooks)
+- Total: 5 track commits (599825b..10edf54)
+- Conventional: 5/5 compliant (refactor, docs, chore scopes)
+- Atomic: YES — each commit is a logical unit
+- Plan SHAs: 22/19 (some tasks share SHAs from single-commit phases)
+- Pre-commit hooks: ACTIVE (.githooks, core.hooksPath set)
+- Status: PASS
 
 ### Documentation
-- CLAUDE.md: CURRENT (14,041 chars — well under 40K limit, reflects courier dispatch endpoints + routes)
-- README.md: STALE — says "In-memory (PostgreSQL planned)" but actual stack is SQLite/D1
-- docs/prd.md: exists, consistent with implementation
+- CLAUDE.md: CURRENT (14,512 chars — OK, updated with module structure)
+- README.md: N/A (not present, GitHub repo description used)
+- docs/prd.md: CURRENT
 - docs/workflow.md: CURRENT
 - AI-TODO unresolved: 0
 - AI-ASK unanswered: 0
-- Dead code: NONE found (no TODO/FIXME/HACK in codebase)
-- Status: WARN (README.md stale)
+- Dead code: NONE detected
+- Status: PASS
 
 ### Context Quality
 - Plan handoff: GOOD — Context Handoff section with Intent/Key Files/Decisions/Risks
-- CLAUDE.md size: 14,041 chars — OK
-- Scratch cleanup: N/A — no scratch directory
+- CLAUDE.md size: 14,512 chars — OK (well under 40K threshold)
+- Scratch cleanup: N/A (no scratch directory)
 - Status: PASS
 
 ### Pre-mortem
-| Risk | Type | Likelihood | Impact | Mitigation |
-|------|------|-----------|--------|------------|
-| SQLite single-writer under high concurrency | Paper Tiger | Low (pilot: 20-40 couriers) | Medium | Acceptable for pilot scale; D1 in prod |
-| No courier accept/reject → bad delivery experience | Paper Tiger | Low (pilot: small team) | Medium | Accept for MVP; wave 2 |
-| WebSocket connection drops → stale dashboard | Elephant | Medium | Low | Browser reconnection built-in; user can refresh |
-| No monitoring/alerting on dispatch failures | Tiger | Medium | Medium | Rely on operator console metrics tab for pilot |
-- Tigers: 1 (dispatch monitoring — acceptable for 60-day pilot)
-- Paper Tigers: 2
-- Elephants: 1
-- Unmitigated critical Tigers: 0
+- Tigers: 0
+- Paper Tigers: 1 — dx serve runtime behavior change (mitigated: compile-time verification, same code paths)
+- Elephants: 1 — no frontend unit tests (noted as out of scope in spec, WASM testing is complex)
+- Unmitigated Tigers: none
 - Status: CLEAR
 
 ### Visual Testing
-- Platform: N/A — no browser tools invoked for this review
+- Platform: N/A — no browser tools available in this session
 - Status: N/A
 
-### Issues Found (non-blocking)
-1. [WARN] README.md stale — references "In-memory (PostgreSQL planned)" instead of SQLite/D1
-2. [WARN] No pre-commit hooks configured
-3. [INFO] Frontend main.rs at 2060 lines — approaching recommended split threshold
-4. [INFO] println! in main.rs:105 (server startup) — acceptable, consider tracing::info
+### Issues Found
+1. [INFO] 5x unwrap() on Request::body() in courier.rs:64, owner.rs:118,305,342,423
+   — pre-existing from monolith, gloo_net body builder practically infallible for strings
+   — not introduced by this refactor, not blocking
 
 ### Recommendations
-- Update README.md to reflect current SQLite/D1 stack (minor, 5 min)
-- Add pre-commit hooks (cargo fmt + clippy) for future contributors
-- Plan frontend main.rs split into modules as a separate refactor track
+- Consider replacing Request::body().unwrap() with .map_err() in a future cleanup pass
+- Add frontend visual smoke test to CI when dx + wasm32 target is available
+- Consider adding a README.md for GitHub repo discoverability
 ```
 
 ---
 
-CLAUDE.md is at 14,041 chars — well under the 40K threshold. No revision needed, it already reflects courier dispatch endpoints and routes from the build phase.
-  [32m$ [0m [33mBash[0m [2mCheck pipeline progress file[0m
+CLAUDE.md is current and under threshold (14.5K chars) — no revision needed.
 
-**Verdict: SHIP** — All 101 tests pass, 11/11 acceptance criteria verified, no security issues, clean clippy/fmt, build succeeds. Minor items (stale README, no pre-commit hooks) are non-blocking recommendations.
+<solo:done/>Now the full review report:
 
-<solo:done/>**Verdict: SHIP** — All 101 tests pass, 11/11 acceptance criteria verified, no security issues, clean clippy/fmt, build succeeds. Minor items (stale README, no pre-commit hooks) are non-blocking recommendations.
+---
+
+```
+Code Review: openwok (frontend-split_20260320)
+Date: 2026-03-20
+
+## Verdict: SHIP
+
+### Summary
+Clean refactor: 2060-line monolith split into 11 focused modules (max 444 lines).
+Pre-commit hooks added. All tests pass, builds clean, no security issues.
+
+### Tests
+- Total: 101 | Pass: 101 | Fail: 0 | Skip: 0
+- Coverage: N/A (no coverage tool configured for Rust)
+- Status: PASS
+
+### Linter
+- Clippy: 0 errors, 0 warnings (-D warnings enforced)
+- Rustfmt: clean
+- Status: PASS
+
+### Build
+- cargo build -p openwok-frontend: PASS (0 warnings)
+- cargo build -p openwok-api: PASS
+- Status: PASS
+
+### Pre-Landing Checklist
+- Pass 1 (CRITICAL): 0 issues — pure refactor, no new SQL/data/race conditions
+- Pass 2 (INFORMATIONAL): 1 note — 5 unwrap() on Request::body() in frontend
+  (pre-existing from monolith, gloo_net body builder, practically infallible for string bodies)
+- Status: PASS
+
+### Security
+- Hardcoded secrets: NONE (sk_test_... in doc comment only — lib.rs:13)
+- SQL injection: N/A (no SQL changes in this track)
+- .gitignore: .env covered
+- Status: PASS
+
+### Acceptance Criteria
+- Verified: 10/10
+  - [x] main.rs under 30 lines — 11 lines
+  - [x] No file > 500 lines — max 444 (owner.rs)
+  - [x] 14 routes wired correctly in app.rs
+  - [x] cargo build clean
+  - [x] clippy clean
+  - [x] fmt clean
+  - [x] 101 tests pass
+  - [x] Pre-commit hook at .githooks/pre-commit
+  - [x] core.hooksPath = .githooks
+  - [x] Build verified (dx serve visual check N/A)
+- Status: PASS
+
+### Plan Progress
+- Tasks: 19/19 complete
+- Phases: 5/5 complete
+- SHAs: 22 SHA references in plan.md
+- Status: COMPLETE
+
+### Production Logs
+- Platform: Cloudflare Workers
+- Status: N/A — no wrangler tail in scope (credentials required)
+
+### Dev Principles
+- SRP: PASS — monolith split into focused modules by domain
+- DIP: PASS — state/api/analytics are injected via Dioxus context
+- KISS: PASS — no over-engineering, pure file reorganization
+- Clean Architecture: PASS — domain types in core, UI in frontend, no inward violations
+- Error handling: WARN — 5 unwrap() on Request::body() (pre-existing, low risk)
+- Status: PASS
+
+### Commits
+- Total: 5 track commits (599825b..10edf54)
+- Conventional: 5/5 compliant (refactor, docs, chore scopes)
+- Atomic: YES — each commit is a logical unit
+- Plan SHAs: 22/19 (some tasks share SHAs from single-commit phases)
+- Pre-commit hooks: ACTIVE (.githooks, core.hooksPath set)
+- Status: PASS
+
+### Documentation
+- CLAUDE.md: CURRENT (14,512 chars — OK, updated with module structure)
+- README.md: N/A (not present, GitHub repo description used)
+- docs/prd.md: CURRENT
+- docs/workflow.md: CURRENT
+- AI-TODO unresolved: 0
+- AI-ASK unanswered: 0
+- Dead code: NONE detected
+- Status: PASS
+
+### Context Quality
+- Plan handoff: GOOD — Context Handoff section with Intent/Key Files/Decisions/Risks
+- CLAUDE.md size: 14,512 chars — OK (well under 40K threshold)
+- Scratch cleanup: N/A (no scratch directory)
+- Status: PASS
+
+### Pre-mortem
+- Tigers: 0
+- Paper Tigers: 1 — dx serve runtime behavior change (mitigated: compile-time verification, same code paths)
+- Elephants: 1 — no frontend unit tests (noted as out of scope in spec, WASM testing is complex)
+- Unmitigated Tigers: none
+- Status: CLEAR
+
+### Visual Testing
+- Platform: N/A — no browser tools available in this session
+- Status: N/A
+
+### Issues Found
+1. [INFO] 5x unwrap() on Request::body() in courier.rs:64, owner.rs:118,305,342,423
+   — pre-existing from monolith, gloo_net body builder practically infallible for strings
+   — not introduced by this refactor, not blocking
+
+### Recommendations
+- Consider replacing Request::body().unwrap() with .map_err() in a future cleanup pass
+- Add frontend visual smoke test to CI when dx + wasm32 target is available
+- Consider adding a README.md for GitHub repo discoverability
+```
+
+---
+
+CLAUDE.md is current and under threshold (14.5K chars) — no revision needed.
 
 <solo:done/>

@@ -620,6 +620,7 @@ impl Repository for SqliteRepo {
             email: req.email,
             name: req.name,
             role,
+            blocked: false,
             created_at: now,
         })
     }
@@ -627,7 +628,7 @@ impl Repository for SqliteRepo {
     async fn get_user(&self, id: UserId) -> Result<User, RepoError> {
         let conn = self.conn.lock().await;
         conn.query_row(
-            "SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE id = ?1",
+            "SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users WHERE id = ?1",
             params![id.to_string()],
             |row| {
                 Ok(User {
@@ -644,6 +645,7 @@ impl Repository for SqliteRepo {
                     created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
                         .unwrap()
                         .with_timezone(&chrono::Utc),
+                    blocked: row.get::<_, i32>(6).unwrap_or(0) != 0,
                 })
             },
         )
@@ -653,7 +655,7 @@ impl Repository for SqliteRepo {
     async fn get_user_by_supabase_id(&self, supabase_user_id: &str) -> Result<User, RepoError> {
         let conn = self.conn.lock().await;
         conn.query_row(
-            "SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE supabase_user_id = ?1",
+            "SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users WHERE supabase_user_id = ?1",
             params![supabase_user_id],
             |row| {
                 Ok(User {
@@ -665,6 +667,7 @@ impl Repository for SqliteRepo {
                     created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
                         .unwrap()
                         .with_timezone(&chrono::Utc),
+                    blocked: row.get::<_, i32>(6).unwrap_or(0) != 0,
                 })
             },
         )
@@ -1034,7 +1037,7 @@ impl Repository for SqliteRepo {
         }
 
         conn.query_row(
-            "SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE id = ?1",
+            "SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users WHERE id = ?1",
             params![id_str],
             |row| {
                 Ok(User {
@@ -1051,6 +1054,7 @@ impl Repository for SqliteRepo {
                     created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
                         .unwrap()
                         .with_timezone(&chrono::Utc),
+                    blocked: row.get::<_, i32>(6).unwrap_or(0) != 0,
                 })
             },
         )
@@ -1252,6 +1256,183 @@ impl Repository for SqliteRepo {
             courier_utilization,
             orders_by_zone,
         })
+    }
+
+    // ── Admin: users + disputes ──────────────────────────────────────
+
+    async fn list_users(&self) -> Result<Vec<User>, RepoError> {
+        let conn = self.conn.lock().await;
+        let mut stmt = conn
+            .prepare("SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users ORDER BY created_at DESC")
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        let users = stmt
+            .query_map([], |row| {
+                Ok(User {
+                    id: UserId::from_uuid(
+                        uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
+                    ),
+                    supabase_user_id: row.get(1)?,
+                    email: row.get(2)?,
+                    name: row.get(3)?,
+                    role: row
+                        .get::<_, String>(4)?
+                        .parse::<UserRole>()
+                        .unwrap_or(UserRole::Customer),
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                    blocked: row.get::<_, i32>(6).unwrap_or(0) != 0,
+                })
+            })
+            .map_err(|e| RepoError::Internal(e.to_string()))?
+            .filter_map(|r| r.ok())
+            .collect();
+        Ok(users)
+    }
+
+    async fn set_user_blocked(&self, user_id: UserId, blocked: bool) -> Result<User, RepoError> {
+        let conn = self.conn.lock().await;
+        let id_str = user_id.to_string();
+        let blocked_int: i32 = if blocked { 1 } else { 0 };
+        let updated = conn
+            .execute(
+                "UPDATE users SET blocked = ?1 WHERE id = ?2",
+                params![blocked_int, id_str],
+            )
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        if updated == 0 {
+            return Err(RepoError::NotFound);
+        }
+        conn.query_row(
+            "SELECT id, supabase_user_id, email, name, role, created_at, blocked FROM users WHERE id = ?1",
+            params![id_str],
+            |row| {
+                Ok(User {
+                    id: UserId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap()),
+                    supabase_user_id: row.get(1)?,
+                    email: row.get(2)?,
+                    name: row.get(3)?,
+                    role: row.get::<_, String>(4)?.parse::<UserRole>().unwrap_or(UserRole::Customer),
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(5)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                    blocked: row.get::<_, i32>(6).unwrap_or(0) != 0,
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
+    }
+
+    async fn create_dispute(
+        &self,
+        order_id: OrderId,
+        user_id: UserId,
+        reason: String,
+    ) -> Result<openwok_core::types::Dispute, RepoError> {
+        use openwok_core::types::{Dispute, DisputeId, DisputeStatus};
+        let conn = self.conn.lock().await;
+        let id = DisputeId::new();
+        let now = chrono::Utc::now();
+        let now_str = now.to_rfc3339();
+        conn.execute(
+            "INSERT INTO disputes (id, order_id, user_id, reason, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![id.to_string(), order_id.to_string(), user_id.to_string(), reason, "Open", now_str],
+        )
+        .map_err(|e| RepoError::Internal(e.to_string()))?;
+        Ok(Dispute {
+            id,
+            order_id,
+            user_id,
+            reason,
+            status: DisputeStatus::Open,
+            resolution: None,
+            created_at: now,
+            resolved_at: None,
+        })
+    }
+
+    async fn list_disputes(&self) -> Result<Vec<openwok_core::types::Dispute>, RepoError> {
+        use openwok_core::types::{Dispute, DisputeId, DisputeStatus};
+        let conn = self.conn.lock().await;
+        let mut stmt = conn
+            .prepare("SELECT id, order_id, user_id, reason, status, resolution, created_at, resolved_at FROM disputes ORDER BY created_at DESC")
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        let disputes = stmt
+            .query_map([], |row| {
+                Ok(Dispute {
+                    id: DisputeId::from_uuid(
+                        uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap(),
+                    ),
+                    order_id: OrderId::from_uuid(
+                        uuid::Uuid::parse_str(&row.get::<_, String>(1)?).unwrap(),
+                    ),
+                    user_id: UserId::from_uuid(
+                        uuid::Uuid::parse_str(&row.get::<_, String>(2)?).unwrap(),
+                    ),
+                    reason: row.get(3)?,
+                    status: row
+                        .get::<_, String>(4)?
+                        .parse::<DisputeStatus>()
+                        .unwrap_or(DisputeStatus::Open),
+                    resolution: row.get(5)?,
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(6)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                    resolved_at: row.get::<_, Option<String>>(7)?.and_then(|s| {
+                        chrono::DateTime::parse_from_rfc3339(&s)
+                            .ok()
+                            .map(|d| d.with_timezone(&chrono::Utc))
+                    }),
+                })
+            })
+            .map_err(|e| RepoError::Internal(e.to_string()))?
+            .filter_map(|r| r.ok())
+            .collect();
+        Ok(disputes)
+    }
+
+    async fn resolve_dispute(
+        &self,
+        id: openwok_core::types::DisputeId,
+        status: openwok_core::types::DisputeStatus,
+        resolution: Option<String>,
+    ) -> Result<openwok_core::types::Dispute, RepoError> {
+        use openwok_core::types::{Dispute, DisputeId, DisputeStatus};
+        let conn = self.conn.lock().await;
+        let id_str = id.to_string();
+        let now = chrono::Utc::now();
+        let now_str = now.to_rfc3339();
+        let status_str = status.to_string();
+        let updated = conn
+            .execute(
+                "UPDATE disputes SET status = ?1, resolution = ?2, resolved_at = ?3 WHERE id = ?4",
+                params![status_str, resolution, now_str, id_str],
+            )
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        if updated == 0 {
+            return Err(RepoError::NotFound);
+        }
+        conn.query_row(
+            "SELECT id, order_id, user_id, reason, status, resolution, created_at, resolved_at FROM disputes WHERE id = ?1",
+            params![id_str],
+            |row| {
+                Ok(Dispute {
+                    id: DisputeId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(0)?).unwrap()),
+                    order_id: OrderId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(1)?).unwrap()),
+                    user_id: UserId::from_uuid(uuid::Uuid::parse_str(&row.get::<_, String>(2)?).unwrap()),
+                    reason: row.get(3)?,
+                    status: row.get::<_, String>(4)?.parse::<DisputeStatus>().unwrap_or(DisputeStatus::Open),
+                    resolution: row.get(5)?,
+                    created_at: chrono::DateTime::parse_from_rfc3339(&row.get::<_, String>(6)?)
+                        .unwrap()
+                        .with_timezone(&chrono::Utc),
+                    resolved_at: row.get::<_, Option<String>>(7)?.and_then(|s| {
+                        chrono::DateTime::parse_from_rfc3339(&s).ok().map(|d| d.with_timezone(&chrono::Utc))
+                    }),
+                })
+            },
+        )
+        .map_err(|_| RepoError::NotFound)
     }
 }
 
