@@ -19,10 +19,23 @@ Federated food delivery platform. $1 federal fee + local node operators. Open-bo
 - **Server:** Rust (axum) — REST API + WebSocket for real-time
 - **Frontend (v1):** Dioxus (Rust fullstack) — customer web app + node operator console
 - **Frontend (v2, future):** Next.js with Rust core via uniffi/WASM
-- **Database:** PostgreSQL (per-node) + event log
+- **Database:** PostgreSQL (sqlx) per-node + event log
 - **Payments:** Stripe Connect (split payments: restaurant + courier + federal + local)
 - **Auth:** Supabase Auth or custom JWT
 - **Geo:** PostGIS for zone management, ETA calculation
+
+## Federation Stack (Phase 4)
+
+| Крейт | Зачем | Фаза |
+|-------|-------|------|
+| `tonic` + protobuf | Node-to-node RPC, .proto = спецификация протокола | Phase 4 |
+| `cloudevents-sdk` | Стандартный формат событий (CNCF) — OrderCreated, PolicyActivated | Phase 3-4 |
+| `ed25519-dalek` | Подпись событий нодой, верификация без доверия | Phase 4 |
+| `cqrs-es` | Event sourcing для агрегатов (Order, Restaurant) — по необходимости | Future |
+| `openraft` | Consensus для governance голосования — когда нод >3 | Future |
+| `libp2p` (Kademlia) | Автодискавери нод — когда нод >10 | Future |
+
+Паттерны из MVP deck: Matrix server-to-server + ActivityPub inbox/outbox + CloudEvents.
 
 ## Repo
 
@@ -47,9 +60,10 @@ GitHub: https://github.com/fortunto2/OpenWok
 
 ## Don't
 
-- Build multi-node federation protocol yet — MVP is single node
+- Skip writing actual code — every task MUST produce new .rs files or modify existing ones
+- Output <solo:done/> without new commits — if no code was written, it's NOT done
 - Build robot integration — that's wave 2
-- Over-engineer — focus on order flow + open-book pricing
+- Over-engineer — but DO implement each plan task fully
 
 ## Workspace Structure
 
