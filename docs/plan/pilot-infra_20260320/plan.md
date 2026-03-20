@@ -22,18 +22,18 @@ Expand seed data and add metrics columns to orders table.
 - [x] `SELECT count(*) FROM restaurants` returns 18+ (3 existing + 15 new)
 - [x] `SELECT count(*) FROM zones` returns 6+
 
-## Phase 2: Public Economics + Admin Metrics
+## Phase 2: Public Economics + Admin Metrics <!-- checkpoint:71cbd2b -->
 API endpoints for transparency and pilot monitoring.
 
 ### Tasks
-- [ ] Task 2.1: Add `GET /api/public/economics` endpoint in new file `crates/api/src/routes/economics.rs` — returns JSON with: total_orders, total_food_revenue, total_delivery_fees, total_federal_fees, total_local_ops_fees, total_processing_fees, avg_order_value. Add `Cache-Control: public, max-age=300` header. Register route in `crates/api/src/main.rs`.
-- [ ] Task 2.2: Add `GET /api/admin/metrics` endpoint in new file `crates/api/src/routes/metrics.rs` — returns JSON with: order_count, orders_by_status, on_time_delivery_rate (orders where actual_delivery_at - created_at < estimated_eta), avg_eta_error_minutes, revenue_breakdown (same as economics), courier_utilization (available/total), orders_by_zone. Register route in `crates/api/src/main.rs`.
-- [ ] Task 2.3: Write integration tests for both endpoints in `crates/api/src/routes/economics.rs` and `crates/api/src/routes/metrics.rs` — test with seeded data, test empty DB edge case.
+- [x] Task 2.1: Add `GET /api/public/economics` <!-- sha:7c16702 --> endpoint in new file `crates/api/src/routes/economics.rs` — returns JSON with: total_orders, total_food_revenue, total_delivery_fees, total_federal_fees, total_local_ops_fees, total_processing_fees, avg_order_value. Add `Cache-Control: public, max-age=300` header. Register route in `crates/api/src/main.rs`.
+- [x] Task 2.2: Add `GET /api/admin/metrics` <!-- sha:71cbd2b --> endpoint in new file `crates/api/src/routes/metrics.rs` — returns JSON with: order_count, orders_by_status, on_time_delivery_rate (orders where actual_delivery_at - created_at < estimated_eta), avg_eta_error_minutes, revenue_breakdown (same as economics), courier_utilization (available/total), orders_by_zone. Register route in `crates/api/src/main.rs`.
+- [x] Task 2.3: Write integration tests <!-- sha:71cbd2b --> for both endpoints in `crates/api/src/routes/economics.rs` and `crates/api/src/routes/metrics.rs` — test with seeded data, test empty DB edge case.
 
 ### Verification
-- [ ] `curl /api/public/economics` returns valid JSON with all fields
-- [ ] `curl /api/admin/metrics` returns valid JSON with KPI breakdown
-- [ ] Integration tests pass
+- [x] `curl /api/public/economics` returns valid JSON with all fields
+- [x] `curl /api/admin/metrics` returns valid JSON with KPI breakdown
+- [x] Integration tests pass
 
 ## Phase 3: Frontend Pages
 Public economics page and admin metrics dashboard.

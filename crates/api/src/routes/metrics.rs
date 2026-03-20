@@ -213,9 +213,8 @@ mod tests {
             let mut stmt = conn
                 .prepare("SELECT r.id, r.zone_id FROM restaurants r LIMIT 1")
                 .unwrap();
-            let (rid, zid): (String, String) = stmt
-                .query_row([], |r| Ok((r.get(0)?, r.get(1)?)))
-                .unwrap();
+            let (rid, zid): (String, String) =
+                stmt.query_row([], |r| Ok((r.get(0)?, r.get(1)?))).unwrap();
             let oid = uuid::Uuid::new_v4().to_string();
             let now = chrono::Utc::now().to_rfc3339();
             conn.execute(
@@ -224,9 +223,19 @@ mod tests {
                  created_at, updated_at)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
                 rusqlite::params![
-                    oid, rid, "123 Test St", zid, "Created",
-                    "25.00", "5.00", "3.00", "1.00", "2.50", "0.97",
-                    now, now,
+                    oid,
+                    rid,
+                    "123 Test St",
+                    zid,
+                    "Created",
+                    "25.00",
+                    "5.00",
+                    "3.00",
+                    "1.00",
+                    "2.50",
+                    "0.97",
+                    now,
+                    now,
                 ],
             )
             .unwrap();

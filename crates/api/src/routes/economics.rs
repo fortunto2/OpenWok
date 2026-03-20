@@ -62,10 +62,7 @@ pub async fn get(State(state): State<AppState>) -> (HeaderMap, Json<PublicEconom
         });
 
     let mut headers = HeaderMap::new();
-    headers.insert(
-        "Cache-Control",
-        "public, max-age=300".parse().unwrap(),
-    );
+    headers.insert("Cache-Control", "public, max-age=300".parse().unwrap());
 
     (headers, Json(economics))
 }
@@ -155,9 +152,19 @@ mod tests {
                  created_at, updated_at)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
                 rusqlite::params![
-                    oid, rid, "123 Test St", zid, "Created",
-                    "25.00", "5.00", "3.00", "1.00", "2.50", "0.97",
-                    now, now,
+                    oid,
+                    rid,
+                    "123 Test St",
+                    zid,
+                    "Created",
+                    "25.00",
+                    "5.00",
+                    "3.00",
+                    "1.00",
+                    "2.50",
+                    "0.97",
+                    now,
+                    now,
                 ],
             )
             .unwrap();
