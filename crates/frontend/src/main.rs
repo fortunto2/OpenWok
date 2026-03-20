@@ -29,30 +29,37 @@ struct CartState {
 // --- PostHog Analytics ---
 
 fn posthog_capture(event: &str) {
-    let window = web_sys::window().unwrap();
-    if let Ok(ph) = js_sys::Reflect::get(&window, &JsValue::from_str("posthog")) {
-        if !ph.is_undefined() && !ph.is_null() {
-            if let Ok(capture_fn) = js_sys::Reflect::get(&ph, &JsValue::from_str("capture")) {
-                if let Some(func) = capture_fn.dyn_ref::<js_sys::Function>() {
-                    let _ = func.call1(&ph, &JsValue::from_str(event));
-                }
-            }
-        }
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Ok(ph) = js_sys::Reflect::get(&window, &JsValue::from_str("posthog")) else {
+        return;
+    };
+    if ph.is_undefined() || ph.is_null() {
+        return;
+    }
+    if let Ok(capture_fn) = js_sys::Reflect::get(&ph, &JsValue::from_str("capture"))
+        && let Some(func) = capture_fn.dyn_ref::<js_sys::Function>()
+    {
+        let _ = func.call1(&ph, &JsValue::from_str(event));
     }
 }
 
 fn posthog_capture_with_props(event: &str, props: &serde_json::Value) {
-    let window = web_sys::window().unwrap();
-    if let Ok(ph) = js_sys::Reflect::get(&window, &JsValue::from_str("posthog")) {
-        if !ph.is_undefined() && !ph.is_null() {
-            if let Ok(capture_fn) = js_sys::Reflect::get(&ph, &JsValue::from_str("capture")) {
-                if let Some(func) = capture_fn.dyn_ref::<js_sys::Function>() {
-                    let props_js =
-                        js_sys::JSON::parse(&props.to_string()).unwrap_or(JsValue::NULL);
-                    let _ = func.call2(&ph, &JsValue::from_str(event), &props_js);
-                }
-            }
-        }
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Ok(ph) = js_sys::Reflect::get(&window, &JsValue::from_str("posthog")) else {
+        return;
+    };
+    if ph.is_undefined() || ph.is_null() {
+        return;
+    }
+    if let Ok(capture_fn) = js_sys::Reflect::get(&ph, &JsValue::from_str("capture"))
+        && let Some(func) = capture_fn.dyn_ref::<js_sys::Function>()
+    {
+        let props_js = js_sys::JSON::parse(&props.to_string()).unwrap_or(JsValue::NULL);
+        let _ = func.call2(&ph, &JsValue::from_str(event), &props_js);
     }
 }
 
@@ -973,9 +980,18 @@ fn MetricsPanel() -> Element {
             let on_time_rate = data["on_time_delivery_rate"].as_f64().unwrap_or(0.0);
             let eta_error = data["avg_eta_error_minutes"].as_f64().unwrap_or(0.0);
             let revenue = &data["revenue_breakdown"];
-            let food_rev = revenue["total_food_revenue"].as_str().unwrap_or("0.00").to_string();
-            let delivery_rev = revenue["total_delivery_fees"].as_str().unwrap_or("0.00").to_string();
-            let federal_rev = revenue["total_federal_fees"].as_str().unwrap_or("0.00").to_string();
+            let food_rev = revenue["total_food_revenue"]
+                .as_str()
+                .unwrap_or("0.00")
+                .to_string();
+            let delivery_rev = revenue["total_delivery_fees"]
+                .as_str()
+                .unwrap_or("0.00")
+                .to_string();
+            let federal_rev = revenue["total_federal_fees"]
+                .as_str()
+                .unwrap_or("0.00")
+                .to_string();
             let courier_util = &data["courier_utilization"];
             let avail = courier_util["available"].as_i64().unwrap_or(0);
             let total_couriers = courier_util["total"].as_i64().unwrap_or(0);
@@ -1044,7 +1060,7 @@ fn MetricsPanel() -> Element {
                     }
                 }
             }
-        },
+        }
         Some(Err(e)) => rsx! {
             p { class: "error", "Failed to load metrics: {e}" }
         },

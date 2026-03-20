@@ -35,20 +35,20 @@ API endpoints for transparency and pilot monitoring.
 - [x] `curl /api/admin/metrics` returns valid JSON with KPI breakdown
 - [x] Integration tests pass
 
-## Phase 3: Frontend Pages
+## Phase 3: Frontend Pages <!-- checkpoint:e79e171 -->
 Public economics page and admin metrics dashboard.
 
 ### Tasks
-- [ ] Task 3.1: Add `/economics` route to `crates/frontend/src/main.rs` — PublicEconomicsPage component that fetches `/api/public/economics` and renders: hero section explaining open-book model, breakdown table (Food Revenue / Delivery Fees / Federal Fees / Local Ops / Processing), total orders count, avg order value. Add navigation link in header/footer.
-- [ ] Task 3.2: Add metrics dashboard section to OperatorConsole in `crates/frontend/src/main.rs` — new "Metrics" tab that fetches `/api/admin/metrics` and renders: KPI cards (order count, on-time rate, avg ETA error), orders-by-zone breakdown, courier utilization bar.
-- [ ] Task 3.3: Add PostHog JS snippet to frontend — create/update `crates/frontend/assets/index.html` (or Dioxus head config) with PostHog `<script>` tag. Add `posthog.capture()` calls via `web_sys` interop in key user actions: `restaurant_view` (RestaurantMenu mount), `add_to_cart` (add item click), `checkout_start` (Checkout mount), `order_placed` (successful order creation). Use env var `POSTHOG_API_KEY` with fallback to empty string (no-op when not configured).
-- [ ] Task 3.4: Add `ErrorBoundary` component wrapping app root in `crates/frontend/src/main.rs` — on error, display user-friendly message and capture `frontend_error` event to PostHog with error details.
+- [x] Task 3.1: Add `/economics` route <!-- sha:b5c8a8e --> to `crates/frontend/src/main.rs` — PublicEconomicsPage component that fetches `/api/public/economics` and renders: hero section explaining open-book model, breakdown table (Food Revenue / Delivery Fees / Federal Fees / Local Ops / Processing), total orders count, avg order value. Add navigation link in header/footer.
+- [x] Task 3.2: Add metrics dashboard section <!-- sha:1331c80 --> to OperatorConsole in `crates/frontend/src/main.rs` — new "Metrics" tab that fetches `/api/admin/metrics` and renders: KPI cards (order count, on-time rate, avg ETA error), orders-by-zone breakdown, courier utilization bar.
+- [x] Task 3.3: Add PostHog JS snippet <!-- sha:1cc41ae --> to frontend — create/update `crates/frontend/assets/index.html` (or Dioxus head config) with PostHog `<script>` tag. Add `posthog.capture()` calls via `web_sys` interop in key user actions: `restaurant_view` (RestaurantMenu mount), `add_to_cart` (add item click), `checkout_start` (Checkout mount), `order_placed` (successful order creation). Use env var `POSTHOG_API_KEY` with fallback to empty string (no-op when not configured).
+- [x] Task 3.4: Add `ErrorBoundary` component <!-- sha:e79e171 --> wrapping app root in `crates/frontend/src/main.rs` — on error, display user-friendly message and capture `frontend_error` event to PostHog with error details.
 
 ### Verification
-- [ ] `/economics` page renders with aggregate data
-- [ ] Operator console shows metrics tab with KPI cards
-- [ ] PostHog events fire in browser console (verify with PostHog debug mode)
-- [ ] Error boundary catches simulated error gracefully
+- [x] `/economics` page renders with aggregate data
+- [x] Operator console shows metrics tab with KPI cards
+- [x] PostHog events fire in browser console (verify with PostHog debug mode)
+- [x] Error boundary catches simulated error gracefully
 
 ## Phase 4: Deploy & Docs
 Update documentation, clean up, verify everything works.
