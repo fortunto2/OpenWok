@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 openwok-core = { path = "../core" }
+openwok-handlers = { path = "../handlers" }
 axum = { workspace = true, features = ["ws"] }
 tokio = { workspace = true }
 serde = { workspace = true }

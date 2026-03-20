@@ -1,14 +1,17 @@
-mod db;
-mod routes;
+pub mod db;
 pub mod sqlite_repo;
-mod state;
+pub mod state;
+mod ws;
+
+use std::sync::Arc;
 
 use axum::Router;
-use axum::routing::{any, get};
+use axum::routing::any;
+use sqlite_repo::SqliteRepo;
 use state::AppState;
+use tokio::sync::Mutex;
 use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
-use utoipa_axum::routes;
 use utoipa_swagger_ui::SwaggerUi;
 
 #[derive(OpenApi)]
@@ -34,26 +37,19 @@ use utoipa_swagger_ui::SwaggerUi;
 )]
 struct ApiDoc;
 
-async fn health() -> &'static str {
-    "ok"
-}
-
 pub fn app(state: AppState) -> Router {
-    let (api, openapi) = utoipa_axum::router::OpenApiRouter::with_openapi(ApiDoc::openapi())
-        .route("/health", get(health))
-        .routes(routes!(routes::restaurants::list, routes::restaurants::create))
-        .routes(routes!(routes::restaurants::get))
-        .routes(routes!(routes::orders::list, routes::orders::create))
-        .routes(routes!(routes::orders::get))
-        .routes(routes!(routes::orders::transition))
-        .routes(routes!(routes::couriers::assign_to_order))
-        .routes(routes!(routes::couriers::list, routes::couriers::create))
-        .routes(routes!(routes::couriers::toggle_available))
-        .routes(routes!(routes::economics::get))
-        .routes(routes!(routes::metrics::get))
-        .route("/ws/orders/{id}", any(routes::ws::order_updates))
-        .with_state(state)
-        .split_for_parts();
+    let (api_handlers, openapi) =
+        openwok_handlers::api_routes_with_openapi::<SqliteRepo>(ApiDoc::openapi());
+
+    // Shared handlers use Arc<SqliteRepo> state
+    let api_handlers = api_handlers.with_state(state.repo.clone());
+
+    // WS route uses full AppState (needs broadcast channel)
+    let ws_route = Router::new()
+        .route("/ws/orders/{id}", any(ws::order_updates))
+        .with_state(state);
+
+    let api = Router::new().merge(api_handlers).merge(ws_route);
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -71,7 +67,8 @@ async fn main() {
     let db_path = std::env::var("DATABASE_PATH").unwrap_or_else(|_| "data/openwok.db".into());
     let conn = db::open(&db_path);
     db::seed_la_data(&conn);
-    let state = AppState::new(conn);
+    let repo = Arc::new(SqliteRepo::new(Arc::new(Mutex::new(conn))));
+    let state = AppState::new(repo);
     let app = app(state);
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "3030".into());
@@ -90,13 +87,15 @@ mod tests {
 
     fn test_state() -> AppState {
         let conn = db::open(":memory:");
-        AppState::new(conn)
+        let repo = Arc::new(SqliteRepo::new(Arc::new(Mutex::new(conn))));
+        AppState::new(repo)
     }
 
-    async fn seeded_state() -> AppState {
+    fn seeded_state() -> AppState {
         let conn = db::open(":memory:");
         db::seed_la_data(&conn);
-        AppState::new(conn)
+        let repo = Arc::new(SqliteRepo::new(Arc::new(Mutex::new(conn))));
+        AppState::new(repo)
     }
 
     #[tokio::test]
@@ -111,7 +110,7 @@ mod tests {
 
     #[tokio::test]
     async fn list_restaurants_returns_seeded() {
-        let app = app(seeded_state().await);
+        let app = app(seeded_state());
         let resp = app
             .oneshot(
                 Request::get("/api/restaurants")
@@ -130,7 +129,7 @@ mod tests {
 
     #[tokio::test]
     async fn full_order_flow() {
-        let state = seeded_state().await;
+        let state = seeded_state();
         let app = app(state);
 
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();

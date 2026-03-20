@@ -1,7 +1,9 @@
-use rusqlite::Connection;
-use serde::Serialize;
 use std::sync::Arc;
-use tokio::sync::{Mutex, broadcast};
+
+use serde::Serialize;
+use tokio::sync::broadcast;
+
+use crate::sqlite_repo::SqliteRepo;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct OrderEvent {
@@ -9,18 +11,26 @@ pub struct OrderEvent {
     pub status: String,
 }
 
+/// Combined state: shared SqliteRepo (for handlers crate) + broadcast channel (for WS).
 #[derive(Clone)]
 pub struct AppState {
-    pub db: Arc<Mutex<Connection>>,
+    pub repo: Arc<SqliteRepo>,
     pub order_events: broadcast::Sender<OrderEvent>,
 }
 
 impl AppState {
-    pub fn new(conn: Connection) -> Self {
+    pub fn new(repo: Arc<SqliteRepo>) -> Self {
         let (tx, _) = broadcast::channel(256);
         Self {
-            db: Arc::new(Mutex::new(conn)),
+            repo,
             order_events: tx,
         }
+    }
+}
+
+/// Allows handlers crate to extract `State<Arc<SqliteRepo>>` from AppState.
+impl axum::extract::FromRef<AppState> for Arc<SqliteRepo> {
+    fn from_ref(state: &AppState) -> Self {
+        state.repo.clone()
     }
 }
