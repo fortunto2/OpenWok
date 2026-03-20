@@ -5,12 +5,14 @@ use openwok_core::order::{Order, OrderItem, OrderStatus};
 use openwok_core::pricing::PricingBreakdown;
 use openwok_core::repo::{
     AdminMetrics, AssignCourierResult, CourierUtilization, CreateCourierRequest,
-    CreateOrderRequest, CreateRestaurantRequest, PublicEconomics, RepoError, RevenueBreakdown,
+    CreateMenuItemRequest, CreateOrderRequest, CreateRestaurantRequest, PublicEconomics, RepoError,
+    RevenueBreakdown,
 };
 use openwok_core::types::{
     Courier, CourierId, CourierKind, CreatePaymentRequest, CreateUserRequest, MenuItem, MenuItemId,
     OrderId, Payment, PaymentId, PaymentStatus, Restaurant, RestaurantId,
-    UpdatePaymentStatusRequest, User, UserId, ZoneId,
+    UpdateMenuItemRequest, UpdatePaymentStatusRequest, UpdateRestaurantRequest, User, UserId,
+    UserRole, ZoneId,
 };
 use worker::d1::D1Database;
 
@@ -1009,5 +1011,265 @@ impl D1Repo {
                 .map_err(d1_err)?;
         }
         Ok(())
+    }
+
+    // ── Restaurant management ─────────────────────────────────────────
+
+    pub async fn update_restaurant(
+        &self,
+        id: RestaurantId,
+        req: UpdateRestaurantRequest,
+    ) -> Result<Restaurant, RepoError> {
+        let id_str = id.to_string();
+        let now = chrono::Utc::now().to_rfc3339();
+
+        // Build dynamic update
+        let mut set_parts = vec!["updated_at = ?1".to_string()];
+        let mut values: Vec<wasm_bindgen::JsValue> = vec![now.into()];
+        let mut idx = 2;
+
+        if let Some(ref name) = req.name {
+            set_parts.push(format!("name = ?{idx}"));
+            values.push(name.clone().into());
+            idx += 1;
+        }
+        if let Some(ref desc) = req.description {
+            set_parts.push(format!("description = ?{idx}"));
+            values.push(desc.clone().into());
+            idx += 1;
+        }
+        if let Some(ref addr) = req.address {
+            set_parts.push(format!("address = ?{idx}"));
+            values.push(addr.clone().into());
+            idx += 1;
+        }
+        if let Some(ref phone) = req.phone {
+            set_parts.push(format!("phone = ?{idx}"));
+            values.push(phone.clone().into());
+            idx += 1;
+        }
+
+        values.push(id_str.clone().into());
+        let sql = format!(
+            "UPDATE restaurants SET {} WHERE id = ?{idx}",
+            set_parts.join(", ")
+        );
+
+        self.db
+            .prepare(&sql)
+            .bind(&values)
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        self.get_restaurant(id).await
+    }
+
+    pub async fn toggle_restaurant_active(
+        &self,
+        id: RestaurantId,
+        active: bool,
+    ) -> Result<Restaurant, RepoError> {
+        let id_str = id.to_string();
+        let now = chrono::Utc::now().to_rfc3339();
+        let avail_val: i64 = if active { 1 } else { 0 };
+
+        self.db
+            .prepare("UPDATE restaurants SET active = ?1, updated_at = ?2 WHERE id = ?3")
+            .bind(&[
+                wasm_bindgen::JsValue::from(avail_val),
+                now.into(),
+                id_str.into(),
+            ])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        self.get_restaurant(id).await
+    }
+
+    pub async fn list_restaurants_by_owner(
+        &self,
+        user_id: UserId,
+    ) -> Result<Vec<Restaurant>, RepoError> {
+        let user_id_str = user_id.to_string();
+        let rows = self
+            .db
+            .prepare("SELECT id, name, zone_id, active, owner_id, description, address, phone FROM restaurants WHERE owner_id = ?1")
+            .bind(&[user_id_str.into()])
+            .map_err(d1_err)?
+            .all()
+            .await
+            .map_err(d1_err)?
+            .results::<RestaurantRow>()
+            .map_err(d1_err)?;
+
+        let mut restaurants = Vec::new();
+        for row in rows {
+            let rid = row.id.clone();
+            let menu = self
+                .db
+                .prepare("SELECT id, name, price FROM menu_items WHERE restaurant_id = ?1")
+                .bind(&[rid.into()])
+                .map_err(d1_err)?
+                .all()
+                .await
+                .map_err(d1_err)?
+                .results::<MenuItemRow>()
+                .map_err(d1_err)?;
+            restaurants.push(row_to_restaurant(row, menu));
+        }
+        Ok(restaurants)
+    }
+
+    pub async fn add_menu_item(
+        &self,
+        restaurant_id: RestaurantId,
+        req: CreateMenuItemRequest,
+    ) -> Result<MenuItem, RepoError> {
+        let rid_str = restaurant_id.to_string();
+        let mid = MenuItemId::new();
+        let mid_str = mid.to_string();
+        let price_str = req.price.amount().to_string();
+
+        self.db
+            .prepare("INSERT INTO menu_items (id, restaurant_id, name, price) VALUES (?1, ?2, ?3, ?4)")
+            .bind(&[
+                mid_str.into(),
+                rid_str.into(),
+                req.name.clone().into(),
+                price_str.into(),
+            ])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        Ok(MenuItem {
+            id: mid,
+            name: req.name,
+            price: req.price,
+            restaurant_id,
+        })
+    }
+
+    pub async fn update_menu_item(
+        &self,
+        id: MenuItemId,
+        req: UpdateMenuItemRequest,
+    ) -> Result<MenuItem, RepoError> {
+        let id_str = id.to_string();
+
+        let mut set_parts = Vec::new();
+        let mut values: Vec<wasm_bindgen::JsValue> = Vec::new();
+        let mut idx = 1;
+
+        if let Some(ref name) = req.name {
+            set_parts.push(format!("name = ?{idx}"));
+            values.push(name.clone().into());
+            idx += 1;
+        }
+        if let Some(ref price) = req.price {
+            set_parts.push(format!("price = ?{idx}"));
+            values.push(price.amount().to_string().into());
+            idx += 1;
+        }
+
+        if !set_parts.is_empty() {
+            values.push(id_str.clone().into());
+            let sql = format!(
+                "UPDATE menu_items SET {} WHERE id = ?{idx}",
+                set_parts.join(", ")
+            );
+            self.db
+                .prepare(&sql)
+                .bind(&values)
+                .map_err(d1_err)?
+                .run()
+                .await
+                .map_err(d1_err)?;
+        }
+
+        // Reload
+        let row = self
+            .db
+            .prepare("SELECT id, restaurant_id, name, price FROM menu_items WHERE id = ?1")
+            .bind(&[id_str.into()])
+            .map_err(d1_err)?
+            .first::<serde_json::Value>(None)
+            .await
+            .map_err(d1_err)?
+            .ok_or(RepoError::NotFound)?;
+
+        Ok(MenuItem {
+            id: MenuItemId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+            restaurant_id: RestaurantId::from_uuid(parse_uuid(
+                row["restaurant_id"].as_str().unwrap_or_default(),
+            )),
+            name: row["name"].as_str().unwrap_or_default().to_string(),
+            price: Money::from(row["price"].as_str().unwrap_or("0")),
+        })
+    }
+
+    pub async fn delete_menu_item(&self, id: MenuItemId) -> Result<(), RepoError> {
+        let id_str = id.to_string();
+        self.db
+            .prepare("DELETE FROM menu_items WHERE id = ?1")
+            .bind(&[id_str.into()])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+        Ok(())
+    }
+
+    pub async fn update_user_role(
+        &self,
+        user_id: UserId,
+        role: UserRole,
+    ) -> Result<User, RepoError> {
+        let id_str = user_id.to_string();
+        let role_str = role.to_string();
+
+        self.db
+            .prepare("UPDATE users SET role = ?1 WHERE id = ?2")
+            .bind(&[role_str.into(), id_str.clone().into()])
+            .map_err(d1_err)?
+            .run()
+            .await
+            .map_err(d1_err)?;
+
+        // Reload
+        let row = self
+            .db
+            .prepare("SELECT id, supabase_user_id, email, name, role, created_at FROM users WHERE id = ?1")
+            .bind(&[id_str.into()])
+            .map_err(d1_err)?
+            .first::<serde_json::Value>(None)
+            .await
+            .map_err(d1_err)?
+            .ok_or(RepoError::NotFound)?;
+
+        Ok(User {
+            id: UserId::from_uuid(parse_uuid(row["id"].as_str().unwrap_or_default())),
+            supabase_user_id: row["supabase_user_id"]
+                .as_str()
+                .unwrap_or_default()
+                .to_string(),
+            email: row["email"].as_str().unwrap_or_default().to_string(),
+            name: row["name"].as_str().map(|s| s.to_string()),
+            role: row["role"]
+                .as_str()
+                .unwrap_or("Customer")
+                .parse()
+                .unwrap_or(UserRole::Customer),
+            created_at: chrono::DateTime::parse_from_rfc3339(
+                row["created_at"].as_str().unwrap_or_default(),
+            )
+            .unwrap_or_default()
+            .with_timezone(&chrono::Utc),
+        })
     }
 }

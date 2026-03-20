@@ -9,7 +9,8 @@ use openwok_core::repo::{
 };
 use openwok_core::types::{
     CourierId, CreatePaymentRequest, CreateUserRequest, MenuItemId, OrderId, PaymentStatus,
-    RestaurantId, UpdatePaymentStatusRequest, ZoneId,
+    RestaurantId, UpdateMenuItemRequest, UpdatePaymentStatusRequest, UpdateRestaurantRequest,
+    UserRole, ZoneId,
 };
 use serde::Deserialize;
 use worker::*;
@@ -63,6 +64,25 @@ struct CreateCourierReq {
 #[derive(Deserialize)]
 struct SetAvailableReq {
     available: bool,
+}
+
+#[derive(Deserialize)]
+struct UpdateRestaurantReq {
+    name: Option<String>,
+    description: Option<String>,
+    address: Option<String>,
+    phone: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct ToggleActiveReq {
+    active: bool,
+}
+
+#[derive(Deserialize)]
+struct UpdateMenuItemReq {
+    name: Option<String>,
+    price: Option<String>,
 }
 
 // ── Auth DTOs ─────────────────────────────────────────────────────────
@@ -226,8 +246,19 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             }
         })
         .post_async("/api/restaurants", |mut req, ctx| async move {
+            // Auth required
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
             let body: CreateRestaurantReq = req.json().await?;
             let repo = D1Repo::new(ctx.env.d1("DB")?);
+
+            let user = repo
+                .get_user_by_supabase_id(&sub)
+                .await
+                .map_err(|_| Error::RustError("user not found".into()))?;
+
             let result = repo
                 .create_restaurant(CreateRestaurantRequest {
                     name: body.name,
@@ -240,14 +271,160 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                             price: Money::from(m.price.as_str()),
                         })
                         .collect(),
-                    owner_id: None,
+                    owner_id: Some(user.id),
                     description: None,
                     address: None,
                     phone: None,
                 })
                 .await;
+
             match result {
-                Ok(r) => json_ok(&r, 201),
+                Ok(r) => {
+                    // Auto-promote to RestaurantOwner
+                    if user.role == UserRole::Customer {
+                        let _ = repo
+                            .update_user_role(user.id, UserRole::RestaurantOwner)
+                            .await;
+                    }
+                    json_ok(&r, 201)
+                }
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        // Restaurant management (auth required)
+        .patch_async("/api/restaurants/:id", |mut req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let id_str = ctx.param("id").unwrap().to_string();
+            let id = RestaurantId::from_uuid(parse_uuid(&id_str));
+            let body: UpdateRestaurantReq = req.json().await?;
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+
+            // Verify ownership
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let restaurant = repo.get_restaurant(id).await.map_err(|e| Error::RustError(e.to_string()))?;
+            match restaurant.owner_id {
+                Some(oid) if oid == user.id => {}
+                _ => return Response::error("not the owner", 403),
+            }
+
+            match repo.update_restaurant(id, UpdateRestaurantRequest {
+                name: body.name,
+                description: body.description,
+                address: body.address,
+                phone: body.phone,
+            }).await {
+                Ok(r) => json_ok(&r, 200),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        .patch_async("/api/restaurants/:id/active", |mut req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let id_str = ctx.param("id").unwrap().to_string();
+            let id = RestaurantId::from_uuid(parse_uuid(&id_str));
+            let body: ToggleActiveReq = req.json().await?;
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let restaurant = repo.get_restaurant(id).await.map_err(|e| Error::RustError(e.to_string()))?;
+            match restaurant.owner_id {
+                Some(oid) if oid == user.id => {}
+                _ => return Response::error("not the owner", 403),
+            }
+
+            match repo.toggle_restaurant_active(id, body.active).await {
+                Ok(r) => json_ok(&r, 200),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        .post_async("/api/restaurants/:id/menu", |mut req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let id_str = ctx.param("id").unwrap().to_string();
+            let id = RestaurantId::from_uuid(parse_uuid(&id_str));
+            let body: CreateMenuItemReq = req.json().await?;
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let restaurant = repo.get_restaurant(id).await.map_err(|e| Error::RustError(e.to_string()))?;
+            match restaurant.owner_id {
+                Some(oid) if oid == user.id => {}
+                _ => return Response::error("not the owner", 403),
+            }
+
+            match repo.add_menu_item(id, CreateMenuItemRequest {
+                name: body.name,
+                price: Money::from(body.price.as_str()),
+            }).await {
+                Ok(item) => json_ok(&item, 201),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        .patch_async("/api/menu-items/:id", |mut req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let id_str = ctx.param("id").unwrap().to_string();
+            let id = MenuItemId::from_uuid(parse_uuid(&id_str));
+            let body: UpdateMenuItemReq = req.json().await?;
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+
+            let item = repo.update_menu_item(id, UpdateMenuItemRequest {
+                name: body.name,
+                price: body.price.map(|p| Money::from(p.as_str())),
+            }).await.map_err(|e| Error::RustError(e.to_string()))?;
+
+            // Verify ownership
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let restaurant = repo.get_restaurant(item.restaurant_id).await.map_err(|e| Error::RustError(e.to_string()))?;
+            match restaurant.owner_id {
+                Some(oid) if oid == user.id => {}
+                _ => return Response::error("not the owner", 403),
+            }
+
+            json_ok(&item, 200)
+        })
+        .delete_async("/api/menu-items/:id", |req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let id_str = ctx.param("id").unwrap().to_string();
+            let id = MenuItemId::from_uuid(parse_uuid(&id_str));
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+
+            // Get item to verify ownership
+            let item = repo.update_menu_item(id, UpdateMenuItemRequest { name: None, price: None })
+                .await.map_err(|e| Error::RustError(e.to_string()))?;
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            let restaurant = repo.get_restaurant(item.restaurant_id).await.map_err(|e| Error::RustError(e.to_string()))?;
+            match restaurant.owner_id {
+                Some(oid) if oid == user.id => {}
+                _ => return Response::error("not the owner", 403),
+            }
+
+            match repo.delete_menu_item(id).await {
+                Ok(_) => Response::ok(""),
+                Err(e) => repo_err_to_response(e),
+            }
+        })
+        .get_async("/api/my/restaurants", |req, ctx| async move {
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
+            let repo = D1Repo::new(ctx.env.d1("DB")?);
+            let user = repo.get_user_by_supabase_id(&sub).await.map_err(|_| Error::RustError("user not found".into()))?;
+            match repo.list_restaurants_by_owner(user.id).await {
+                Ok(restaurants) => json_ok(&restaurants, 200),
                 Err(e) => repo_err_to_response(e),
             }
         })
