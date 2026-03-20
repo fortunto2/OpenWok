@@ -1,17 +1,15 @@
 mod routes;
 mod state;
 
-use axum::routing::{get, patch, post};
 use axum::Router;
-use state::{AppState, SharedState};
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use axum::routing::{any, get, patch, post};
+use state::AppState;
 
 async fn health() -> &'static str {
     "ok"
 }
 
-pub fn app(state: SharedState) -> Router {
+pub fn app(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health))
         .route(
@@ -34,14 +32,17 @@ pub fn app(state: SharedState) -> Router {
             "/couriers/{id}/available",
             patch(routes::couriers::toggle_available),
         )
+        .route("/ws/orders/{id}", any(routes::ws::order_updates))
         .with_state(state)
 }
 
 #[tokio::main]
 async fn main() {
-    let mut initial = AppState::default();
-    routes::restaurants::seed_restaurants(&mut initial);
-    let state: SharedState = Arc::new(RwLock::new(initial));
+    let state = AppState::new();
+    {
+        let mut data = state.data.write().await;
+        routes::restaurants::seed_restaurants(&mut data);
+    }
 
     let app = app(state);
 
@@ -57,14 +58,16 @@ mod tests {
     use axum::http::{Request, StatusCode};
     use tower::ServiceExt;
 
-    fn test_state() -> SharedState {
-        Arc::new(RwLock::new(AppState::default()))
+    fn test_state() -> AppState {
+        AppState::new()
     }
 
-    fn seeded_state() -> SharedState {
-        let mut s = AppState::default();
-        routes::restaurants::seed_restaurants(&mut s);
-        Arc::new(RwLock::new(s))
+    async fn seeded_state() -> AppState {
+        let state = AppState::new();
+        let mut data = state.data.write().await;
+        routes::restaurants::seed_restaurants(&mut data);
+        drop(data);
+        state
     }
 
     #[tokio::test]
@@ -79,7 +82,7 @@ mod tests {
 
     #[tokio::test]
     async fn list_restaurants_returns_seeded() {
-        let app = app(seeded_state());
+        let app = app(seeded_state().await);
         let resp = app
             .oneshot(Request::get("/restaurants").body(Body::empty()).unwrap())
             .await
@@ -96,8 +99,8 @@ mod tests {
     /// confirm → assign courier → transition to delivered.
     #[tokio::test]
     async fn full_order_flow() {
-        let state = seeded_state();
-        let app = app(state.clone());
+        let state = seeded_state().await;
+        let app = app(state);
 
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();

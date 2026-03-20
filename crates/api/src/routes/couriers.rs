@@ -1,10 +1,10 @@
+use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::Json;
 use openwok_core::types::{Courier, CourierId, CourierKind, OrderId, ZoneId};
 use serde::Deserialize;
 
-use crate::state::SharedState;
+use crate::state::AppState;
 
 #[derive(Deserialize)]
 pub struct CreateCourier {
@@ -17,8 +17,8 @@ pub struct SetAvailable {
     pub available: bool,
 }
 
-pub async fn list(State(state): State<SharedState>) -> Json<Vec<Courier>> {
-    let s = state.read().await;
+pub async fn list(State(state): State<AppState>) -> Json<Vec<Courier>> {
+    let s = state.data.read().await;
     Json(
         s.couriers
             .values()
@@ -29,7 +29,7 @@ pub async fn list(State(state): State<SharedState>) -> Json<Vec<Courier>> {
 }
 
 pub async fn create(
-    State(state): State<SharedState>,
+    State(state): State<AppState>,
     Json(body): Json<CreateCourier>,
 ) -> (StatusCode, Json<Courier>) {
     let id = CourierId::new();
@@ -41,27 +41,27 @@ pub async fn create(
         available: true,
     };
 
-    let mut s = state.write().await;
+    let mut s = state.data.write().await;
     s.couriers.insert(id, courier.clone());
     (StatusCode::CREATED, Json(courier))
 }
 
 pub async fn toggle_available(
-    State(state): State<SharedState>,
+    State(state): State<AppState>,
     Path(id): Path<CourierId>,
     Json(body): Json<SetAvailable>,
 ) -> Result<Json<Courier>, StatusCode> {
-    let mut s = state.write().await;
+    let mut s = state.data.write().await;
     let courier = s.couriers.get_mut(&id).ok_or(StatusCode::NOT_FOUND)?;
     courier.available = body.available;
     Ok(Json(courier.clone()))
 }
 
 pub async fn assign_to_order(
-    State(state): State<SharedState>,
+    State(state): State<AppState>,
     Path(order_id): Path<OrderId>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
-    let mut s = state.write().await;
+    let mut s = state.data.write().await;
 
     // Find an available courier in the order's zone
     let order = s

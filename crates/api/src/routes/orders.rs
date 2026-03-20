@@ -6,7 +6,7 @@ use openwok_core::order::{Order, OrderItem, OrderStatus};
 use openwok_core::types::{MenuItemId, OrderId, RestaurantId, ZoneId};
 use serde::Deserialize;
 
-use crate::state::SharedState;
+use crate::state::{AppState, OrderEvent};
 
 #[derive(Deserialize)]
 pub struct CreateOrder {
@@ -33,12 +33,12 @@ pub struct TransitionStatus {
 }
 
 pub async fn create(
-    State(state): State<SharedState>,
+    State(state): State<AppState>,
     Json(body): Json<CreateOrder>,
 ) -> Result<(StatusCode, Json<Order>), (StatusCode, String)> {
     // Validate restaurant exists
     {
-        let s = state.read().await;
+        let s = state.data.read().await;
         if !s.restaurants.contains_key(&body.restaurant_id) {
             return Err((StatusCode::NOT_FOUND, "restaurant not found".into()));
         }
@@ -66,16 +66,21 @@ pub async fn create(
     )
     .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
 
-    let mut s = state.write().await;
+    let _ = state.order_events.send(OrderEvent {
+        order_id: order.id.to_string(),
+        status: "Created".into(),
+    });
+
+    let mut s = state.data.write().await;
     s.orders.insert(order.id, order.clone());
     Ok((StatusCode::CREATED, Json(order)))
 }
 
 pub async fn get(
-    State(state): State<SharedState>,
+    State(state): State<AppState>,
     Path(id): Path<OrderId>,
 ) -> Result<Json<Order>, StatusCode> {
-    let s = state.read().await;
+    let s = state.data.read().await;
     s.orders
         .get(&id)
         .cloned()
@@ -84,11 +89,11 @@ pub async fn get(
 }
 
 pub async fn transition(
-    State(state): State<SharedState>,
+    State(state): State<AppState>,
     Path(id): Path<OrderId>,
     Json(body): Json<TransitionStatus>,
 ) -> Result<Json<Order>, (StatusCode, String)> {
-    let mut s = state.write().await;
+    let mut s = state.data.write().await;
     let order = s
         .orders
         .get_mut(&id)
@@ -97,6 +102,11 @@ pub async fn transition(
     order
         .transition(body.status)
         .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
+
+    let _ = state.order_events.send(OrderEvent {
+        order_id: id.to_string(),
+        status: format!("{:?}", body.status),
+    });
 
     Ok(Json(order.clone()))
 }

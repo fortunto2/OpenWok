@@ -5,7 +5,7 @@ use openwok_core::money::Money;
 use openwok_core::types::{MenuItem, MenuItemId, Restaurant, RestaurantId, ZoneId};
 use serde::Deserialize;
 
-use crate::state::SharedState;
+use crate::state::AppState;
 
 #[derive(Deserialize)]
 pub struct CreateRestaurant {
@@ -20,16 +20,16 @@ pub struct CreateMenuItem {
     pub price: Money,
 }
 
-pub async fn list(State(state): State<SharedState>) -> Json<Vec<Restaurant>> {
-    let s = state.read().await;
+pub async fn list(State(state): State<AppState>) -> Json<Vec<Restaurant>> {
+    let s = state.data.read().await;
     Json(s.restaurants.values().cloned().collect())
 }
 
 pub async fn get(
-    State(state): State<SharedState>,
+    State(state): State<AppState>,
     Path(id): Path<RestaurantId>,
 ) -> Result<Json<Restaurant>, StatusCode> {
-    let s = state.read().await;
+    let s = state.data.read().await;
     s.restaurants
         .get(&id)
         .cloned()
@@ -38,7 +38,7 @@ pub async fn get(
 }
 
 pub async fn create(
-    State(state): State<SharedState>,
+    State(state): State<AppState>,
     Json(body): Json<CreateRestaurant>,
 ) -> (StatusCode, Json<Restaurant>) {
     let id = RestaurantId::new();
@@ -61,12 +61,12 @@ pub async fn create(
         active: true,
     };
 
-    let mut s = state.write().await;
+    let mut s = state.data.write().await;
     s.restaurants.insert(id, restaurant.clone());
     (StatusCode::CREATED, Json(restaurant))
 }
 
-pub fn seed_restaurants(state: &mut crate::state::AppState) {
+pub fn seed_restaurants(data: &mut crate::state::AppData) {
     let zone = ZoneId::new();
 
     let restaurants = vec![
@@ -108,7 +108,7 @@ pub fn seed_restaurants(state: &mut crate::state::AppState) {
             })
             .collect();
 
-        state.restaurants.insert(
+        data.restaurants.insert(
             id,
             Restaurant {
                 id,
