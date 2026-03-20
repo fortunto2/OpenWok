@@ -1098,6 +1098,27 @@ impl Repository for SqliteRepo {
         Ok(orders)
     }
 
+    async fn list_restaurant_orders(
+        &self,
+        restaurant_id: RestaurantId,
+    ) -> Result<Vec<Order>, RepoError> {
+        let conn = self.conn.lock().await;
+        let rid = restaurant_id.to_string();
+        let mut stmt = conn
+            .prepare("SELECT id FROM orders WHERE restaurant_id = ?1 ORDER BY created_at DESC")
+            .map_err(|e| RepoError::Internal(e.to_string()))?;
+        let order_ids: Vec<String> = stmt
+            .query_map(params![rid], |row| row.get(0))
+            .map_err(|e| RepoError::Internal(e.to_string()))?
+            .filter_map(|r| r.ok())
+            .collect();
+        let orders: Vec<Order> = order_ids
+            .iter()
+            .filter_map(|id| load_order(&conn, id))
+            .collect();
+        Ok(orders)
+    }
+
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError> {
         let conn = self.conn.lock().await;
         conn.query_row(

@@ -191,6 +191,12 @@ pub trait Repository: Send + Sync + 'static {
     async fn get_courier_by_user_id(&self, user_id: &str) -> Result<Courier, RepoError>;
     async fn list_courier_orders(&self, courier_id: CourierId) -> Result<Vec<Order>, RepoError>;
 
+    // Restaurant orders
+    async fn list_restaurant_orders(
+        &self,
+        restaurant_id: RestaurantId,
+    ) -> Result<Vec<Order>, RepoError>;
+
     // Economics & Metrics
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError>;
     async fn get_metrics(&self) -> Result<AdminMetrics, RepoError>;

@@ -233,6 +233,12 @@ mod tests {
         ) -> Result<Vec<Order>, RepoError> {
             Ok(vec![])
         }
+        async fn list_restaurant_orders(
+            &self,
+            _restaurant_id: RestaurantId,
+        ) -> Result<Vec<Order>, RepoError> {
+            Ok(vec![])
+        }
         async fn get_economics(&self) -> Result<PublicEconomics, RepoError> {
             Err(RepoError::NotFound)
         }
