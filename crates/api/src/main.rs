@@ -5,6 +5,7 @@ mod state;
 use axum::Router;
 use axum::routing::{any, get, patch, post};
 use state::AppState;
+use tower_http::cors::{Any, CorsLayer};
 
 async fn health() -> &'static str {
     "ok"
@@ -39,7 +40,12 @@ pub fn app(state: AppState) -> Router {
         .route("/ws/orders/{id}", any(routes::ws::order_updates))
         .with_state(state);
 
-    Router::new().nest("/api", api)
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
+    Router::new().nest("/api", api).layer(cors)
 }
 
 #[tokio::main]
