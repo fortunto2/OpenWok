@@ -1,32 +1,47 @@
 # OpenWok — Evolution Log
 
-## 2026-03-20 | openwok | Factory Score: 6.5/10
+## 2026-03-20 | openwok | Factory Score: 7.5/10 | Retro #3 (Final)
 
-Pipeline: setup→plan→build→deploy→review | Iters: 11 | Waste: 45%
+Pipeline: 9 runs (4 productive, 4 admin/retro, 1 rate-limited) | Iters: 16 | Waste: 31%
+Tracks completed: mvp-core, phase2-frontend, pilot-infra (+ cf-workers archived at 0%)
+Deployed: CF Workers live at openwok.nameless-sunset-8f24.workers.dev
 
 ### Defects
-- **HIGH** | deploy skill: No pipeline mode detection → AskUserQuestion spin-loop (5 wasted iters, 45% of pipeline)
+- **HIGH** — FIXED (0462049) | deploy skill: No pipeline mode detection → AskUserQuestion spin-loop (5 wasted iters in Run 1)
   - Fix: `skills/deploy/SKILL.md` — add "Pipeline Mode" section: never AskUserQuestion, make autonomous decisions
-- **HIGH** | solo-dev.sh circuit breaker: md5 fingerprint evaded by slight wording variations
-  - Fix: `scripts/solo-dev.sh` — add AskUserQuestion count detection (3 consecutive → trip breaker)
-- **MEDIUM** | solo-dev.sh state file: "Skipped" content accepted as "stage complete"
-  - Fix: `scripts/solo-dev.sh` — validate state file content, warn on "Skipped"
-- **MEDIUM** | No rust-native stack template → deploy had no config reference
-  - Fix: `templates/stacks/rust-native.yaml` — create with Dockerfile + fly.toml defaults
+  - Status: Run 9 deploy succeeded (CF Workers) because wrangler.toml existed — not a structural fix
+- **HIGH** — FIXED (0462049) | solo-dev.sh circuit breaker: md5 fingerprint evaded by slight wording variations
+  - Fix: `scripts/solo-lib.sh` — add AskUserQuestion count detection (3 consecutive → trip breaker)
+- **HIGH** | Plan archival doesn't validate task completion → cf-workers archived at 0%
+  - Fix: `scripts/solo-dev.sh` — check task count before archiving, mark "Deferred" if <50% done
+- **MEDIUM** | No Rust-to-Cloudflare-Workers stack template → deploy had no config reference
+  - Fix: `templates/stacks/rust-cloudflare.yaml` — Cloudflare Workers + D1 + wrangler deploy
+- **LOW** | Orphaned Fly.io config (Dockerfile, fly.toml) still in repo after CF Workers migration
 
 ### Harness Gaps
-- **Context:** Deploy stage lacked stack YAML for Rust projects → no deploy strategy reference
-- **Constraints:** None — crate boundaries respected throughout
-- **Precedents:** TDD with Decimal money = solid pattern. Phase2 build+review = 0 waste (model for future runs)
+- **Context:** Deploy context improved (wrangler.toml existed for Run 9). CLAUDE.md lean at 9.4KB. Auto-plan provided good scope guidance.
+- **Constraints:** Clean throughout — crate boundaries respected, money always Decimal, deps point inward.
+- **Precedents:**
+  - GOOD: Build skill 0 waste across 4 tracks (45 tasks). Most reliable skill in factory.
+  - GOOD: Auto-plan generated pilot-infra with correct auth-free scope exclusion.
+  - GOOD: Review always one-pass, never redo.
+  - GOOD: PostHog via JS snippet + web_sys interop — no Rust dependency needed.
+  - BAD: Plan archived without execution validation (cf-workers at 0%).
+  - BAD: Deploy target change creates orphan files without cleanup.
+  - LESSON: Circuit breaker needs semantic detection (AskUserQuestion), not just textual (md5).
+  - LESSON: Plan archival needs task completion gate.
 
 ### Missing
-- `rust-native` stack YAML template
-- Pipeline pre-flight for deploy readiness (CLI + auth check before entering deploy stage)
+- `rust-cloudflare` stack YAML template
+- Pipeline pre-flight for deploy readiness
+- Plan archival validation (task completion %)
 - Spec.md auto-update in `/build` skill
 
 ### What worked well
-- Setup→plan→build chain: 3 iters, 20 min, 0 waste — excellent
-- Phase2 build+review: 2 iters, 40 min, 0 waste — flawless
-- TDD: 37 tests, 0 failures, clippy clean
-- Plan decomposition: 29 tasks across 6 phases with SHAs on every task
-- Rate limit handling: detected and waited correctly
+- Build skill: 4 runs, 0 waste, 45 tasks — most reliable skill
+- Review skill: 3 runs, always one-pass, never redo
+- Deploy (Run 9): 1 iter, CF Workers live — 0 waste when context exists
+- Auto-plan: generated pilot-infra with correct scope
+- TDD: 37 tests maintained across all 4 tracks, 0 failures
+- Plan decomposition: 45 tasks with SHAs across 4 completed tracks
+- CLAUDE.md discipline: 9.4KB, lean and current
