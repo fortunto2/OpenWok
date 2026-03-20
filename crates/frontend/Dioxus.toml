@@ -7,3 +7,12 @@ title = "OpenWok — Fair Food Delivery"
 [web.watcher]
 reload_html = true
 watch_path = ["src"]
+index_on_404 = true
+
+[web.resource.dev]
+script = []
+style = []
+
+[web.proxy]
+# Proxy API calls to local axum server during development
+backend = "http://localhost:3000/api"
