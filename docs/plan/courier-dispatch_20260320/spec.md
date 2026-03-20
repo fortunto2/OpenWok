@@ -13,17 +13,17 @@ Scoped to the minimum needed for the 60-day LA pilot (20-40 couriers, 10-20 rest
 
 ## Acceptance Criteria
 
-- [ ] When order transitions to `ReadyForPickup`, system auto-assigns an available courier in the same zone (existing FIFO logic) and transitions order to `InDelivery`
-- [ ] If no courier available, order stays at `ReadyForPickup` (operator assigns manually from console)
-- [ ] WebSocket broadcasts `OrderEvent` on every `update_order_status` and `assign_courier` call
-- [ ] Courier dashboard page (`/my-deliveries`) shows: current active delivery (order details, restaurant name, customer address, status) and delivery history
-- [ ] Courier can update order status from dashboard: `InDelivery` → `Delivered` (with confirmation)
-- [ ] Courier self-registration page (`/register-courier`) with name + zone selection (requires auth)
-- [ ] `GET /api/my/deliveries` endpoint returns orders assigned to current courier (auth)
-- [ ] `GET /api/couriers/me` endpoint returns current user's courier profile (auth)
-- [ ] DB index on `couriers(zone_id, available)` for dispatch query performance
-- [ ] Integration tests for dispatch service (auto-assign + no-courier-available fallback)
-- [ ] Existing 98 tests still pass, `make check` clean
+- [x] When order transitions to `ReadyForPickup`, system auto-assigns an available courier in the same zone (existing FIFO logic) and transitions order to `InDelivery`
+- [x] If no courier available, order stays at `ReadyForPickup` (operator assigns manually from console)
+- [x] WebSocket broadcasts `OrderEvent` on every `update_order_status` and `assign_courier` call
+- [x] Courier dashboard page (`/my-deliveries`) shows: current active delivery (order details, restaurant name, customer address, status) and delivery history
+- [x] Courier can update order status from dashboard: `InDelivery` → `Delivered` (with confirmation)
+- [x] Courier self-registration page (`/register-courier`) with name + zone selection (requires auth)
+- [x] `GET /api/my/deliveries` endpoint returns orders assigned to current courier (auth)
+- [x] `GET /api/couriers/me` endpoint returns current user's courier profile (auth)
+- [x] DB index on `couriers(zone_id, available)` for dispatch query performance
+- [x] Integration tests for dispatch service (auto-assign + no-courier-available fallback)
+- [x] Existing 98 tests still pass, `make check` clean
 
 ## Dependencies
 
