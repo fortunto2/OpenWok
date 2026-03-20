@@ -2203,4 +2203,68 @@ mod tests {
         let loaded = repo.get_user_by_supabase_id("sub_persist").await.unwrap();
         assert!(loaded.blocked);
     }
+
+    #[tokio::test]
+    async fn list_restaurant_orders_filters_by_restaurant() {
+        let repo = seeded_repo();
+        let restaurants = repo.list_restaurants().await.unwrap();
+        let rest_a = &restaurants[0];
+        let rest_b = &restaurants[1];
+
+        // Create order for restaurant A
+        let item_a = &rest_a.menu[0];
+        let order_a = repo
+            .create_order(CreateOrderRequest {
+                restaurant_id: rest_a.id,
+                items: vec![CreateOrderItemRequest {
+                    menu_item_id: item_a.id,
+                    name: item_a.name.clone(),
+                    quantity: 1,
+                    unit_price: item_a.price,
+                }],
+                customer_address: "111 A St".into(),
+                zone_id: rest_a.zone_id,
+                delivery_fee: Money::from("5.00"),
+                tip: Money::from("1.00"),
+                local_ops_fee: Money::from("2.00"),
+            })
+            .await
+            .unwrap();
+
+        // Create order for restaurant B
+        let item_b = &rest_b.menu[0];
+        let _order_b = repo
+            .create_order(CreateOrderRequest {
+                restaurant_id: rest_b.id,
+                items: vec![CreateOrderItemRequest {
+                    menu_item_id: item_b.id,
+                    name: item_b.name.clone(),
+                    quantity: 1,
+                    unit_price: item_b.price,
+                }],
+                customer_address: "222 B St".into(),
+                zone_id: rest_b.zone_id,
+                delivery_fee: Money::from("5.00"),
+                tip: Money::from("1.00"),
+                local_ops_fee: Money::from("2.00"),
+            })
+            .await
+            .unwrap();
+
+        // list_restaurant_orders for A should return only A's order
+        let orders_a = repo.list_restaurant_orders(rest_a.id).await.unwrap();
+        assert_eq!(orders_a.len(), 1);
+        assert_eq!(orders_a[0].id, order_a.id);
+
+        // list_restaurant_orders for B should return only B's order
+        let orders_b = repo.list_restaurant_orders(rest_b.id).await.unwrap();
+        assert_eq!(orders_b.len(), 1);
+
+        // Non-existent restaurant returns empty
+        let orders_none = repo
+            .list_restaurant_orders(RestaurantId::new())
+            .await
+            .unwrap();
+        assert!(orders_none.is_empty());
+    }
 }
