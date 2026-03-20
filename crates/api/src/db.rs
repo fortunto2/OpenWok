@@ -74,9 +74,42 @@ fn migrate(conn: &Connection) {
             quantity     INTEGER NOT NULL,
             unit_price   TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id               TEXT PRIMARY KEY,
+            supabase_user_id TEXT UNIQUE NOT NULL,
+            email            TEXT NOT NULL,
+            name             TEXT,
+            role             TEXT NOT NULL DEFAULT 'Customer',
+            created_at       TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS payments (
+            id                          TEXT PRIMARY KEY,
+            order_id                    TEXT NOT NULL REFERENCES orders(id),
+            stripe_payment_intent_id    TEXT,
+            stripe_checkout_session_id  TEXT,
+            status                      TEXT NOT NULL DEFAULT 'Pending',
+            amount_total                TEXT NOT NULL,
+            restaurant_amount           TEXT NOT NULL,
+            courier_amount              TEXT NOT NULL,
+            federal_amount              TEXT NOT NULL,
+            local_ops_amount            TEXT NOT NULL,
+            processing_amount           TEXT NOT NULL,
+            created_at                  TEXT NOT NULL
+        );
         ",
     )
     .expect("migration failed");
+
+    // Add user_id column to orders if not present (migration 0006)
+    let has_user_id: bool = conn
+        .prepare("SELECT user_id FROM orders LIMIT 0")
+        .is_ok();
+    if !has_user_id {
+        conn.execute_batch("ALTER TABLE orders ADD COLUMN user_id TEXT REFERENCES users(id);")
+            .expect("failed to add user_id to orders");
+    }
 }
 
 pub fn seed_la_data(conn: &Connection) {
@@ -360,15 +393,15 @@ mod tests {
     #[test]
     fn migrations_run_without_error() {
         let conn = open(":memory:");
-        // Tables should exist
+        // Tables should exist (6 original + users + payments = 8)
         let count: i64 = conn
             .query_row(
-                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('zones','restaurants','menu_items','couriers','orders','order_items')",
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('zones','restaurants','menu_items','couriers','orders','order_items','users','payments')",
                 [],
                 |r| r.get(0),
             )
             .unwrap();
-        assert_eq!(count, 6);
+        assert_eq!(count, 8);
     }
 
     #[test]
