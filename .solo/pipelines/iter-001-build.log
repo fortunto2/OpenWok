@@ -1,501 +1,167 @@
-  [2msession: 481acba2  model: claude-opus-4-6[1m][0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/spec.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
-  [36m**[0m [36mGlob[0m [2m".solo/pipelines/progress.md" ~/startups/active/openwok[0m
+  [2msession: 2ac27b58  model: claude-opus-4-6[1m][0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/spec.md[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
-  [32m$ [0m [33mBash[0m [2mShow recent commits[0m
-  [32m$ [0m [33mBash[0m [2mCheck Makefile targets[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Let me read the remaining sections in parallel.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
   [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Dispatch Service + WebSocket Events ([0m
-
-Let me load the key source files before coding.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-Let me also read the relevant sqlite_repo sections and ws module.
-  [36m// [36mGrep[0m [2m"async fn assign_courier|async fn create_courier" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/ws.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-Now let me check the existing `row_to_courier` helper and the latest migration.
-  [36m// [36mGrep[0m [2m"fn row_to_courier" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0008_restaurant_owner.sql[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
-
-Good. I have full context. Let me start executing tasks. 
-
-**Starting Task 1.1: Add migration `0009_courier_user.sql`**
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/migrations/0009_courier_user.sql[0m
-
-Now update db.rs to apply this migration:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/db.rs[0m
-  [32m$ [0m [33mBash[0m [2mRun db tests to verify migration[0m
-
-Migration works. Commit Task 1.1.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.1[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-**Starting Task 1.2: Update Courier struct + CreateCourierRequest with user_id**
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
-
-Now update `CreateCourierRequest` in repo.rs:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
-
-Now fix all compilation errors — the Courier struct initializations and CreateCourierRequest constructions need updating. Let me find them.
-  [36m// [36mGrep[0m [2m"Courier \{|CreateCourierRequest \{" ~/startups/active/openwok/crates[0m
-
-I need to fix all Courier and CreateCourierRequest initializations. Let me do them all in parallel.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-Now update all callers of `row_to_courier` in sqlite_repo.rs and the `create_courier` method:
-  [36m// [36mGrep[0m [2m"row_to_courier\(" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-I need to read the exact lines around the callers to update their queries (they need to select user_id now):
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-Now I'll update all three callers — list_couriers, create_courier, and toggle_courier_available:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-Now fix the worker crate as well:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [36m// [36mGrep[0m [2m"struct CourierRow" ~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-
-Now fix the d1_repo create_courier and the worker lib.rs create_courier call:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-
-Now let's compile and test:
-  [32m$ [0m [33mBash[0m [2mRun all tests (exclude worker which needs wasm target)[0m
-  [32m$ [0m [33mBash[0m [2mRetry tests[0m
-
-This is a workspace issue with the worker crate (needs wasm32 target). Let me test only the main crates:
-  [32m$ [0m [33mBash[0m [2mRun tests for core + handlers + api[0m
-
-Seems like a cache issue. Let me clean and retry:
-  [32m$ [0m [33mBash[0m [2mClean cargo cache and rerun tests[0m
-  [32m$ [0m [33mBash[0m [2mClear stale deps and run tests[0m
-
-The cargo target directory is corrupted. Let me clean it properly:
-  [32m$ [0m [33mBash[0m [2mFull clean of debug dir and rerun tests[0m
-  [32m$ [0m [33mBash[0m [2mEnsure debug dir exists, run tests[0m
-
-The cargo cache is badly corrupted. Let me fully nuke it:
-  [32m$ [0m [33mBash[0m [2mNuke entire cargo target dir, rebuild and test[0m
-  [32m$ [0m [33mBash[0m [2mRemove target subdirs[0m
-  [32m$ [0m [33mBash[0m [2mBuild and test core crate[0m
-
-Core passes. Now test api:
-  [32m$ [0m [33mBash[0m [2mBuild and test api crate[0m
-
-All 40 API tests pass. Commit Task 1.2.
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.2[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-**Starting Task 1.3: Add Repository methods — `get_courier_by_user_id` and `list_courier_orders`**
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
-
-Now I need to compile to verify the trait change, then implement in sqlite_repo. First let me check what errors come up:
-  [32m$ [0m [33mBash[0m [2mCheck core compiles[0m
-
-Good. Now implement in sqlite_repo — Task 1.4. I'll combine Tasks 1.3 and 1.4 since the trait method and implementation go together.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-I need to find the right place in sqlite_repo to add the implementations. Let me find where economics/metrics methods are:
-  [36m// [36mGrep[0m [2m"async fn get_economics" ~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-I'll insert the new methods right before `get_economics`:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
-
-Now let me run tests:
-  [32m$ [0m [33mBash[0m [2mTest api crate with new repo methods[0m
-
-All pass. Commit Tasks 1.3+1.4:
-  [32m$ [0m [33mBash[0m [2mCommit Tasks 1.3+1.4[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-**Starting Task 1.5: Create dispatch service in `crates/core/src/dispatch.rs`**
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [36m// [36mGrep[0m [2m"pub mod" ~/startups/active/openwok/crates/core/src/lib.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/core/src/dispatch.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/lib.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/lib.rs[0m
-  [32m$ [0m [33mBash[0m [2mRun dispatch tests[0m
-
-Need to add tokio as a dev dependency to core:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/Cargo.toml[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/Cargo.toml[0m
-
-Also remove the unused import:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/dispatch.rs[0m
-  [32m$ [0m [33mBash[0m [2mRun dispatch tests[0m
-
-All 3 dispatch tests pass. Commit:
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.5[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-**Starting Task 1.6: Wire WebSocket events into order handlers**
-
-The key challenge: handlers crate is generic over `R: Repository` and doesn't know about `AppState` or `broadcast::Sender`. I need to pass the sender as an extra state.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-The approach: add `OrderEvent` type to core (or reuse the one in state.rs), and pass `broadcast::Sender` via axum Extension. Let me check the handlers crate Cargo.toml:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/Cargo.toml[0m
-
-The handlers crate has `axum` — it can use `axum::Extension`. I need tokio's `broadcast::Sender` in handlers. Let me add tokio as a dep:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/Cargo.toml[0m
-
-Now I'll define `OrderEvent` in the handlers crate (it's a simple broadcast DTO, doesn't belong in core's domain types). Actually, it's already in `crates/api/src/state.rs`. But handlers can't depend on api. Best approach: move `OrderEvent` to core, or define it in handlers. Let me put it in core since both api and handlers need it.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/dispatch.rs[0m
-
-I'll add `OrderEvent` to `crate::dispatch` — it's a dispatch/event concern:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/core/src/dispatch.rs[0m
-
-Now update the api state.rs to use core's OrderEvent:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/api/src/state.rs[0m
-
-Now update the handlers orders.rs to broadcast events on transition:
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
-
-Now update couriers.rs to broadcast on assign:
-  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-
-Now I need to update main.rs to pass the broadcast Extension to the API routes. Let me check how the api routes are composed:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-I need to add the broadcast sender as an Extension layer alongside JwtConfig. The handlers use `Option<Extension<...>>` so it's backward-compatible.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-Now check if it also needs to update the ws.rs import (since we moved OrderEvent to core):
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/ws.rs[0m
-
-ws.rs accesses `state.order_events` — this still works since `AppState.order_events` is still a `broadcast::Sender<OrderEvent>` (now re-exported from core). Good.
-
-Now check if there are references to `crate::state::OrderEvent` elsewhere:
-  [36m// [36mGrep[0m [2m"state::OrderEvent|crate::state::OrderEvent" ~/startups/active/openwok/crates/api/src[0m
-
-Let me also check the payments.rs for any OrderEvent usage:
-  [36m// [36mGrep[0m [2m"OrderEvent" ~/startups/active/openwok/crates/api/src[0m
-
-Good — OrderEvent is only used in state.rs (and now re-exported from core). Let me build:
-  [32m$ [0m [33mBash[0m [2mTest all crates after WebSocket wiring[0m
-
-The `state` is moved into `with_state(state)` for ws_route. Need to clone the sender before that:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mRetest after fix[0m
-  [32m$ [0m [33mBash[0m [2mVerify api test count[0m
-
-All 40 tests pass + 45 core + 8 handlers. Commit Task 1.6:
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.6[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-**Starting Task 1.7: Wire auto-dispatch into order status transition**
-
-When status transitions to `ReadyForPickup`, call `auto_dispatch()`. If courier assigned, broadcast two events.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
-
-I need to add auto-dispatch logic to the `transition` handler after a successful transition to `ReadyForPickup`:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
-  [32m$ [0m [33mBash[0m [2mTest after auto-dispatch wiring[0m
-  [32m$ [0m [33mBash[0m [2mCheck api tests[0m
-
-All 40 API tests pass. Now the existing `full_order_flow` test manually assigns a courier and transitions through states. With auto-dispatch, `ReadyForPickup` would auto-assign a courier and transition to `InDelivery`. But the test creates the courier first and manually assigns it at step 5, so the test flow still works because the manual assign happens before `ReadyForPickup`.
-
-Let me verify the test still reflects the correct flow — actually, looking at the test more carefully, the test does `assign` at step 5 (before ReadyForPickup), then transitions through `Preparing → ReadyForPickup → InDelivery → Delivered`. Since auto-dispatch fires on ReadyForPickup and the courier is already assigned (not available anymore), auto_dispatch would find no available courier — which is fine (returns None).
-
-Commit Task 1.7:
-  [32m$ [0m [33mBash[0m [2mCommit Task 1.7[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-Phase 1 complete! Run verification:
-  [32m$ [0m [33mBash[0m [2mRun make test for Phase 1 verification[0m
-  [32m$ [0m [33mBash[0m [2mRun clippy for Phase 1 verification[0m
-  [32m$ [0m [33mBash[0m [2mSee full clippy output[0m
-
-Clippy wants me to collapse the nested ifs:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
-  [32m$ [0m [33mBash[0m [2mRerun clippy[0m
-  [32m$ [0m [33mBash[0m [2mCheck formatting[0m
-  [32m$ [0m [33mBash[0m [2mFormat and re-check[0m
-
-Format clean. Now commit the clippy fix + format fixes and mark Phase 1 complete:
-  [32m$ [0m [33mBash[0m [2mCommit Phase 1 checkpoint[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-Phase 1 complete! Moving to Phase 2.
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Dispatch Service + WebSocket Events ([0m
-
-**Starting Task 2.1: Add courier API endpoints — `GET /couriers/me` and `GET /my/deliveries`**
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-I need to check how `AuthUser` works to extract the user_id:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/auth.rs[0m
-
-Good — `AuthUser.supabase_user_id` gives me the Supabase UUID. I need to look up the internal user by `supabase_user_id`, then use that user's ID to find the courier. Let me check how auth_handlers does it:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/auth_handlers.rs[0m
-
-I see the pattern — `auth.supabase_user_id` is the Supabase UUID, then `repo.get_user_by_supabase_id()` gives the internal User with `user.id`. The courier's `user_id` field stores the internal user ID as a string.
-
-Now add the courier-specific endpoints. I'll add two new handler functions to `couriers.rs`:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-
-Now I'll update the `create` handler to link courier to auth user, and add the new `me` and `my_deliveries` endpoints:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-
-Now update `create` to link courier with auth user and promote role, and add `me` + `my_deliveries`:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-
-Now add the `me` and `my_deliveries` endpoints at the end of the file:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
-
-**Task 2.2: Register routes** — add to lib.rs:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
-  [32m$ [0m [33mBash[0m [2mTest after adding new routes[0m
-
-One test failed. Let me see which:
-  [32m$ [0m [33mBash[0m [2mFind failed test[0m
-  [32m$ [0m [33mBash[0m [2mGet failure details[0m
-
-Line 254 — the courier creation fails with 404. The `create` handler now requires `get_user_by_supabase_id` — but in the test the JWT creates a Supabase user that doesn't exist in our users table. The test JWT has `sub: "test-user-uuid-123"`, but there's no user record.
-
-The test needs to first call the auth callback to create the user. Let me check the test:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-The issue: `POST /couriers` now does `get_user_by_supabase_id` which returns NotFound because no user has been created. The test needs to call `/auth/callback` first (which creates the user). Let me add that step:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-
-Also need to renumber the comments in the test:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mRerun the full_order_flow test[0m
-
-Now let me also check that the auto-dispatch actually works in the full test — the test creates a courier, confirms order, assigns courier, then transitions through states. With auto-dispatch, `ReadyForPickup` would auto-assign. But since the courier was already assigned at step 6, and the courier isn't available anymore, auto_dispatch returns None. Still works.
-
-Let me run all tests to make sure nothing else broke:
-  [32m$ [0m [33mBash[0m [2mRun all test suites[0m
-
-All 93 tests pass. Commit Tasks 2.1+2.2:
-  [32m$ [0m [33mBash[0m [2mCommit Tasks 2.1+2.2[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-**Starting Tasks 2.3 + 2.4: Frontend pages** — courier registration and delivery dashboard. Let me read the current frontend main.rs structure.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [2m--[0m [36mAgent[0m [2mRead frontend main.rs structure[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"^#\[component\]" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"Route \{" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"^async fn api_" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"^const API_BASE" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"fn RestaurantSettings" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now I have the frontend patterns. Let me read the Route enum and add the new pages.
-  [32m$ [0m [33mBash[0m [2mCheck file size[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"#\[derive.*Routable"" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"Routable"" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"Routable" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Good, I see the route pattern. Now let me find where `OnboardRestaurant` component is defined (near end of file) to add the new components nearby:
-  [36m// [36mGrep[0m [2m"fn OnboardRestaurant" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now let me also quickly look at how zone data is structured to create a dropdown:
-  [36m// [36mGrep[0m [2m"Zone|zone_id|zones"" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-I see zones are referenced but there's no API to list zones. The restaurants have `zone_id` — I can fetch restaurant list and extract unique zones for the dropdown. Or I can use a simpler approach: just show the zone selection from the restaurant data. Let me check if there's a zones endpoint:
-  [36m// [36mGrep[0m [2m"zones|/api/zones" ~/startups/active/openwok/crates/handlers/src[0m
-
-No zones endpoint. I'll fetch restaurants and extract unique zones for the dropdown (same zone data). Now let me add the routes and components. First, update the Route enum:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now add the two components before the `main` function. Let me read the API helpers I'll need:
-  [36m// [36mGrep[0m [2m"fn api_get|fn api_post_json|fn api_patch_json|const API_BASE"" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"const API_BASE" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now let me also check how the nav links appear in the Layout to know if I should add courier links:
-  [36m// [36mGrep[0m [2m"my-restaurants|onboard-restaurant|operator"" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m// [36mGrep[0m [2m"nav|Link.*to.*Route"" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Good. I'll add "My Deliveries" link in the nav for logged-in users. Now let me add the components and nav link:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now add the two component functions before the `main` function at the end:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-
-Now let me check if this compiles:
-  [32m$ [0m [33mBash[0m [2mCheck frontend compiles[0m
-
-Compiles clean. Let me also run clippy on the frontend:
-  [32m$ [0m [33mBash[0m [2mClippy check frontend[0m
-
-Clean. Commit Tasks 2.3+2.4:
-  [32m$ [0m [33mBash[0m [2mCommit Tasks 2.3+2.4[0m
-
-Update plan.md:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-Phase 2 complete! Run verification:
-  [32m$ [0m [33mBash[0m [2mPhase 2 verification: tests[0m
-  [32m$ [0m [33mBash[0m [2mPhase 2 verification: clippy[0m
-
-All passing. Mark Phase 2 verification:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mCommit Phase 2 checkpoint[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Dispatch Service + WebSocket Events ([0m
-
-**Starting Phase 3: Docs & Cleanup**
-
-**Task 3.1: Update CLAUDE.md**
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Extract state.rs, analytics.rs, api.r[0m
+
+Starting the frontend module split. I'll create all Phase 1 files first, then wire them up.
+
+**Starting Phase 1: Extract Shared Modules**
+
+Let me mark Task 1.1 as in-progress in plan.md and create all three shared modules in parallel.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/state.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/analytics.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/api.rs[0m
+
+Now create all 8 page modules + pages/mod.rs in parallel. This covers Phase 2 tasks 2.1-2.10.
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/mod.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/home.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/auth.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/restaurants.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/checkout.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/order.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/economics.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/operator.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/owner.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/pages/courier.rs[0m
+
+Now I need to create `app.rs` and rewrite `main.rs`. The `API_BASE` constant needs to be `pub` in api.rs. Let me also create app.rs and the new slim main.rs.
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/app.rs[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+
+Now I need to make `API_BASE` pub in api.rs. Let me fix that and try building.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/crates/frontend/src/api.rs[0m
+  [32m$ [0m [33mBash[0m [2mBuild frontend crate to check compilation[0m
+
+Build passes. Now let me run clippy and fmt.
+  [32m$ [0m [33mBash[0m [2mRun clippy on frontend crate[0m
+  [32m$ [0m [33mBash[0m [2mCheck formatting of frontend crate[0m
+
+Minor import ordering. Let me run fmt to fix automatically.
+  [32m$ [0m [33mBash[0m [2mAuto-format frontend crate[0m
+
+Now let me run full workspace tests and verify `main.rs` line count.
+  [32m$ [0m [33mBash[0m [2mCount lines in main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCount lines in all frontend source files[0m
+  [32m$ [0m [33mBash[0m [2mRun workspace tests[0m
+
+All checks pass:
+- `main.rs` = 11 lines (under 30)
+- No file exceeds 500 lines (max is `owner.rs` at 444)
+- Build + clippy + fmt clean
+- All tests pass
+
+Now let me commit phases 1-3 (they were done together as a single refactor), then move to Phase 4.
+  [32m$ [0m [33mBash[0m [2mStage all refactored frontend files[0m
+  [32m$ [0m [33mBash[0m [2mCommit frontend module split[0m
+
+Now update plan.md with SHAs and mark phases 1-3 complete. Then proceed to Phase 4.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Extract state.rs, analytics.rs, api.r[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
+
+**Starting Phase 4: Pre-commit Hooks**
+  [32m$ [0m [33mBash[0m [2mCheck if .githooks directory exists[0m
+  [32m$ [0m [33mBash[0m [2mCreate .githooks directory[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/.githooks/pre-commit[0m
+  [32m$ [0m [33mBash[0m [2mMake pre-commit hook executable[0m
+
+Now add the `setup-hooks` target to the Makefile.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/Makefile[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/Makefile[0m
+
+Set up hooks and test them.
+  [32m$ [0m [33mBash[0m [2mConfigure git to use .githooks directory[0m
+
+Now commit Phase 4.
+  [32m$ [0m [33mBash[0m [2mStage hook files[0m
+  [32m$ [0m [33mBash[0m [2mCommit pre-commit hooks[0m
+
+Pre-commit hooks are working — they ran during the commit and passed. Now Phase 5.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Extract state.rs, analytics.rs, api.r[0m
+
+**Starting Phase 5: Docs & Cleanup**
+
+Update CLAUDE.md with the new frontend module structure and setup-hooks command.
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-
-Now let me find and update the API Endpoints table:
-  [36m// [36mGrep[0m [2m"## API Endpoints" ~/startups/active/openwok/CLAUDE.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-
-Add the new endpoints:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-
-Now update the Frontend Routes table:
-  [36m// [36mGrep[0m [2m"## Frontend Routes" ~/startups/active/openwok/CLAUDE.md[0m
+  [36m// [36mGrep[0m [2m"## Workspace Structure" ~/startups/active/openwok/CLAUDE.md[0m
   [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-
-Now update the Migrations table:
-  [36m// [36mGrep[0m [2m"## Migrations" ~/startups/active/openwok/CLAUDE.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
   [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
 
-Also update the plan docs reference:
-  [36m// [36mGrep[0m [2m"docs/plan/courier-dispatch" ~/startups/active/openwok/CLAUDE.md[0m
-  [36m// [36mGrep[0m [2m"Key Documents|plan-done|plan/"" ~/startups/active/openwok/CLAUDE.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/CLAUDE.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/CLAUDE.md[0m
+Now run final verification (Task 5.3).
+  [32m$ [0m [33mBash[0m [2mFinal verification: tests + clippy + fmt[0m
 
-**Task 3.2: Remove dead code**
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mRun full check (test + clippy + fmt)[0m
-  [32m$ [0m [33mBash[0m [2mFormat and rerun check[0m
+All clean. Commit Phase 5.
+  [32m$ [0m [33mBash[0m [2mStage docs updates[0m
+  [32m$ [0m [33mBash[0m [2mCommit docs update[0m
 
-All checks pass. No dead code issues found. Commit Phase 3:
-  [32m$ [0m [33mBash[0m [2mCommit Phase 3[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
+Now mark the plan as complete and finalize.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit plan completion[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Extract state.rs, analytics.rs, api.r[0m
 
-Mark Phase 3 verification and update status:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-
-Now run **Final Verification**:
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Dispatch Service + WebSocket Events ([0m
-  [32m$ [0m [33mBash[0m [2mFinal: tests[0m
-  [32m$ [0m [33mBash[0m [2mFinal: clippy[0m
-  [32m$ [0m [33mBash[0m [2mFinal: fmt[0m
-  [32m$ [0m [33mBash[0m [2mFinal: build[0m
-
-All clean:
-- Tests: 101 passed (40 api + 45 core + 8 handlers + 8 stripe)
-- Clippy: zero warnings
-- Format: clean
-- Build: succeeds
-
-Now verify acceptance criteria from spec:
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/spec.md[0m
-
-All acceptance criteria met. Update plan status to Complete and finalize:
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mFinal commit[0m
-  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Dispatch Service + WebSocket Events ([0m
-
-Track complete: **courier-dispatch_20260320**
+Track complete: **frontend-split_20260320**
 
 ```
-Phases: 3/3
-Tasks:  12/12
-Tests:  101 passing (40 api + 45 core + 8 handlers + 8 stripe)
+Phases: 5/5
+Tasks:  20/20
+Tests:  All passing
+Lint:   Clean (fmt + clippy)
 
 Phase checkpoints:
-  Phase 1: 09841d0 (dispatch + websocket)
-  Phase 2: 84158ad (courier API + frontend)
-  Phase 3: 99637b0 (docs)
+  Phase 1-3: 599825b (module split)
+  Phase 4:   c9840c3 (pre-commit hooks)
+  Phase 5:   a470b1b (docs + verification)
+  Completion: e69806f
 
-Commits:
-  4bae4d1 — migration 0009 (courier user_id + indexes)
-  7222ba3 — Courier struct user_id field
-  d672d64 — get_courier_by_user_id + list_courier_orders
-  4e5f373 — auto_dispatch service + tests
-  32d5540 — WebSocket events in handlers
-  83b5e9b — auto-dispatch on ReadyForPickup
-  b3699e2 — GET /couriers/me + GET /my/deliveries
-  544358a — frontend courier pages
-  99637b0 — CLAUDE.md updates
-  71aff04 — track complete
+Results:
+  main.rs: 2060 → 11 lines
+  Modules: 11 files (state, analytics, api, app + 8 pages)
+  Max file: 444 lines (owner.rs) — all under 500
+  Pre-commit: .githooks/pre-commit (fmt + clippy)
 
-Revert entire track: git revert 4bae4d1..HEAD
+Revert entire track: git revert 599825b..HEAD
 ```
 
-<solo:done/>Track complete: **courier-dispatch_20260320**
+<solo:done/>Track complete: **frontend-split_20260320**
 
 ```
-Phases: 3/3
-Tasks:  12/12
-Tests:  101 passing (40 api + 45 core + 8 handlers + 8 stripe)
+Phases: 5/5
+Tasks:  20/20
+Tests:  All passing
+Lint:   Clean (fmt + clippy)
 
 Phase checkpoints:
-  Phase 1: 09841d0 (dispatch + websocket)
-  Phase 2: 84158ad (courier API + frontend)
-  Phase 3: 99637b0 (docs)
+  Phase 1-3: 599825b (module split)
+  Phase 4:   c9840c3 (pre-commit hooks)
+  Phase 5:   a470b1b (docs + verification)
+  Completion: e69806f
 
-Commits:
-  4bae4d1 — migration 0009 (courier user_id + indexes)
-  7222ba3 — Courier struct user_id field
-  d672d64 — get_courier_by_user_id + list_courier_orders
-  4e5f373 — auto_dispatch service + tests
-  32d5540 — WebSocket events in handlers
-  83b5e9b — auto-dispatch on ReadyForPickup
-  b3699e2 — GET /couriers/me + GET /my/deliveries
-  544358a — frontend courier pages
-  99637b0 — CLAUDE.md updates
-  71aff04 — track complete
+Results:
+  main.rs: 2060 → 11 lines
+  Modules: 11 files (state, analytics, api, app + 8 pages)
+  Max file: 444 lines (owner.rs) — all under 500
+  Pre-commit: .githooks/pre-commit (fmt + clippy)
 
-Revert entire track: git revert 4bae4d1..HEAD
+Revert entire track: git revert 599825b..HEAD
 ```
 
 <solo:done/>

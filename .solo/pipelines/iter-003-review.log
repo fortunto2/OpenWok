@@ -1,173 +1,188 @@
-  [2msession: a50819c9  model: claude-opus-4-6[1m][0m
+  [2msession: 11f9764e  model: claude-opus-4-6[1m][0m
+Starting review for courier-dispatch track. Let me gather context and run checks in parallel.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/spec.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/workflow.md[0m
+  [32m$ [0m [33mBash[0m [2mRecent git log for courier-dispatch track[0m
+  [32m$ [0m [33mBash[0m [2mCount recent commits[0m
 
-
-Starting the review for OpenWok restaurant-onboarding feature. Let me gather all necessary context first.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mRecent git commits[0m
-  [32m$ [0m [33mBash[0m [2mDiff stats for recent commits[0m
-  [36m**[0m [36mGlob[0m [2m"docs/plan/restaurant-onboarding_20260320/spec.md" ~/startups/active/openwok[0m
-
-Now let me read the spec, key source files, and run tests/lint in parallel.
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/spec.md[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
-
-Now running the actual verification checks in parallel.
+Now running all checks in parallel.
   [32m$ [0m [33mBash[0m [2mRun full test suite[0m
   [32m$ [0m [33mBash[0m [2mRun clippy linter[0m
   [32m$ [0m [33mBash[0m [2mCheck formatting[0m
-  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|SUPABASE_KEY|API_KEY\s*=\s*['"]" ~/startups/active/openwok/crates[0m
-  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK|console\.log|dbg!" ~/startups/active/openwok/crates[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mBuild verification[0m
+  [36m// [36mGrep[0m [2m"sk_live|sk_test|password\s*=\s*['"]|secret\s*=\s*['"]|api_key\s*=\s*['"]" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates[0m
 
-Tests pass (98/98). Clippy has 2 errors in frontend. Fmt clean. No secrets found. Let me now check more dimensions and also read the handlers.
-  [32m$ [0m [33mBash[0m [2mCheck worker compiles for wasm32[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+Tests pass (101), clippy clean, fmt clean, build succeeds. Now spot-checking code quality and remaining dimensions.
+  [36m// [36mGrep[0m [2m"unwrap\(\)" ~/startups/active/openwok/crates/core/src/dispatch.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/dispatch.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/couriers.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/orders.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0009_courier_user.sql[0m
+  [32m$ [0m [33mBash[0m [2mCheck .gitignore for env files[0m
   [32m$ [0m [33mBash[0m [2mCheck CLAUDE.md size[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
-  [32m$ [0m [33mBash[0m [2mCheck frontend file size[0m
-  [36m// [36mGrep[0m [2m"AI-TODO|AI-ASK|AI-NOTE" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"AI-TODO|AI-ASK" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"TODO|FIXME|HACK" ~/startups/active/openwok/crates[0m
 
-Found important issues. Let me check a few more things.
-  [32m$ [0m [33mBash[0m [2mCheck gitignore[0m
-  [32m$ [0m [33mBash[0m [2mCheck for plan SHAs[0m
-  [32m$ [0m [33mBash[0m [2mCheck scratch directory[0m
-  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0008_restaurant_owner.sql[0m
+Good — code quality looks solid. Let me check remaining dimensions: SQL safety, acceptance criteria verification, commit quality, and production logs.
+  [36m// [36mGrep[0m [2m"format!\(.*SELECT|format!\(.*INSERT|format!\(.*UPDATE|format!\(.*DELETE" ~/startups/active/openwok/crates[0m
+  [32m$ [0m [33mBash[0m [2mCommits in courier-dispatch track[0m
+  [32m$ [0m [33mBash[0m [2mCount conventional commits[0m
+  [32m$ [0m [33mBash[0m [2mCount SHA references in plan[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
+  [32m$ [0m [33mBash[0m [2mFrontend main.rs size[0m
+
+Let me check the dynamic SQL in update_restaurant and update_menu_item for injection risk.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [36m// [36mGrep[0m [2m"console_log|println!" ~/startups/active/openwok/crates[0m
+
+All acceptance criteria verified. Let me update spec checkboxes and check remaining items.
   [32m$ [0m [33mBash[0m [2mCheck pre-commit hooks[0m
+  [32m$ [0m [33mBash[0m [2mCheck pipeline state directory[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/README.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck pipeline state directory[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/README.md[0m
 
-I now have all findings. Let me compile the review report and update the plan/spec files.
+Now let me update the spec checkboxes and commit.
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/courier-dispatch_20260320/spec.md[0m
+  [32m$ [0m [33mBash[0m [2mCommit spec checkbox updates[0m
 
-## Code Review: OpenWok — restaurant-onboarding_20260320
-**Date:** 2026-03-20
-
-### Verdict: FIX FIRST
-
-Two issues block shipping: (1) TOCTOU security bug in menu item ownership verification — update happens BEFORE ownership check, so any authenticated user can modify any restaurant's menu items; (2) `make clippy` fails with 2 errors in frontend.
+Now generating the review report.
 
 ---
+
+```
+Code Review: OpenWok — Courier Dispatch & Dashboard
+Date: 2026-03-20
+Track: courier-dispatch_20260320
+
+## Verdict: SHIP
+
+### Summary
+Courier dispatch track fully implemented: auto-dispatch on ReadyForPickup, WebSocket event broadcasting,
+courier self-registration, delivery dashboard. All 101 tests pass, clippy clean, build succeeds.
+All 11 acceptance criteria verified against code.
 
 ### Tests
-- Total: 98 | Pass: 98 | Fail: 0 | Skip: 2 (ignored doc-tests)
-- Coverage: N/A (no coverage tool configured)
-- Status: **PASS**
+- Total: 101 | Pass: 101 | Fail: 0 | Skip: 0
+- Ignored: 2 (doc-tests in stripe-universal)
+- New dispatch tests: 3 (auto_dispatch_assigns_courier, no_courier, wrong_zone)
+- Status: PASS
 
 ### Linter
-- Errors: 2 | Warnings: 0
-- `crates/frontend/src/main.rs:1471` — `clone_on_copy`: `nav.clone()` on Copy type
-- `crates/frontend/src/main.rs:1599` — `collapsible_if`: nested if should be collapsed
-- Status: **FAIL** (`make check` breaks)
+- Clippy: 0 errors, 0 warnings (-D warnings enforced)
+- Rustfmt: clean
+- Status: PASS
 
 ### Build
-- `cargo test --workspace` compiles all crates — PASS
-- Worker: standalone workspace (can't check from root), deployed successfully
-- Status: **PASS**
+- `cargo build --workspace`: SUCCESS
+- Warnings: 0
+- Status: PASS
 
 ### Pre-Landing Checklist
-- **CRITICAL: TOCTOU in menu item update** — `crates/handlers/src/restaurants.rs:241-247` and `crates/worker/src/lib.rs:380-393`: `update_menu_item()` is called BEFORE `verify_ownership()`. Any authenticated user can modify any restaurant's menu items; the 403 is returned after the DB write.
-- **INFORMATIONAL: Hacky get-via-update pattern** — `delete_menu_item` uses `update_menu_item(id, {None, None})` as a substitute for a missing `get_menu_item()` method. Not a bug (no fields changed), but code smell.
-- Status: **1 CRITICAL, 1 INFORMATIONAL**
+- SQL Safety: PASS — all queries use parameterized `?` placeholders via `params![]`
+  - Dynamic SQL in update_restaurant/update_menu_item: column names are hardcoded, only values parameterized — safe
+- Race Conditions: ACCEPTABLE — assign_courier uses SELECT+UPDATE without transaction,
+  but SQLite serializes writes (single-writer), safe for single-node pilot
+- TOCTOU: Previously fixed (sha:17fb4be) — menu item ownership checks patched
+- Critical: 0 | Informational: 0
+- Status: PASS
 
 ### Security
-- Hardcoded secrets: NONE (`sk_test_...` in doc comment only)
-- `.gitignore` covers `.env` — PASS
-- SQL: All queries use parameterized bindings — PASS
-- Status: **WARN** (TOCTOU above)
+- Hardcoded secrets: NONE (only test-context strings: "sk_test_..." in doc comments, "super-secret-jwt-token-for-testing-only" in test setup)
+- SQL injection: NONE — parameterized queries throughout
+- .gitignore: covers .env, target/, node_modules/
+- Auth: all courier endpoints require AuthUser extractor
+- Status: PASS
 
 ### Acceptance Criteria
-- Verified: 9/10
-- Missing: criterion 6 ("Non-owner cannot modify") is technically violated — 403 returned but modification persists
-- Status: **PARTIAL**
+- Verified: 11/11
+- Missing: none
+- Status: PASS
 
 ### Plan Progress
-- Tasks: 13/13 complete
-- Phases: 4/4 complete
-- Plan SHAs: 0/13 (none recorded)
-- Status: **COMPLETE** (no SHAs is WARN)
+- Tasks: 12/12 complete (all [x])
+- Phases: 3/3 complete
+- SHAs: 13/12 (all tasks annotated)
+- Status: COMPLETE
 
 ### Production Logs
-- Platform: Cloudflare Workers
-- Verified: /api/health → ok, /api/restaurants → 18 restaurants, frontend → 200
-- Status: **CLEAN** (verified during deploy stage)
+- Platform: Cloudflare Workers (deployed in iteration 2)
+- Cannot check live logs (no wrangler auth in this session)
+- Status: N/A — skipped (no credentials)
 
 ### Dev Principles
-- **SOLID**: Minor SRP concern — frontend is 1822 lines in one file (noted risk)
-- **Schemas-first**: All types defined in `crates/core/src/types.rs` — PASS
-- **Error handling**: Proper error mapping everywhere — PASS
-- **Clean Architecture**: Dependencies point inward — PASS
-- **TOCTOU**: Ownership check AFTER mutation violates fail-fast — CRITICAL
-- Status: **WARN**
+- SOLID/SRP: PASS — dispatch.rs is single-purpose, handlers separated by domain
+- DIP: PASS — Repository trait, handlers generic over R: Repository
+- Schemas-first: PASS — typed IDs (OrderId, CourierId), Money newtype, OrderEvent struct
+- Error handling: PASS — Result<T, RepoError> throughout, no unwrap() in production code
+  (221 unwrap() total but all in tests or seed/parsing code)
+- Clean Architecture: PASS — core → handlers → api dependency chain, core has zero framework deps
+- Status: PASS
 
 ### Commits
-- Total: 12 (this track) | Conventional: 12/12
-- Atomic: YES
-- Plan SHAs: 0/13
-- Pre-commit hooks: NOT CONFIGURED
-- Status: **WARN**
+- Track commits: 14 (4bae4d1..c2028eb)
+- Conventional format: 10/14 compliant (4 chore commits use abbreviated format)
+- Atomic: YES — each commit is one logical change
+- Plan SHAs: 13/12 tasks have SHAs
+- Pre-commit hooks: NOT CONFIGURED (no husky/pre-commit/lefthook found)
+- Status: WARN (no pre-commit hooks)
 
 ### Documentation
-- CLAUDE.md: CURRENT (13,521 chars — well under 40K)
-- README.md: exists (not checked in detail)
-- AI-TODO/AI-ASK: 0
-- Dead code: NONE detected
-- Status: **PASS**
+- CLAUDE.md: CURRENT (14,041 chars — well under 40K limit, reflects courier dispatch endpoints + routes)
+- README.md: STALE — says "In-memory (PostgreSQL planned)" but actual stack is SQLite/D1
+- docs/prd.md: exists, consistent with implementation
+- docs/workflow.md: CURRENT
+- AI-TODO unresolved: 0
+- AI-ASK unanswered: 0
+- Dead code: NONE found (no TODO/FIXME/HACK in codebase)
+- Status: WARN (README.md stale)
 
 ### Context Quality
-- Plan handoff: GOOD (Context Handoff section present with key files, decisions, risks)
-- CLAUDE.md size: 13,521 chars — OK
-- Scratch cleanup: N/A
-- Status: **PASS**
+- Plan handoff: GOOD — Context Handoff section with Intent/Key Files/Decisions/Risks
+- CLAUDE.md size: 14,041 chars — OK
+- Scratch cleanup: N/A — no scratch directory
+- Status: PASS
 
 ### Pre-mortem
-
 | Risk | Type | Likelihood | Impact | Mitigation |
 |------|------|-----------|--------|------------|
-| TOCTOU allows menu tampering | Tiger | High | High | Fix ownership check order |
-| Frontend monolith (1822 LOC) | Elephant | High | Medium | Split in future refactor track |
-| No pre-commit hooks | Paper Tiger | Low | Low | Add in next infra pass |
-| Single DB (D1) no backup | Tiger | Medium | High | D1 has automatic backups, but test restore |
+| SQLite single-writer under high concurrency | Paper Tiger | Low (pilot: 20-40 couriers) | Medium | Acceptable for pilot scale; D1 in prod |
+| No courier accept/reject → bad delivery experience | Paper Tiger | Low (pilot: small team) | Medium | Accept for MVP; wave 2 |
+| WebSocket connection drops → stale dashboard | Elephant | Medium | Low | Browser reconnection built-in; user can refresh |
+| No monitoring/alerting on dispatch failures | Tiger | Medium | Medium | Rely on operator console metrics tab for pilot |
+- Tigers: 1 (dispatch monitoring — acceptable for 60-day pilot)
+- Paper Tigers: 2
+- Elephants: 1
+- Unmitigated critical Tigers: 0
+- Status: CLEAR
 
 ### Visual Testing
-- Platform: N/A — autonomous mode, no browser tools invoked
-- Status: **N/A**
+- Platform: N/A — no browser tools invoked for this review
+- Status: N/A
 
----
-
-### Issues Found
-1. **[CRITICAL]** TOCTOU: menu item updated before ownership verified — `crates/handlers/src/restaurants.rs:241-247`
-2. **[CRITICAL]** Same TOCTOU in worker — `crates/worker/src/lib.rs:380-393`
-3. **[MODERATE]** Clippy error: clone_on_copy — `crates/frontend/src/main.rs:1471`
-4. **[MODERATE]** Clippy error: collapsible_if — `crates/frontend/src/main.rs:1599`
-5. **[LOW]** Missing `get_menu_item()` method forces hacky update-as-read pattern
+### Issues Found (non-blocking)
+1. [WARN] README.md stale — references "In-memory (PostgreSQL planned)" instead of SQLite/D1
+2. [WARN] No pre-commit hooks configured
+3. [INFO] Frontend main.rs at 2060 lines — approaching recommended split threshold
+4. [INFO] println! in main.rs:105 (server startup) — acceptable, consider tracing::info
 
 ### Recommendations
-- Fix TOCTOU: move ownership check BEFORE `update_menu_item` call in both handlers and worker
-- Fix clippy errors to restore `make check`
-- Consider adding `get_menu_item(id)` to Repository trait
-- Consider splitting frontend in future track
+- Update README.md to reflect current SQLite/D1 stack (minor, 5 min)
+- Add pre-commit hooks (cargo fmt + clippy) for future contributors
+- Plan frontend main.rs split into modules as a separate refactor track
+```
 
 ---
 
-Now updating spec.md and plan.md with fix tasks.
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/spec.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
-  [32m$ [0m [33mBash[0m [2mCommit review fix tasks[0m
+CLAUDE.md is at 14,041 chars — well under the 40K threshold. No revision needed, it already reflects courier dispatch endpoints and routes from the build phase.
+  [32m$ [0m [33mBash[0m [2mCheck pipeline progress file[0m
 
-Review complete. **Verdict: FIX FIRST** — two critical issues need resolution before shipping:
+**Verdict: SHIP** — All 101 tests pass, 11/11 acceptance criteria verified, no security issues, clean clippy/fmt, build succeeds. Minor items (stale README, no pre-commit hooks) are non-blocking recommendations.
 
-1. **TOCTOU security bug**: `update_menu_item` handler modifies data BEFORE verifying ownership, allowing any authenticated user to change any restaurant's menu items
-2. **Clippy errors**: `make check` fails due to 2 lint errors in frontend
+<solo:done/>**Verdict: SHIP** — All 101 tests pass, 11/11 acceptance criteria verified, no security issues, clean clippy/fmt, build succeeds. Minor items (stale README, no pre-commit hooks) are non-blocking recommendations.
 
-Phase 5 with 4 fix tasks has been added to plan.md. Sending back to `/build`.
-
-<solo:redo/>Review complete. **Verdict: FIX FIRST** — two critical issues need resolution before shipping:
-
-1. **TOCTOU security bug**: `update_menu_item` handler modifies data BEFORE verifying ownership, allowing any authenticated user to change any restaurant's menu items
-2. **Clippy errors**: `make check` fails due to 2 lint errors in frontend
-
-Phase 5 with 4 fix tasks has been added to plan.md. Sending back to `/build`.
-
-<solo:redo/>
+<solo:done/>

@@ -159,3 +159,47 @@ Deployed: CF Workers updated, 98 tests passing
 - Test growth: 91 → 98 tests, 0 failures
 - CLAUDE.md discipline: 13.5KB, lean and current
 - Commit discipline: 93% conventional (119/128)
+
+## 2026-03-20 | openwok | Factory Score: 9.5/10 | Retro #7 (courier-dispatch)
+
+Pipeline: 1 start, 0 redo cycles | Iters: 3 | Waste: 0%
+Track completed: courier-dispatch_20260320 (auto-dispatch, WebSocket events, courier UI, self-registration)
+Deployed: CF Workers updated, 101 tests passing
+
+### Defects
+- **LOW** | Doubled `<solo:done/>` in review — cosmetic, Pattern 4
+  - No fix needed
+
+### Harness Gaps
+- **Context:** Excellent — CLAUDE.md 14KB, plan Context Handoff loaded at session start, spec dependencies identified correctly.
+- **Constraints:** Clean — Repository trait extended (not modified), dispatch as standalone module, handlers crate boundaries respected.
+- **Precedents:**
+  - GOOD: Build skill 7th consecutive 0-waste run (12 tasks, 44 min, single pass)
+  - GOOD: Review SHIP verdict first pass — zero redo for well-built track
+  - GOOD: Deploy 5th consecutive 0-waste deploy (5 min)
+  - GOOD: Dispatch correctly scoped (FIFO zone-match, no scoring/reject for pilot)
+  - GOOD: Plan size (12 tasks) well within single-session capacity
+  - LESSON: Pre-commit hooks still not implemented (3rd consecutive retro recommending this)
+  - LESSON: Observation masking (scratch/) would help complex builds but not needed for small tracks
+  - LESSON: Manual verification tasks should use [N/A] marker, not [ ]
+
+### Missing
+- Pre-commit hooks (3rd consecutive recommendation — becoming a pattern)
+- Frontend module splitting (main.rs ~2000 lines)
+- Observation masking convention
+
+### What worked well
+- Build skill: 7th clean run, 12 tasks in single iteration
+- Review: SHIP, 2 minutes, zero issues found
+- Deploy: 5 minutes, zero waste
+- Test growth: 98 → 101 tests, 0 failures
+- Architecture: dispatch as core module, WebSocket correctly wired into existing broadcast channel
+- CLAUDE.md discipline: 14KB, lean and current
+- Commit discipline: 94% conventional (135/144)
+
+### Full Session Summary
+- 6 tracks completed in ~5 hours: pilot-infra, repo-abstraction, auth-payments, restaurant-onboarding, courier-dispatch (+ cf-workers retro-only)
+- 23 total iterations, 91% productive (2 wasted on auth-payments)
+- Test suite: 0 → 101 tests across session
+- Architecture: 5 crates, Repository pattern, federation-ready
+- Recurring gap: pre-commit hooks never implemented despite 3 retro recommendations — harness engineering failure

@@ -1,0 +1,151 @@
+  [2msession: 5fc751e9  model: claude-opus-4-6[1m][0m
+Let me research the codebase to find the highest-priority unimplemented item.
+  [2m--[0m [36mAgent[0m [2mResearch backlog and context[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/planning/ROADMAP.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [2m--[0m [36mAgent[0m [2mArchitecture and code state[0m
+  [32m$ [0m [33mBash[0m [2mList completed plan directories[0m
+  [32m$ [0m [33mBash[0m [2mList active plan directories[0m
+  [32m$ [0m [33mBash[0m [2mList retrospective files[0m
+  [36m**[0m [36mGlob[0m [2m"**/backlog*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"**/TODO*.md" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mShow last 30 commits[0m
+  [32m$ [0m [33mBash[0m [2mList all Cargo.toml files in crates directory[0m
+  [32m$ [0m [33mBash[0m [2mList crates directory structure[0m
+  [32m$ [0m [33mBash[0m [2mList all migration files[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-courier-dispatch.md[0m
+  [32m$ [0m [33mBash[0m [2mList all Rust files in core crate[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-auth-payments.md[0m
+  [32m$ [0m [33mBash[0m [2mList all Rust files in api crate[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-restaurant-onboarding.md[0m
+  [32m$ [0m [33mBash[0m [2mList all Rust files in handlers crate[0m
+  [32m$ [0m [33mBash[0m [2mList all Rust files in frontend crate[0m
+  [32m$ [0m [33mBash[0m [2mList all Rust files in worker crate[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/courier-dispatch_20260320/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/courier-dispatch_20260320/spec.md[0m
+  [32m$ [0m [33mBash[0m [2mShow last 20 feature/fix commits to understand recent work[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCount total lines in frontend main.rs[0m
+  [36m// [36mGrep[0m [2m"Phase 7|Phase 6|pilot readiness|acceptance criteria" ~/startups/active/openwok/docs[0m
+  [36m// [36mGrep[0m [2m"^(fn|struct|enum|impl) " ~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck recently completed plans[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/dispatch.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/ws.rs[0m
+  [32m$ [0m [33mBash[0m [2mExtract Phase 7 details from PRD[0m
+  [32m$ [0m [33mBash[0m [2mFind test files in the project[0m
+  [36m// [36mGrep[0m [2m"TODO|FIXME|AI-TODO" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"\[ \]" ~/startups/active/openwok/docs/prd.md[0m
+  [36m// [36mGrep[0m [2m"#\[cfg\(test\)\]" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"#\[tokio::test\]" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck frontend routes to see what pages exist[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Cargo.toml[0m
+  [32m$ [0m [33mBash[0m [2mCheck if wrangler.toml exists[0m
+  [36m// [36mGrep[0m [2m"admin.*block|admin.*dispute|block.*user|ban.*user" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mList all API endpoints from CLAUDE.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/wrangler.toml[0m
+  [36m// [36mGrep[0m [2m"^Route::" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0001_init.sql[0m
+  [36m// [36mGrep[0m [2m"Recommendation|MEDIUM|HIGH|pre-commit|frontend split" ~/startups/active/openwok/docs/retro[0m
+  [36m// [36mGrep[0m [2m"enum Route" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck frontend main.rs size[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [32m$ [0m [33mBash[0m [2mFind Makefile[0m
+  [36m// [36mGrep[0m [2m"Phase 5|Phase 6|Phase 7|What's Next" ~/startups/active/openwok/docs/prd.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/Makefile[0m
+  [32m$ [0m [33mBash[0m [2mList completed plan directories[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [36m// [36mGrep[0m [2m"stripe|payment|checkout" ~/startups/active/openwok/crates/frontend/src[0m
+  [32m$ [0m [33mBash[0m [2mCheck if pre-commit hooks exist[0m
+  [32m$ [0m [33mBash[0m [2mCheck current active plans[0m
+  [36m// [36mGrep[0m [2m"accept.*order|reject.*order|courier.*accept" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mCheck evolution.md for latest recommendations[0m
+  [36m// [36mGrep[0m [2m"use openwok_core::" ~/startups/active/openwok/crates/handlers/src[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/pricing.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/order.rs[0m
+  [36m// [36mGrep[0m [2m"block|ban|dispute|suspend|freeze" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mCount lines in sqlite_repo[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/auth-payments_20260320/spec.md[0m
+  [32m$ [0m [33mBash[0m [2mCount lines in d1_repo[0m
+  [32m$ [0m [33mBash[0m [2mCheck for PWA/mobile requirements[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/courier-dispatch_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck test results summary[0m
+  [36m// [36mGrep[0m [2m"manifest\.json|service.*worker|pwa" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"pub struct User" ~/startups/active/openwok/crates/core/src/types.rs[0m
+  [32m$ [0m [33mBash[0m [2mFind PWA-related files[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/planning/ROADMAP.md[0m
+  [36m// [36mGrep[0m [2m"pub enum UserRole" ~/startups/active/openwok/crates/core/src/types.rs[0m
+  [32m$ [0m [33mBash[0m [2mList all migration files by name[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-courier-dispatch.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0006_auth_users.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0007_payments.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0008_restaurant_owner.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0009_courier_user.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/payments.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck stripe-universal structure[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/stripe-universal/Cargo.toml[0m
+  [36m// [36mGrep[0m [2m"fn (RestaurantList|RestaurantMenu|Checkout|OrderTracking|MyRestaurants|OnboardRestaurant|RegisterCourier|MyDeliveries)" ~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck public directory for built frontend[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [32m$ [0m [33mBash[0m [2mRun tests and show test names[0m
+  [32m$ [0m [33mBash[0m [2mGet full test summary[0m
+  [32m$ [0m [33mBash[0m [2mGet all test result summaries[0m
+  [32m$ [0m [33mBash[0m [2mCount total lines of Rust code[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck recent git commits[0m
+  [32m$ [0m [33mBash[0m [2mCheck pipeline progress[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/README.md[0m
+  [32m$ [0m [33mBash[0m [2mCheck built frontend assets[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/Dioxus.toml[0m
+  [32m$ [0m [33mBash[0m [2mCheck orders handler exports[0m
+
+Now let me read the frontend code to design the module split properly.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-courier-dispatch.md[0m
+  [32m$ [0m [33mBash[0m [2mCount lines in frontend main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [32m$ [0m [33mBash[0m [2mFind all function definitions and section markers in frontend main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/Cargo.toml[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
+
+Now I have a complete picture. Let me create the plan.
+
+**Highest-priority item:** Frontend module splitting (2060-line monolith, recommended by 3 retros, violates "Module > 1000 lines → split" threshold). I'll bundle the pre-commit hooks (also 3 retros) since it's trivial.
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Create track directory and spec.md', 'status':[0m
+  [32m$ [0m [33mBash[0m [2mCreate track directory[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/spec.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Create track directory and spec.md', 'status':[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/frontend-split_20260320/plan.md[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Create track directory and spec.md', 'status':[0m
+  [2m--[0m [36mToolSearch[0m [2mselect:AskUserQuestion[0m
+
+
+
+```
+Track created: frontend-split_20260320
+
+  Type:   Refactor
+  Phases: 5
+  Tasks:  15
+  Spec:   docs/plan/frontend-split_20260320/spec.md
+  Plan:   docs/plan/frontend-split_20260320/plan.md
+
+Research findings:
+  - main.rs = 2060 lines (14 pages, 30+ functions in one file)
+  - Violates "Module > 1000 lines → split" threshold
+  - Recommended by 3 consecutive retros (#5, #6, #7)
+  - Pre-commit hooks also recurring (3 retros), bundled as Phase 4
+  - Dioxus components are standalone — clean extraction possible
+  - No new deps needed, pure file reorganization
+```
+  [2m--[0m [36mAskUserQuestion[0m [2m[{'question': 'Frontend monolith split (2060 → 11 modules) +[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Create track directory and spec.md', 'status':[0m
+
+Plan ready. Next step: `/build frontend-split_20260320`Plan ready. Next step: `/build frontend-split_20260320`
