@@ -883,9 +883,32 @@ fn OrderTracking(id: String) -> Element {
                 })
                 .collect();
 
+            let payment_status = match status.as_str() {
+                "Created" => "Pending",
+                "Cancelled" => "Failed",
+                _ => "Succeeded",
+            };
+            let payment_class = match payment_status {
+                "Pending" => "badge payment-pending",
+                "Failed" => "badge payment-failed",
+                _ => "badge payment-succeeded",
+            };
+
             rsx! {
                 div { class: "order-tracking",
                     h1 { "Order Tracking" }
+
+                    // Payment status
+                    div { class: "payment-status",
+                        span { "Payment: " }
+                        span { class: "{payment_class}", "{payment_status}" }
+                        if payment_status == "Pending" {
+                            p { class: "payment-info", "Payment processing..." }
+                        }
+                        if payment_status == "Failed" {
+                            Link { to: Route::Checkout {}, class: "retry-btn", "Retry Payment" }
+                        }
+                    }
 
                     // Status timeline
                     div { class: "timeline",
