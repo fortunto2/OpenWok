@@ -15,15 +15,15 @@ This is the remaining architectural work from the cf-workers-deploy track (archi
 
 ## Acceptance Criteria
 
-- [ ] `Repository` trait defined in `crates/core/src/repo.rs` with async methods for all entity operations
-- [ ] `SqliteRepo` implements Repository in `crates/api/` — wraps existing rusqlite queries
-- [ ] `D1Repo` implements Repository in `crates/worker/` — wraps existing D1 queries
-- [ ] `crates/handlers/` crate exists with shared axum route handlers generic over `Repository`
-- [ ] `crates/api/` uses handlers crate (+ WebSocket route locally)
-- [ ] `crates/worker/` uses handlers crate (+ D1Repo)
-- [ ] All existing tests pass (`make check`) — no regressions
-- [ ] `wrangler deploy` succeeds, live URL returns HTTP 200
-- [ ] Orphaned Fly.io files removed (Dockerfile, fly.toml, .dockerignore)
+- [x] `Repository` trait defined in `crates/core/src/repo.rs` with async methods for all entity operations
+- [x] `SqliteRepo` implements Repository in `crates/api/` — wraps existing rusqlite queries
+- [x] `D1Repo` implements Repository in `crates/worker/` — wraps existing D1 queries
+- [x] `crates/handlers/` crate exists with shared axum route handlers generic over `Repository`
+- [x] `crates/api/` uses handlers crate (+ WebSocket route locally)
+- [~] `crates/worker/` uses handlers crate (+ D1Repo) — D1Repo implemented but handlers crate not shared (D1Database is !Send, axum handlers require Send; worker uses worker::Router with D1Repo directly)
+- [x] All existing tests pass (`make check`) — no regressions
+- [x] `wrangler deploy` succeeds, live URL returns HTTP 200
+- [x] Orphaned Fly.io files removed (Dockerfile, fly.toml, .dockerignore)
 
 ## Dependencies
 
