@@ -141,7 +141,9 @@ pub async fn create<R: Repository>(
 
     // Auto-promote to RestaurantOwner if currently Customer
     if user.role == UserRole::Customer {
-        let _ = repo.update_user_role(user.id, UserRole::RestaurantOwner).await;
+        let _ = repo
+            .update_user_role(user.id, UserRole::RestaurantOwner)
+            .await;
     }
 
     Ok((StatusCode::CREATED, Json(restaurant)))

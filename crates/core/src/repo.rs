@@ -183,11 +183,7 @@ pub trait Repository: Send + Sync + 'static {
         req: UpdateMenuItemRequest,
     ) -> Result<crate::types::MenuItem, RepoError>;
     async fn delete_menu_item(&self, id: MenuItemId) -> Result<(), RepoError>;
-    async fn update_user_role(
-        &self,
-        user_id: UserId,
-        role: UserRole,
-    ) -> Result<User, RepoError>;
+    async fn update_user_role(&self, user_id: UserId, role: UserRole) -> Result<User, RepoError>;
 
     // Economics & Metrics
     async fn get_economics(&self) -> Result<PublicEconomics, RepoError>;

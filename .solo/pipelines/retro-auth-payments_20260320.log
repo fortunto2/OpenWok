@@ -1,0 +1,141 @@
+  [2msession: 6913cc0f  model: claude-opus-4-6[1m][0m
+Starting retro for OpenWok. Let me gather all artifacts first.
+  [36m**[0m [36mGlob[0m [2m".solo/pipelines/**/*" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan-done/*/spec.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan-done/*/plan.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/*/plan.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m".solo/pipelines/solo-pipeline-*.local.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/retro/references/eval-dimensions.md[0m
+  [36m>>[0m [36mRead[0m [2m~/.claude/plugins/cache/solo/solo/1.22.0/skills/retro/references/failure-catalog.md[0m
+
+Found 34 pipeline artifacts, 8 completed plan tracks, 1 active plan. Let me read the core logs and plans.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/pipeline.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/progress.md[0m
+  [32m$ [0m [33mBash[0m [2mShow recent 40 commits[0m
+  [32m$ [0m [33mBash[0m [2mCount total commits[0m
+  [32m$ [0m [33mBash[0m [2mCommitter breakdown[0m
+  [32m$ [0m [33mBash[0m [2mCheck CLAUDE.md size[0m
+
+Now let me read the plan fidelity data and sample key iter logs.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mCount spec acceptance criteria per track[0m
+  [32m$ [0m [33mBash[0m [2mCount plan task completion per track[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-004-review.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-007-review.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/pipeline-20260320-123715.log[0m
+  [32m$ [0m [33mBash[0m [2mCount conventional commits[0m
+
+Let me fix the counting script and re-fetch the remaining data.
+  [32m$ [0m [33mBash[0m [2mCount spec criteria per track[0m
+  [32m$ [0m [33mBash[0m [2mCount plan tasks per track[0m
+  [32m$ [0m [33mBash[0m [2mCount conventional commits[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/pipeline-20260320-123715.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-004-review.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-007-review.log[0m
+  [32m$ [0m [33mBash[0m [2mCount spec criteria per track[0m
+  [32m$ [0m [33mBash[0m [2mCount plan tasks per track[0m
+  [32m$ [0m [33mBash[0m [2mCount conventional commits[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/pipeline-20260320-123715.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-004-review.log[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/iter-007-review.log[0m
+  [36m// [36mGrep[0m [2m"\[x\]" ~/startups/active/openwok/docs/plan-done[0m
+  [36m// [36mGrep[0m [2m"\[ \]" ~/startups/active/openwok/docs/plan-done[0m
+  [36m// [36mGrep[0m [2m"\[x\]" ~/startups/active/openwok/docs/plan-done[0m
+  [36m// [36mGrep[0m [2m"\[ \]" ~/startups/active/openwok/docs/plan-done[0m
+  [36m// [36mGrep[0m [2m"sha:" ~/startups/active/openwok/docs/plan-done[0m
+  [32m$ [0m [33mBash[0m [2mCount conventional commits[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/.solo/pipelines/pipeline-20260320-123715.log[0m
+
+Let me check the plan fidelity directly and get the remaining data.
+  [36m// [36mGrep[0m [2m"\[x\]|\[ \]" ~/startups/active/openwok/docs/plan-done/mvp-core_20260320/spec.md[0m
+  [36m// [36mGrep[0m [2m"\[x\]|\[ \]" ~/startups/active/openwok/docs/plan-done/mvp-core_20260320/plan.md[0m
+  [36m// [36mGrep[0m [2m"\[x\]|\[ \]" ~/startups/active/openwok/docs/plan-done/repo-abstraction_20260320/spec.md[0m
+  [36m// [36mGrep[0m [2m"\[x\]|\[ \]" ~/startups/active/openwok/docs/plan-done/cf-workers-deploy_20260320/spec.md[0m
+  [36m// [36mGrep[0m [2m"\[x\]|\[ \]" ~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mPreview spec files headers[0m
+  [36m// [36mGrep[0m [2m"\- \[x\]" ~/startups/active/openwok/docs/plan-done[0m
+  [36m// [36mGrep[0m [2m"\- \[ \]" ~/startups/active/openwok/docs/plan-done[0m
+  [36m// [36mGrep[0m [2m"\- \[x\]" ~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
+  [36m// [36mGrep[0m [2m"\- \[ \]" ~/startups/active/openwok/docs/plan/auth-payments_20260320/plan.md[0m
+  [32m$ [0m [33mBash[0m [2mRun test suite[0m
+  [32m$ [0m [33mBash[0m [2mList existing retro logs[0m
+  [32m$ [0m [33mBash[0m [2mGet test pass/fail counts[0m
+  [32m$ [0m [33mBash[0m [2mCheck build status[0m
+  [32m$ [0m [33mBash[0m [2mCheck old deploy iter logs[0m
+  [32m$ [0m [33mBash[0m [2mCheck if scratch dir exists[0m
+
+Good. 91 tests pass, build clean. Now let me check existing evolution log and write the report.
+  [32m$ [0m [33mBash[0m [2mCheck if evolution.md exists[0m
+  [32m$ [0m [33mBash[0m [2mCheck docs/retro directory[0m
+  [32m$ [0m [33mBash[0m [2mList retro dir contents[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+
+Now I have all data. Let me write the comprehensive retro report.
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-auth-payments.md[0m
+
+Now let me update the evolution log and check factory quality.
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+  [33m<>[0m [36mEdit[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+
+Now let me present the summary.
+
+## Retro Summary: OpenWok auth-payments (2026-03-20)
+
+**Overall Score: 6.8/10**
+
+### Top 3 Failure Patterns
+
+1. **Build interruption (3 restarts)** — Auth-payments plan had 48 tasks across 4 phases. Agent was interrupted/killed twice before completing. Pipeline restarted from scratch each time instead of recovering partial progress. ~2h wasted.
+
+2. **Deploy spin-loop (mvp-core, earlier run)** — 5 consecutive failures. Already fixed (deploy skill pipeline mode added). No recurrence in later tracks.
+
+3. **Redo cycle (1 cycle)** — Review caught `cargo fmt` failures + worker auth gaps. This was *legitimate* — review earned its keep here. But a pre-commit `cargo fmt --check` would have prevented the cycle entirely.
+
+### Key Metrics
+- **28 total iterations** across 6 built tracks, **19 productive** (68%)
+- **91 tests**, 0 failures, build clean
+- **113 commits**, 92% conventional format
+- **CLAUDE.md**: 12.7KB (healthy)
+- **Tracks built today**: mvp-core → phase2-frontend → cf-workers-deploy → pilot-infra → repo-abstraction → auth-payments
+
+### Top 3 Recommendations
+
+1. **[HIGH]** Split plans >30 tasks into sub-tracks — prevents context pressure and build interruptions
+2. **[HIGH]** Add partial progress recovery — detect commits since last iter, skip completed phases on restart
+3. **[MEDIUM]** Add `cargo fmt --check` pre-commit hook — would've saved the redo cycle
+
+Report saved to `docs/retro/2026-03-20-retro-auth-payments.md`
+Evolution log updated in `docs/evolution.md`
+
+<solo:done/>Now let me present the summary.
+
+## Retro Summary: OpenWok auth-payments (2026-03-20)
+
+**Overall Score: 6.8/10**
+
+### Top 3 Failure Patterns
+
+1. **Build interruption (3 restarts)** — Auth-payments plan had 48 tasks across 4 phases. Agent was interrupted/killed twice before completing. Pipeline restarted from scratch each time instead of recovering partial progress. ~2h wasted.
+
+2. **Deploy spin-loop (mvp-core, earlier run)** — 5 consecutive failures. Already fixed (deploy skill pipeline mode added). No recurrence in later tracks.
+
+3. **Redo cycle (1 cycle)** — Review caught `cargo fmt` failures + worker auth gaps. This was *legitimate* — review earned its keep here. But a pre-commit `cargo fmt --check` would have prevented the cycle entirely.
+
+### Key Metrics
+- **28 total iterations** across 6 built tracks, **19 productive** (68%)
+- **91 tests**, 0 failures, build clean
+- **113 commits**, 92% conventional format
+- **CLAUDE.md**: 12.7KB (healthy)
+- **Tracks built today**: mvp-core → phase2-frontend → cf-workers-deploy → pilot-infra → repo-abstraction → auth-payments
+
+### Top 3 Recommendations
+
+1. **[HIGH]** Split plans >30 tasks into sub-tracks — prevents context pressure and build interruptions
+2. **[HIGH]** Add partial progress recovery — detect commits since last iter, skip completed phases on restart
+3. **[MEDIUM]** Add `cargo fmt --check` pre-commit hook — would've saved the redo cycle
+
+Report saved to `docs/retro/2026-03-20-retro-auth-payments.md`
+Evolution log updated in `docs/evolution.md`
+
+<solo:done/>

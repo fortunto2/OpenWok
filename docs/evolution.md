@@ -80,3 +80,46 @@ Deployed: CF Workers updated, SPA routing fixed
 - Architecture: 854→274 lines in worker, clean Repository abstraction
 - Test discipline: 55 tests, 0 failures
 - CLAUDE.md: 11.9KB, current and lean
+
+## 2026-03-20 | openwok | Factory Score: 7/10 | Retro #5 (auth-payments)
+
+Pipeline: 3 restarts, 1 redo cycle | Iters: 8 (5 productive) | Waste: 37%
+Track completed: auth-payments_20260320 (Supabase Auth + Stripe Connect, 48 tasks, 4 phases)
+Deployed: Auth + payments live on CF Workers, 91 tests passing
+
+### Defects
+- **HIGH** | Large plan (48 tasks) overwhelms single build session — agent interrupted 2x before completing
+  - Fix: `skills/plan/SKILL.md` — split plans >30 tasks into sub-tracks automatically
+- **HIGH** | Pipeline doesn't recover partial progress on restart — rebuilds from scratch
+  - Fix: `scripts/solo-dev.sh` — detect commits since last successful iter, skip completed phases
+- **MEDIUM** | `cargo fmt` failures caught in review → caused redo cycle
+  - Fix: Add `cargo fmt --check` as pre-commit hook or pre-build gate in build skill
+- **LOW** | cf-workers-deploy spec still at 0% — archival validation still not implemented
+
+### Harness Gaps
+- **Context:** CLAUDE.md 12.7KB (lean). Plan well-structured with phase checkpoints. But no observation masking (no scratch/ dir) — large builds hit context pressure.
+- **Constraints:** Clean — stripe-universal crate dual-target (native + wasm32), Repository pattern maintained, money always Decimal.
+- **Precedents:**
+  - GOOD: Build skill completed 48 tasks across 2 sessions (most complex track yet)
+  - GOOD: Review caught real bugs (fmt, unwrap, auth gaps) → legitimate redo
+  - GOOD: Deploy clean after build — 2 deploys, 0 waste
+  - GOOD: Auto-plan feedback loop continues (retro → new track → build → ship)
+  - BAD: 3 restarts for one track — context/plan size issue
+  - BAD: No observation masking → context pressure on complex builds
+  - LESSON: Plans >30 tasks need splitting or phased execution
+  - LESSON: Pre-commit fmt check would've prevented the redo cycle
+
+### Missing
+- Observation masking (scratch/ dir for large outputs)
+- Partial progress recovery on pipeline restart
+- Auto-split for large plans (>30 tasks)
+- Pre-build fmt/lint gate
+
+### What worked well
+- Build skill: completed 48-task plan despite complexity
+- Review: caught 4 real issues (fmt, unwrap, auth enforcement, payment flow) — quality gate working
+- Deploy: 2 iterations, 0 waste — streak continues post-fix
+- stripe-universal: dual-target crate (reqwest native + worker::Fetch wasm32) — clean architecture
+- Test growth: 55 → 91 tests in one track, 0 failures
+- Commit discipline: 92% conventional (104/113)
+- CLAUDE.md: 12.7KB, under control

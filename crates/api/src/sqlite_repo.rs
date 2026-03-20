@@ -12,9 +12,8 @@ use openwok_core::repo::{
 };
 use openwok_core::types::{
     Courier, CourierId, CourierKind, CreatePaymentRequest, CreateUserRequest, MenuItem, MenuItemId,
-    OrderId, Payment, PaymentId, PaymentStatus, Restaurant, RestaurantId,
-    UpdateMenuItemRequest, UpdatePaymentStatusRequest, UpdateRestaurantRequest, User, UserId,
-    UserRole, ZoneId,
+    OrderId, Payment, PaymentId, PaymentStatus, Restaurant, RestaurantId, UpdateMenuItemRequest,
+    UpdatePaymentStatusRequest, UpdateRestaurantRequest, User, UserId, UserRole, ZoneId,
 };
 use rusqlite::params;
 use tokio::sync::Mutex;
@@ -29,6 +28,7 @@ impl SqliteRepo {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn row_to_restaurant(
     conn: &rusqlite::Connection,
     id: &str,
@@ -65,8 +65,7 @@ fn row_to_restaurant(
         zone_id: ZoneId::from_uuid(uuid::Uuid::parse_str(zone_id).unwrap()),
         menu,
         active,
-        owner_id: owner_id
-            .map(|o| UserId::from_uuid(uuid::Uuid::parse_str(&o).unwrap())),
+        owner_id: owner_id.map(|o| UserId::from_uuid(uuid::Uuid::parse_str(&o).unwrap())),
         description,
         address,
         phone,
@@ -218,9 +217,21 @@ impl Repository for SqliteRepo {
             })
             .map_err(|e| RepoError::Internal(e.to_string()))?
             .filter_map(|r| r.ok())
-            .map(|(id, name, zone_id, active, owner_id, description, address, phone)| {
-                row_to_restaurant(&conn, &id, name, &zone_id, active, owner_id, description, address, phone)
-            })
+            .map(
+                |(id, name, zone_id, active, owner_id, description, address, phone)| {
+                    row_to_restaurant(
+                        &conn,
+                        &id,
+                        name,
+                        &zone_id,
+                        active,
+                        owner_id,
+                        description,
+                        address,
+                        phone,
+                    )
+                },
+            )
             .collect();
         Ok(restaurants)
     }
@@ -247,7 +258,17 @@ impl Repository for SqliteRepo {
 
         match result {
             Ok((id, name, zone_id, active, owner_id, description, address, phone)) => {
-                Ok(row_to_restaurant(&conn, &id, name, &zone_id, active, owner_id, description, address, phone))
+                Ok(row_to_restaurant(
+                    &conn,
+                    &id,
+                    name,
+                    &zone_id,
+                    active,
+                    owner_id,
+                    description,
+                    address,
+                    phone,
+                ))
             }
             Err(_) => Err(RepoError::NotFound),
         }
@@ -792,8 +813,10 @@ impl Repository for SqliteRepo {
 
             values.push(id_str);
             let sql = format!("UPDATE restaurants SET {} WHERE id = ?", sets.join(", "));
-            let params_vec: Vec<&dyn rusqlite::types::ToSql> =
-                values.iter().map(|v| v as &dyn rusqlite::types::ToSql).collect();
+            let params_vec: Vec<&dyn rusqlite::types::ToSql> = values
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
             let updated = conn
                 .execute(&sql, params_vec.as_slice())
                 .map_err(|e| RepoError::Internal(e.to_string()))?;
@@ -854,7 +877,9 @@ impl Repository for SqliteRepo {
             .map_err(|e| RepoError::Internal(e.to_string()))?
             .filter_map(|r| r.ok())
             .map(|(id, name, zone_id, active, owner_id, desc, addr, phone)| {
-                row_to_restaurant(&conn, &id, name, &zone_id, active, owner_id, desc, addr, phone)
+                row_to_restaurant(
+                    &conn, &id, name, &zone_id, active, owner_id, desc, addr, phone,
+                )
             })
             .collect();
         Ok(restaurants)
@@ -921,8 +946,10 @@ impl Repository for SqliteRepo {
         if !sets.is_empty() {
             values.push(id_str.clone());
             let sql = format!("UPDATE menu_items SET {} WHERE id = ?", sets.join(", "));
-            let params_vec: Vec<&dyn rusqlite::types::ToSql> =
-                values.iter().map(|v| v as &dyn rusqlite::types::ToSql).collect();
+            let params_vec: Vec<&dyn rusqlite::types::ToSql> = values
+                .iter()
+                .map(|v| v as &dyn rusqlite::types::ToSql)
+                .collect();
             let updated = conn
                 .execute(&sql, params_vec.as_slice())
                 .map_err(|e| RepoError::Internal(e.to_string()))?;
@@ -962,11 +989,7 @@ impl Repository for SqliteRepo {
         Ok(())
     }
 
-    async fn update_user_role(
-        &self,
-        user_id: UserId,
-        role: UserRole,
-    ) -> Result<User, RepoError> {
+    async fn update_user_role(&self, user_id: UserId, role: UserRole) -> Result<User, RepoError> {
         let conn = self.conn.lock().await;
         let id_str = user_id.to_string();
         let updated = conn

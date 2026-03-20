@@ -1,0 +1,132 @@
+  [2msession: bf4c5055  model: claude-opus-4-6[1m][0m
+Let me research the project state to find the highest-priority unimplemented item.
+  [36m**[0m [36mGlob[0m [2m"docs/backlog*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan-done/*/plan.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/retro/*.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"planning/ROADMAP.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/prd.md" ~/startups/active/openwok[0m
+  [36m**[0m [36mGlob[0m [2m"docs/plan/*/plan.md" ~/startups/active/openwok[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/planning/ROADMAP.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/prd.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-auth-payments.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/evolution.md[0m
+
+Let me check the current codebase state and git log to understand what's actually implemented.
+  [32m$ [0m [33mBash[0m [2mRecent git history[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/plan-done/tailwind-migration/plan.md[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/docs/retro/2026-03-20-retro-repo-abstraction.md[0m
+  [36m**[0m [36mGlob[0m [2m"crates/frontend/src/**/*.rs" ~/startups/active/openwok[0m
+
+Now let me explore the current restaurant-related code and worker routes to understand what exists.
+  [2m--[0m [36mAgent[0m [2mResearch restaurant codebase[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/lib.rs[0m
+  [36m**[0m [36mGlob[0m [2m"**/*.rs" ~/startups/active/openwok/crates/core/src[0m
+  [36m**[0m [36mGlob[0m [2m"*.sql" ~/startups/active/openwok/migrations[0m
+  [2m--[0m [36mAgent[0m [2mCheck auth and user implementation[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0006_auth_users.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m**[0m [36mGlob[0m [2m"crates/core/src/**/*.rs"[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0001_init.sql[0m
+  [36m// [36mGrep[0m [2m"struct User|pub struct User" ~/startups/active/openwok/crates/core/src[0m
+  [36m**[0m [36mGlob[0m [2m"**/*.rs" ~/startups/active/openwok/crates/handlers/src[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m// [36mGrep[0m [2m"enum.*Role|pub enum.*Role" ~/startups/active/openwok/crates/core/src[0m
+  [36m// [36mGrep[0m [2m"restaurant" ~/startups/active/openwok/crates/worker/src[0m
+  [36m// [36mGrep[0m [2m"restaurant" ~/startups/active/openwok/crates/api/src[0m
+  [36m// [36mGrep[0m [2m"AuthUser|auth_user" ~/startups/active/openwok/crates[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/auth.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/auth_handlers.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/main.rs[0m
+  [36m// [36mGrep[0m [2m"GET.*restaurant|POST.*restaurant|PATCH.*restaurant|PUT.*restaurant" ~/startups/active/openwok/crates/worker/src[0m
+  [36m// [36mGrep[0m [2m"owner_id|restaurant_owner" ~/startups/active/openwok[0m
+  [36m// [36mGrep[0m [2m"RestaurantList|RestaurantMenu|OperatorConsole" ~/startups/active/openwok/crates/frontend/src[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0006_auth_users.sql[0m
+  [32m$ [0m [33mBash[0m [2mFind Restaurant struct definition[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/types.rs[0m
+  [36m// [36mGrep[0m [2m"fn RestaurantList|fn RestaurantMenu|fn OperatorConsole" ~/startups/active/openwok/crates/frontend/src[0m
+  [36m// [36mGrep[0m [2m"CREATE TABLE.*restaurants|restaurant_id|owner_id" ~/startups/active/openwok/migrations[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m**[0m [36mGlob[0m [2m"crates/frontend/src/**/*.rs"[0m
+  [36m// [36mGrep[0m [2m"PATCH.*restaurant|PUT.*restaurant|update.*restaurant|edit.*restaurant" ~/startups/active/openwok/crates[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/migrations/0001_init.sql[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m// [36mGrep[0m [2m"fn Login|struct.*Auth|use_signal.*token|STORAGE_KEY" ~/startups/active/openwok/crates/frontend/src[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/d1_repo.rs[0m
+  [36m// [36mGrep[0m [2m"owner_id|restaurant_owner_id|restaurants.user_id|restaurants.*owner" ~/startups/active/openwok[0m
+  [32m$ [0m [33mBash[0m [2mCount total lines in frontend main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/frontend/src/main.rs[0m
+  [36m// [36mGrep[0m [2m"role.*check|RestaurantOwner|authorize|permission" ~/startups/active/openwok/crates[0m
+  [36m// [36mGrep[0m [2m"POST.*restaurants|create_restaurant|fn create_restaurant" ~/startups/active/openwok/crates[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m// [36mGrep[0m [2m"impl.*Repository|trait Repository" ~/startups/active/openwok/crates/core/src/repo.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/restaurants.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/worker/src/lib.rs[0m
+  [36m// [36mGrep[0m [2m"struct CreateUserRequest" ~/startups/active/openwok/crates/core/src[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [32m$ [0m [33mBash[0m [2mFind create_user implementation[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/handlers/src/auth_handlers.rs[0m
+  [36m>>[0m [36mRead[0m [2m~/startups/active/openwok/crates/api/src/sqlite_repo.rs[0m
+  [32m$ [0m [33mBash[0m [2mCheck for recent plan/retro documents[0m
+
+Excellent research done. The highest-priority unimplemented item is **Restaurant Onboarding** from PRD Phase 7. Let me create the track.
+  [32m$ [0m [33mBash[0m [2mCreate plan directory[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/spec.md[0m
+  [33m<<[0m [36mWrite[0m [2m~/startups/active/openwok/docs/plan/restaurant-onboarding_20260320/plan.md[0m
+
+Now let me set up progress tracking.
+  [2m--[0m [36mToolSearch[0m [2mselect:TodoWrite[0m
+  [2m--[0m [36mTodoWrite[0m [2m[{'content': 'Phase 1: Backend Foundation — migration, Repos[0m
+
+Now let me present the plan for approval.
+  [2m--[0m [36mToolSearch[0m [2mselect:AskUserQuestion[0m
+  [2m--[0m [36mAskUserQuestion[0m [2m[{'question': 'Restaurant Onboarding — highest priority from[0m
+
+```
+Track created: restaurant-onboarding_20260320
+
+  Type:   Feature
+  Phases: 4
+  Tasks:  13
+  Spec:   docs/plan/restaurant-onboarding_20260320/spec.md
+  Plan:   docs/plan/restaurant-onboarding_20260320/plan.md
+
+Research findings:
+  - UserRole::RestaurantOwner exists in core/types.rs but is unused
+  - restaurants table has no owner_id — needs migration 0008
+  - No PATCH/PUT/DELETE endpoints for restaurants or menu items
+  - Auth pipeline ready (Supabase JWT → AuthUser extractor → user lookup)
+  - Repository pattern in place (trait in core, SqliteRepo + D1Repo implementations)
+  - Frontend has RestaurantList/RestaurantMenu (read-only) — needs owner dashboard
+
+Next: /build restaurant-onboarding_20260320
+``````
+Track created: restaurant-onboarding_20260320
+
+  Type:   Feature
+  Phases: 4
+  Tasks:  13
+  Spec:   docs/plan/restaurant-onboarding_20260320/spec.md
+  Plan:   docs/plan/restaurant-onboarding_20260320/plan.md
+
+Research findings:
+  - UserRole::RestaurantOwner exists in core/types.rs but is unused
+  - restaurants table has no owner_id — needs migration 0008
+  - No PATCH/PUT/DELETE endpoints for restaurants or menu items
+  - Auth pipeline ready (Supabase JWT → AuthUser extractor → user lookup)
+  - Repository pattern in place (trait in core, SqliteRepo + D1Repo implementations)
+  - Frontend has RestaurantList/RestaurantMenu (read-only) — needs owner dashboard
+
+Next: /build restaurant-onboarding_20260320
+```

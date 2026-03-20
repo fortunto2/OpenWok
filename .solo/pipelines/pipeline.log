@@ -125,3 +125,33 @@
 [19:55:31] CWD | /Users/rustam/startups/active/openwok
 [19:55:31] GRAPH | Updating code graph for RepoMap...
 [19:55:32] INVOKE | /solo:build 
+[20:02:04] SIGNAL | <solo:done/> → creating build
+[20:02:04] ITER | saved iter-005-build.log | commit: 00a73b2 | result: stage complete
+[20:02:04] CHECK | build | /Users/rustam/startups/active/openwok/.solo/states/build -> FOUND
+[20:02:06] STAGE | iter 6/10 | stage 2/3: deploy
+[20:02:06] CWD | /Users/rustam/startups/active/openwok
+[20:02:06] INVOKE | /solo:deploy 
+[20:07:39] ITER | saved iter-006-deploy.log | commit: 6e2fe59 | result: stage complete
+[20:07:39] CHECK | deploy | /Users/rustam/startups/active/openwok/.solo/states/deploy -> FOUND
+[20:07:41] STAGE | iter 7/10 | stage 3/3: review
+[20:07:41] PLAN | Active plan track: auth-payments_20260320
+[20:07:41] CWD | /Users/rustam/startups/active/openwok
+[20:07:41] INVOKE | /solo:review 
+[20:09:59] SIGNAL | <solo:done/> → creating review
+[20:09:59] ITER | saved iter-007-review.log | commit: cc015b5 | result: stage complete
+[20:09:59] CHECK | review | /Users/rustam/startups/active/openwok/.solo/states/review -> FOUND
+[20:09:59] RETRO | Running retro for plan: auth-payments_20260320...
+[20:16:08] RETRO | Retro complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/retro-auth-payments_20260320.log
+[20:16:08] DONE | All stages complete (no more plans in queue)
+[20:16:08] FINISH | Duration: 83m
+[20:16:08] DONE | Pipeline complete! 9 plans cycled.
+[20:16:08] ARCHIVE | Archiving: auth-payments_20260320 → docs/plan-done/
+[20:16:08] POST | Running auto-plan from backlog...
+[20:21:36] POST | Auto-plan complete — see /Users/rustam/startups/active/openwok/.solo/pipelines/autoplan-20260320-201608.log
+[20:21:36] POST | New plan created: restaurant-onboarding_20260320 — restarting build→deploy→review
+[20:21:36] START | openwok | stages: /build -> /deploy -> /review | max: 10
+[20:21:36] STAGE | iter 1/10 | stage 1/3: build
+[20:21:36] PLAN | Active plan track: restaurant-onboarding_20260320
+[20:21:36] CWD | /Users/rustam/startups/active/openwok
+[20:21:36] GRAPH | Updating code graph for RepoMap...
+[20:21:36] INVOKE | /solo:build 
