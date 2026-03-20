@@ -16,7 +16,7 @@ pub enum OrderStatus {
 }
 
 impl OrderStatus {
-    fn valid_transitions(self) -> &'static [OrderStatus] {
+    pub fn valid_transitions(self) -> &'static [OrderStatus] {
         use OrderStatus::*;
         match self {
             Created => &[Confirmed, Cancelled],

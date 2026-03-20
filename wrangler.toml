@@ -1,6 +1,9 @@
 name = "openwok"
-main = "build/worker/shim.mjs"
+main = "crates/worker/build/worker/shim.mjs"
 compatibility_date = "2024-12-01"
+
+# [build]
+# command = "./scripts/build-worker.sh"
 
 [assets]
 directory = "public"
@@ -9,7 +12,7 @@ not_found_handling = "single-page-application"
 [[d1_databases]]
 binding = "DB"
 database_name = "openwok-db"
-database_id = "" # Set after `wrangler d1 create openwok-db`
+database_id = "a330a315-d6ee-42b0-a206-99cad54a7744"
 migrations_dir = "migrations"
 
 [vars]
@@ -22,5 +25,5 @@ name = "openwok-dev"
 [[env.dev.d1_databases]]
 binding = "DB"
 database_name = "openwok-db-dev"
-database_id = "" # Set after `wrangler d1 create openwok-db-dev`
+database_id = ""
 migrations_dir = "migrations"
