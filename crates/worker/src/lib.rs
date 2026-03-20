@@ -500,7 +500,10 @@ pub async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
             )
         })
         .get_async("/api/auth/me", |req, ctx| async move {
-            let (sub, _) = extract_auth(&req, &ctx.env)?;
+            let (sub, _) = match extract_auth(&req, &ctx.env) {
+                Ok(v) => v,
+                Err(e) => return auth_err_to_response(e),
+            };
             let repo = D1Repo::new(ctx.env.d1("DB")?);
             match repo.get_user_by_supabase_id(&sub).await {
                 Ok(user) => json_ok(&user, 200),
