@@ -61,7 +61,9 @@ fn migrate(conn: &Connection) {
             local_ops_fee    TEXT NOT NULL,
             processing_fee   TEXT NOT NULL,
             created_at       TEXT NOT NULL,
-            updated_at       TEXT NOT NULL
+            updated_at       TEXT NOT NULL,
+            estimated_eta       INTEGER,
+            actual_delivery_at  TEXT
         );
 
         CREATE TABLE IF NOT EXISTS order_items (

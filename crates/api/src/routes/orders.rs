@@ -39,7 +39,7 @@ fn load_order(conn: &rusqlite::Connection, order_id: &str) -> Option<Order> {
     let row = conn.query_row(
         "SELECT id, restaurant_id, courier_id, customer_address, zone_id, status,
                 food_total, delivery_fee, tip, federal_fee, local_ops_fee, processing_fee,
-                created_at, updated_at
+                created_at, updated_at, estimated_eta, actual_delivery_at
          FROM orders WHERE id = ?1",
         params![order_id],
         |row| {
@@ -58,6 +58,8 @@ fn load_order(conn: &rusqlite::Connection, order_id: &str) -> Option<Order> {
                 row.get::<_, String>(11)?,
                 row.get::<_, String>(12)?,
                 row.get::<_, String>(13)?,
+                row.get::<_, Option<i32>>(14)?,
+                row.get::<_, Option<String>>(15)?,
             ))
         },
     );
@@ -77,6 +79,8 @@ fn load_order(conn: &rusqlite::Connection, order_id: &str) -> Option<Order> {
         processing_fee,
         created_at,
         updated_at,
+        estimated_eta,
+        actual_delivery_at,
     ) = row.ok()?;
 
     let mut stmt = conn
@@ -132,6 +136,12 @@ fn load_order(conn: &rusqlite::Connection, order_id: &str) -> Option<Order> {
         updated_at: chrono::DateTime::parse_from_rfc3339(&updated_at)
             .unwrap()
             .with_timezone(&Utc),
+        estimated_eta,
+        actual_delivery_at: actual_delivery_at.and_then(|s| {
+            chrono::DateTime::parse_from_rfc3339(&s)
+                .ok()
+                .map(|dt| dt.with_timezone(&Utc))
+        }),
     })
 }
 
@@ -198,8 +208,8 @@ pub async fn create(
     conn.execute(
         "INSERT INTO orders (id, restaurant_id, courier_id, customer_address, zone_id, status,
          food_total, delivery_fee, tip, federal_fee, local_ops_fee, processing_fee,
-         created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+         created_at, updated_at, estimated_eta, actual_delivery_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
         params![
             id_str,
             rest_id_str,
@@ -215,6 +225,8 @@ pub async fn create(
             order.pricing.processing_fee.amount().to_string(),
             created,
             updated,
+            order.estimated_eta,
+            Option::<String>::None,
         ],
     )
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;

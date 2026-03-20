@@ -58,6 +58,10 @@ pub struct Order {
     pub pricing: PricingBreakdown,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub estimated_eta: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub actual_delivery_at: Option<DateTime<Utc>>,
 }
 
 impl Order {
@@ -92,6 +96,8 @@ impl Order {
             pricing,
             created_at: now,
             updated_at: now,
+            estimated_eta: None,
+            actual_delivery_at: None,
         })
     }
 
