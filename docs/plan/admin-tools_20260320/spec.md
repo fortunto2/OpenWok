@@ -14,7 +14,7 @@ The NodeOperator role already exists (`UserRole::NodeOperator`) but has no admin
 ## Acceptance Criteria
 
 - [x] Migration adds `blocked` column to `users` table and creates `disputes` table
-- [~] Blocked users receive 403 on all authenticated endpoints — enforced on admin + dispute endpoints only, not on restaurant/courier/order endpoints
+- [x] Blocked users receive 403 on all authenticated endpoints
 - [x] NodeOperator can list all users via `GET /api/admin/users`
 - [x] NodeOperator can block/unblock a user via `PATCH /api/admin/users/{id}/block`
 - [x] Customer can create a dispute on an order via `POST /api/orders/{id}/dispute`
