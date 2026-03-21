@@ -7,12 +7,23 @@ use rust_decimal::Decimal;
 
 use crate::state::{CartItem, get_jwt_from_storage};
 
-/// On WASM: relative path (same-origin). On native: absolute URL.
-#[cfg(target_arch = "wasm32")]
-pub const API_BASE: &str = "/api";
-
+/// On native: absolute URL to production.
 #[cfg(not(target_arch = "wasm32"))]
 pub const API_BASE: &str = "https://openwok.superduperai.co/api";
+
+/// On WASM: resolved at runtime from window.location.origin.
+#[cfg(target_arch = "wasm32")]
+pub fn api_base() -> String {
+    let origin = web_sys::window()
+        .and_then(|w| w.location().origin().ok())
+        .unwrap_or_else(|| "http://localhost:8080".to_string());
+    format!("{origin}/api")
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn api_base() -> String {
+    API_BASE.to_string()
+}
 
 fn client() -> Client {
     Client::new()
@@ -23,7 +34,7 @@ pub fn auth_header() -> Option<String> {
 }
 
 pub async fn api_get<T: serde::de::DeserializeOwned>(path: &str) -> Result<T, String> {
-    let mut req = client().get(format!("{API_BASE}{path}"));
+    let mut req = client().get(format!("{}{path}", api_base()));
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }
@@ -39,7 +50,7 @@ pub async fn api_post_json<T: serde::de::DeserializeOwned>(
     body: &str,
 ) -> Result<T, String> {
     let mut req = client()
-        .post(format!("{API_BASE}{path}"))
+        .post(format!("{}{path}", api_base()))
         .header("Content-Type", "application/json")
         .body(body.to_string());
     if let Some(auth) = auth_header() {
@@ -55,7 +66,7 @@ pub async fn api_post_json<T: serde::de::DeserializeOwned>(
 
 pub async fn api_patch_json(path: &str, body: &serde_json::Value) -> Result<(), String> {
     let mut req = client()
-        .patch(format!("{API_BASE}{path}"))
+        .patch(format!("{}{path}", api_base()))
         .header("Content-Type", "application/json")
         .body(body.to_string());
     if let Some(auth) = auth_header() {
@@ -70,7 +81,7 @@ pub async fn api_patch_json(path: &str, body: &serde_json::Value) -> Result<(), 
 }
 
 pub async fn api_post_raw(path: &str) -> Result<serde_json::Value, String> {
-    let mut req = client().post(format!("{API_BASE}{path}"));
+    let mut req = client().post(format!("{}{path}", api_base()));
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }
@@ -83,7 +94,7 @@ pub async fn api_post_raw(path: &str) -> Result<serde_json::Value, String> {
 }
 
 pub async fn api_delete(path: &str) -> Result<(), String> {
-    let mut req = client().delete(format!("{API_BASE}{path}"));
+    let mut req = client().delete(format!("{}{path}", api_base()));
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }
@@ -97,7 +108,7 @@ pub async fn api_delete(path: &str) -> Result<(), String> {
 
 #[allow(dead_code)]
 pub async fn api_get_text(path: &str) -> Result<String, String> {
-    let mut req = client().get(format!("{API_BASE}{path}"));
+    let mut req = client().get(format!("{}{path}", api_base()));
     if let Some(auth) = auth_header() {
         req = req.header("Authorization", &auth);
     }
