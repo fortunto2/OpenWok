@@ -7,11 +7,30 @@ use rust_decimal::Decimal;
 use crate::analytics::posthog_capture;
 use crate::api::{cart_total, fetch_restaurant, fetch_restaurants};
 use crate::app::Route;
+use crate::local_db::Store;
 use crate::state::{CartItem, CartState};
 
 #[component]
 pub fn RestaurantList() -> Element {
-    let restaurants = use_resource(fetch_restaurants);
+    let store = use_context::<Store>();
+    let restaurants = use_resource(move || {
+        let store = store.clone();
+        async move {
+            let cached: Option<Vec<Restaurant>> = store
+                .get("restaurants")
+                .and_then(|v| serde_json::from_value(v).ok());
+            match fetch_restaurants().await {
+                Ok(list) => {
+                    store.set(
+                        "restaurants",
+                        &serde_json::to_value(&list).unwrap_or_default(),
+                    );
+                    Ok(list)
+                }
+                Err(e) => cached.map(Ok).unwrap_or(Err(e)),
+            }
+        }
+    });
 
     rsx! {
         h1 { "Restaurants" }
@@ -55,9 +74,23 @@ fn RestaurantCard(restaurant: Restaurant) -> Element {
 
 #[component]
 pub fn RestaurantMenu(id: String) -> Element {
+    let store = use_context::<Store>();
     let restaurant = use_resource(move || {
         let id = id.clone();
-        async move { fetch_restaurant(id).await }
+        let store = store.clone();
+        async move {
+            let cache_key = format!("restaurant_{id}");
+            let cached: Option<Restaurant> = store
+                .get(&cache_key)
+                .and_then(|v| serde_json::from_value(v).ok());
+            match fetch_restaurant(id).await {
+                Ok(r) => {
+                    store.set(&cache_key, &serde_json::to_value(&r).unwrap_or_default());
+                    Ok(r)
+                }
+                Err(e) => cached.map(Ok).unwrap_or(Err(e)),
+            }
+        }
     });
     let mut cart = use_context::<Signal<CartState>>();
 
