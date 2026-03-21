@@ -1,5 +1,5 @@
-// Thin Cloudflare Worker that routes all requests to the Container.
-// Required by Cloudflare Containers architecture.
+// Thin Cloudflare Worker that routes all requests to a singleton container.
+// Cloudflare Containers beta is more reliable when startup is explicit.
 
 import { Container, getContainer } from "@cloudflare/containers";
 
@@ -20,8 +20,8 @@ export class OpenWokNode extends Container {
 
 export default {
   async fetch(request, env) {
-    // Singleton pattern — one container instance per node
-    const container = getContainer(env.OPENWOK_NODE);
+    const container = getContainer(env.OPENWOK_NODE, "singleton");
+    await container.startAndWaitForPorts();
     return container.fetch(request);
   },
 };

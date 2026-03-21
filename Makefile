@@ -30,6 +30,14 @@ docker-run:
 # ── Deploy ───────────────────────────────────────────────────────
 
 deploy:
+	cd crates/app && npm run tailwind:build
+	cd crates/app && $(DX) bundle --platform web --release
+	CARGO_PROFILE_RELEASE_STRIP=none cargo zigbuild -p openwok-app --features server --release --target x86_64-unknown-linux-musl --bin openwok-app
+	find dist/container -type f -delete 2>/dev/null || true
+	find dist/container -depth -type d -empty -delete 2>/dev/null || true
+	mkdir -p dist/container
+	cp -R $(HOME)/.cargo-target/dx/openwok-app/release/web dist/container/web
+	cp $(HOME)/.cargo-target/x86_64-unknown-linux-musl/release/openwok-app dist/container/web/openwok-app
 	wrangler deploy --config wrangler.containers.jsonc
 
 deploy-fly:

@@ -2679,6 +2679,7 @@ dependencies = [
  "dioxus",
  "dioxus-cli-config",
  "futures-util",
+ "js-sys",
  "jsonwebtoken",
  "openwok-core",
  "rusqlite",
@@ -2689,6 +2690,8 @@ dependencies = [
  "tokio",
  "tower-http",
  "uuid",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]

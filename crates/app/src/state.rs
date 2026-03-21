@@ -10,6 +10,43 @@ pub struct UserState {
     pub email: Option<String>,
 }
 
+#[cfg(target_arch = "wasm32")]
+pub fn get_jwt_from_storage() -> Option<String> {
+    let storage = web_sys::window()?.local_storage().ok()??;
+    storage.get_item("openwok_jwt").ok()?
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn save_jwt_to_storage(jwt: &str) {
+    if let Some(storage) = web_sys::window()
+        .and_then(|window| window.local_storage().ok())
+        .flatten()
+    {
+        let _ = storage.set_item("openwok_jwt", jwt);
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn clear_jwt_from_storage() {
+    if let Some(storage) = web_sys::window()
+        .and_then(|window| window.local_storage().ok())
+        .flatten()
+    {
+        let _ = storage.remove_item("openwok_jwt");
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn get_jwt_from_storage() -> Option<String> {
+    None
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn save_jwt_to_storage(_jwt: &str) {}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn clear_jwt_from_storage() {}
+
 // --- App mode (Customer / Courier) ---
 
 #[derive(Clone, Debug, Default, PartialEq)]

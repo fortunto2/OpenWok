@@ -1,11 +1,17 @@
 [application]
 # Disable hot-reload in prod to avoid ws connection error
-hot_reload = false
 name = "openwok"
 asset_dir = "public"
 
 [web.app]
 title = "OpenWok — Fair Food Delivery"
+
+[web.resource]
+style = ["./tailwind.css", "./style.css"]
+
+[web.resource.dev]
+style = []
+script = []
 
 [web.watcher]
 reload_html = true

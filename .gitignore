@@ -3,6 +3,7 @@ target/
 *.swp
 .DS_Store
 node_modules/
+dist/
 .next/
 .playwright-mcp/
 *.db-shm

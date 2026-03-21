@@ -155,6 +155,7 @@ fn CartPanel() -> Element {
             div { class: "cart-total",
                 strong { "Total: {total}" }
             }
+            Link { to: Route::Checkout {}, class: "checkout-btn", "Proceed to Order" }
         }
     }
 }

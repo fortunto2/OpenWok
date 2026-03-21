@@ -2,9 +2,18 @@
 
 use dioxus::prelude::*;
 
+use crate::pages::auth::{AuthCallback, Login};
+use crate::pages::checkout::Checkout;
+use crate::pages::courier::{MyDeliveries, RegisterCourier};
+use crate::pages::economics::PublicEconomicsPage;
 use crate::pages::home::Home;
+use crate::pages::operator::OperatorConsole;
+use crate::pages::order::{OrderSuccess, OrderTracking};
+use crate::pages::owner::{MyRestaurants, OnboardRestaurant, RestaurantSettings};
 use crate::pages::restaurants::{RestaurantList, RestaurantMenu};
-use crate::state::{AppMode, CartState, PlatformConfig, UserState};
+use crate::state::{
+    AppMode, CartState, PlatformConfig, UserState, clear_jwt_from_storage, get_jwt_from_storage,
+};
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 #[rustfmt::skip]
@@ -16,21 +25,45 @@ pub enum Route {
         RestaurantList {},
         #[route("/restaurant/:id")]
         RestaurantMenu { id: String },
+        #[route("/checkout")]
+        Checkout {},
+        #[route("/order/:id")]
+        OrderTracking { id: String },
+        #[route("/order/:id/success")]
+        OrderSuccess { id: String },
         #[route("/economics")]
         PublicEconomicsPage {},
         #[route("/operator")]
         OperatorConsole {},
+        #[route("/login")]
+        Login {},
+        #[route("/auth/callback")]
+        AuthCallback {},
+        #[route("/my-restaurants")]
+        MyRestaurants {},
+        #[route("/my-restaurants/:id")]
+        RestaurantSettings { id: String },
+        #[route("/onboard-restaurant")]
+        OnboardRestaurant {},
+        #[route("/register-courier")]
+        RegisterCourier {},
+        #[route("/my-deliveries")]
+        MyDeliveries {},
 }
 
 #[component]
 pub fn AppRoot() -> Element {
     use_context_provider(|| Signal::new(CartState::default()));
-    use_context_provider(|| Signal::new(UserState::default()));
+    use_context_provider(|| {
+        let jwt = get_jwt_from_storage();
+        Signal::new(UserState { jwt, email: None })
+    });
     use_context_provider(|| Signal::new(PlatformConfig::default()));
     use_context_provider(|| Signal::new(AppMode::default()));
 
     // Load config from server fn
     let mut config = use_context::<Signal<PlatformConfig>>();
+    let mut user_state = use_context::<Signal<UserState>>();
     use_effect(move || {
         spawn(async move {
             if let Ok(data) = crate::server_fns::config::get_config().await {
@@ -40,6 +73,19 @@ pub fn AppRoot() -> Element {
                     federal_fee: data.federal_fee,
                     default_tip: "3.00".into(),
                 });
+            }
+
+            let jwt = user_state.read().jwt.clone();
+            if let Some(jwt) = jwt {
+                match crate::server_fns::auth::get_me(jwt).await {
+                    Ok(user) => {
+                        user_state.write().email = Some(user.email);
+                    }
+                    Err(_) => {
+                        clear_jwt_from_storage();
+                        user_state.set(UserState::default());
+                    }
+                }
             }
         });
     });
@@ -61,11 +107,9 @@ pub fn AppRoot() -> Element {
 
 #[component]
 fn Layout() -> Element {
-    let user_state = use_context::<Signal<UserState>>();
+    let mut user_state = use_context::<Signal<UserState>>();
 
     rsx! {
-        document::Link { rel: "stylesheet", href: asset!("/public/tailwind.css") }
-        document::Link { rel: "stylesheet", href: asset!("/public/style.css") }
         header { class: "header",
             nav { class: "nav",
                 Link { to: Route::Home {}, class: "logo", "OpenWok" }
@@ -74,9 +118,21 @@ fn Layout() -> Element {
                     Link { to: Route::PublicEconomicsPage {}, "Economics" }
                     Link { to: Route::OperatorConsole {}, "Operator" }
                     if user_state.read().jwt.is_some() {
+                        Link { to: Route::MyRestaurants {}, "My Restaurants" }
+                        Link { to: Route::MyDeliveries {}, "My Deliveries" }
                         span { class: "user-email",
                             "{user_state.read().email.as_deref().unwrap_or(\"User\")}"
                         }
+                        button {
+                            class: "logout-btn",
+                            onclick: move |_| {
+                                clear_jwt_from_storage();
+                                user_state.set(UserState::default());
+                            },
+                            "Logout"
+                        }
+                    } else {
+                        Link { to: Route::Login {}, class: "login-link", "Sign In" }
                     }
                 }
             }
@@ -90,6 +146,7 @@ fn Layout() -> Element {
 
 #[component]
 fn MobileTabBar() -> Element {
+    let user_state = use_context::<Signal<UserState>>();
     let mut mode = use_context::<Signal<AppMode>>();
 
     rsx! {
@@ -100,9 +157,13 @@ fn MobileTabBar() -> Element {
                         span { class: "tab-icon", "\u{1F35C}" }
                         span { class: "tab-label", "Food" }
                     }
+                    Link { to: Route::Checkout {}, class: "tab",
+                        span { class: "tab-icon", "\u{1F6D2}" }
+                        span { class: "tab-label", "Cart" }
+                    }
                 },
                 AppMode::Courier => rsx! {
-                    Link { to: Route::RestaurantList {}, class: "tab",
+                    Link { to: Route::MyDeliveries {}, class: "tab",
                         span { class: "tab-icon", "\u{1F4E6}" }
                         span { class: "tab-label", "Deliveries" }
                     }
@@ -130,83 +191,12 @@ fn MobileTabBar() -> Element {
                     }
                 }
             }
+            if user_state.read().jwt.is_none() {
+                Link { to: Route::Login {}, class: "tab",
+                    span { class: "tab-icon", "\u{1F511}" }
+                    span { class: "tab-label", "Login" }
+                }
+            }
         }
-    }
-}
-
-// Minimal page stubs for routes that are not fully migrated yet.
-// These will be replaced with full implementations in future iterations.
-
-#[component]
-pub fn PublicEconomicsPage() -> Element {
-    let economics = use_server_future(crate::server_fns::config::get_economics)?;
-
-    match &*economics.read_unchecked() {
-        Some(Ok(data)) => rsx! {
-            h1 { "Open-Book Economics" }
-            div { class: "economics-grid",
-                div { class: "stat-card",
-                    h3 { "Total Orders" }
-                    p { "{data.total_orders}" }
-                }
-                div { class: "stat-card",
-                    h3 { "Food Revenue" }
-                    p { "${data.total_food_revenue}" }
-                }
-                div { class: "stat-card",
-                    h3 { "Federal Fees ($1/order)" }
-                    p { "${data.total_federal_fees}" }
-                }
-                div { class: "stat-card",
-                    h3 { "Local Ops Fees" }
-                    p { "${data.total_local_ops_fees}" }
-                }
-                div { class: "stat-card",
-                    h3 { "Delivery Fees" }
-                    p { "${data.total_delivery_fees}" }
-                }
-                div { class: "stat-card",
-                    h3 { "Processing Fees" }
-                    p { "${data.total_processing_fees}" }
-                }
-                div { class: "stat-card",
-                    h3 { "Avg Order Value" }
-                    p { "${data.avg_order_value}" }
-                }
-            }
-        },
-        Some(Err(e)) => rsx! { p { class: "error", "Error: {e}" } },
-        None => rsx! { p { "Loading economics..." } },
-    }
-}
-
-#[component]
-pub fn OperatorConsole() -> Element {
-    let metrics = use_server_future(crate::server_fns::config::get_admin_metrics)?;
-
-    match &*metrics.read_unchecked() {
-        Some(Ok(data)) => rsx! {
-            h1 { "Operator Console" }
-            div { class: "metrics-grid",
-                div { class: "stat-card",
-                    h3 { "Total Orders" }
-                    p { "{data.order_count}" }
-                }
-                div { class: "stat-card",
-                    h3 { "On-Time Rate" }
-                    p { "{data.on_time_delivery_rate:.1}%" }
-                }
-                div { class: "stat-card",
-                    h3 { "Avg ETA Error" }
-                    p { "{data.avg_eta_error_minutes:.1} min" }
-                }
-                div { class: "stat-card",
-                    h3 { "Couriers Available" }
-                    p { "{data.courier_utilization.available}/{data.courier_utilization.total}" }
-                }
-            }
-        },
-        Some(Err(e)) => rsx! { p { class: "error", "Error: {e}" } },
-        None => rsx! { p { "Loading metrics..." } },
     }
 }
