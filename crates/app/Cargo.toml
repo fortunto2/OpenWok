@@ -12,10 +12,6 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 rust_decimal = { workspace = true }
 
-# WASM-only deps
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-uuid = { workspace = true, features = ["js"] }
-
 # Server-only deps (gated by feature)
 axum = { workspace = true, features = ["ws"], optional = true }
 tokio = { workspace = true, optional = true }
@@ -26,6 +22,10 @@ tower-http = { version = "0.6", features = ["cors"], optional = true }
 stripe-universal = { path = "../stripe-universal", features = ["reqwest-backend"], optional = true }
 futures-util = { version = "0.3", optional = true }
 jsonwebtoken = { workspace = true, optional = true }
+
+# WASM-only deps
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { workspace = true, features = ["js"] }
 
 [features]
 default = []
