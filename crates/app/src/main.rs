@@ -1,10 +1,12 @@
 #![allow(non_snake_case)]
 
-use dioxus::prelude::*;
+mod app;
+mod pages;
+mod server_fns;
+mod state;
 
 #[cfg(feature = "server")]
 mod db;
-mod server_fns;
 
 #[cfg(feature = "server")]
 #[tokio::main]
@@ -23,7 +25,7 @@ async fn main() {
     let repo = Arc::new(db::repo::SqliteRepo::new(Arc::new(Mutex::new(conn))));
 
     let router = axum::Router::new()
-        .serve_dioxus_application(dioxus_server::ServeConfig::new(), App)
+        .serve_dioxus_application(dioxus_server::ServeConfig::new(), app::AppRoot)
         .layer(axum::Extension(repo));
 
     let router = router.into_make_service();
@@ -34,13 +36,5 @@ async fn main() {
 
 #[cfg(not(feature = "server"))]
 fn main() {
-    dioxus::launch(App);
-}
-
-#[component]
-fn App() -> Element {
-    rsx! {
-        h1 { "OpenWok" }
-        p { "Fair food delivery — $1 federal fee, 100% transparency" }
-    }
+    dioxus::launch(app::AppRoot);
 }
