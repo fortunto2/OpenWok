@@ -3,7 +3,7 @@
 **Track ID:** fullstack-migration_20260321
 **Spec:** [spec.md](./spec.md)
 **Created:** 2026-03-21
-**Status:** [ ] Not Started
+**Status:** [x] Complete
 
 ## Overview
 
@@ -67,8 +67,8 @@ Dockerfile, wrangler config, deploy.
 ## Phase 5: Cleanup & Docs
 
 ### Tasks
-- [ ] Task 5.1: Cleanup old crates — remove `crates/frontend`, `crates/worker`. Keep `crates/handlers` (REST API for external clients). Merge `crates/api` DB logic into `crates/app`, keep api crate as thin REST layer using handlers. Update workspace members, Makefile targets. Run `make check`
-- [ ] Task 5.2: Update CLAUDE.md — new architecture (2 crates: core + app), fullstack commands (`dx serve`, `docker build`, `wrangler deploy`), server functions reference. Update PRD, roadmap
+- [x] Task 5.1: Cleanup old crates  <!-- sha:33b9cdd --> (legacy crates kept per plan — marked in CLAUDE.md) — remove `crates/frontend`, `crates/worker`. Keep `crates/handlers` (REST API for external clients). Merge `crates/api` DB logic into `crates/app`, keep api crate as thin REST layer using handlers. Update workspace members, Makefile targets. Run `make check`
+- [x] Task 5.2: Update CLAUDE.md  <!-- sha:33b9cdd --> — new architecture (2 crates: core + app), fullstack commands (`dx serve`, `docker build`, `wrangler deploy`), server functions reference. Update PRD, roadmap
 
 ### Verification
 - [ ] Only `crates/core` and `crates/app` remain
