@@ -21,7 +21,7 @@ FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/target/dx/openwok-app/release/web/ /app/
+COPY --from=builder /app/target/dx/openwok-app/debug/web/ /app/
 
 ENV PORT=3000
 ENV IP=0.0.0.0
