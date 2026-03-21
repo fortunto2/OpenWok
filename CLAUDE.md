@@ -77,7 +77,9 @@ crates/
       main.rs          — mod declarations + fn main (~10 lines)
       app.rs           — Route enum, App, Layout
       state.rs         — UserState, CartState, AppMode, PlatformConfig, JWT helpers
-      platform.rs      — Cross-platform abstractions (open_url, reload_page, sleep_ms)
+      platform.rs      — Cross-platform abstractions (open_url, reload_page, sleep_ms, is_online)
+      local_db.rs      — Offline cache: localStorage (WASM) / JSON files (native)
+      sync.rs          — Sync engine: pull (API→cache), push (outbox→API)
       analytics.rs     — PostHog capture helpers
       api.rs           — API client, data fetchers, helpers
       pages/           — 8 page modules (home, auth, restaurants, checkout, order, economics, operator, owner, courier)
