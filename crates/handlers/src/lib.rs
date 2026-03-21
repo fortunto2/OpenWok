@@ -1,6 +1,7 @@
 pub mod admin;
 pub mod auth;
 pub mod auth_handlers;
+pub mod config;
 pub mod couriers;
 pub mod economics;
 pub mod metrics;
@@ -45,6 +46,7 @@ pub fn api_routes<R: Repository>() -> Router<Arc<R>> {
         .routes(routes!(admin::list_disputes))
         .routes(routes!(admin::resolve_dispute))
         .routes(routes!(orders::create_dispute))
+        .routes(routes!(config::get))
         .split_for_parts();
     router
 }
@@ -81,6 +83,7 @@ pub fn api_routes_with_openapi<R: Repository>(
         .routes(routes!(admin::list_disputes))
         .routes(routes!(admin::resolve_dispute))
         .routes(routes!(orders::create_dispute))
+        .routes(routes!(config::get))
         .split_for_parts()
 }
 
