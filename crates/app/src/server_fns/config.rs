@@ -26,7 +26,7 @@ pub async fn get_economics() -> ServerFnResult<PublicEconomics> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let economics = repo
@@ -44,7 +44,7 @@ pub async fn get_admin_metrics() -> ServerFnResult<AdminMetrics> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let metrics = repo

@@ -27,7 +27,16 @@
     }
   ],
 
+  "version_metadata": {
+    "binding": "CF_VERSION_METADATA"
+  },
+
   "vars": {
-    "ENVIRONMENT": "production"
+    "APP_BASE_URL": "https://openwok.superduperai.co",
+    "ENVIRONMENT": "production",
+    "PUBLIC_APP_URL": "https://openwok.superduperai.co",
+    "SUPABASE_GOOGLE_AUTH_ENABLED": "true",
+    "SUPABASE_JWT_ISSUER": "https://wqgwcubzvrmbrbkffmai.supabase.co/auth/v1",
+    "SUPABASE_URL": "https://wqgwcubzvrmbrbkffmai.supabase.co"
   }
 }

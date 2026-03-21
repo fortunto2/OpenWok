@@ -13,5 +13,8 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 utoipa = { workspace = true }
 utoipa-axum = { workspace = true }
-jsonwebtoken = { workspace = true }
 tokio = { workspace = true }
+superduperai-auth = { workspace = true }
+
+[dev-dependencies]
+jsonwebtoken = { workspace = true }

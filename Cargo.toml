@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/core", "crates/handlers", "crates/api", "crates/frontend", "crates/stripe-universal", "crates/app"]
+members = ["crates/core", "crates/handlers", "crates/api", "crates/frontend", "crates/stripe-universal", "crates/app", "crates/auth"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -16,6 +16,7 @@ utoipa = { version = "5", features = ["axum_extras", "uuid", "chrono"] }
 utoipa-axum = "0.2"
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
 jsonwebtoken = "9"
+superduperai-auth = { path = "crates/auth" }
 
 # WASM release profile — optimized for Cloudflare Workers / Dioxus SPA
 [profile.wasm-release]

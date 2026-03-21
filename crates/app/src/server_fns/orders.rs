@@ -30,9 +30,9 @@ pub async fn create_order(input: CreateOrderInput) -> ServerFnResult<Order> {
 
     use axum::Extension;
     use dioxus::fullstack::FullstackContext;
-    use openwok_core::repo::Repository;
+    use openwok_core::application::orders as order_app;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let order_req = openwok_core::repo::CreateOrderRequest {
@@ -53,8 +53,7 @@ pub async fn create_order(input: CreateOrderInput) -> ServerFnResult<Order> {
         tip: input.tip,
         local_ops_fee: input.local_ops_fee,
     };
-    let order = repo
-        .create_order(order_req)
+    let order = order_app::create_order(repo.as_ref(), order_req)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(order)
@@ -66,17 +65,16 @@ pub async fn get_order(id: String) -> ServerFnResult<Order> {
 
     use axum::Extension;
     use dioxus::fullstack::FullstackContext;
-    use openwok_core::repo::Repository;
+    use openwok_core::application::orders as order_app;
     use openwok_core::types::OrderId;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let oid = OrderId::from_uuid(
         uuid::Uuid::parse_str(&id).map_err(|e| ServerFnError::new(e.to_string()))?,
     );
-    let order = repo
-        .get_order(oid)
+    let order = order_app::get_order(repo.as_ref(), oid)
         .await
         .map_err(|e| ServerFnError::new(e.to_string()))?;
     Ok(order)
@@ -88,11 +86,11 @@ pub async fn transition_order(id: String, status: String) -> ServerFnResult<Orde
 
     use axum::Extension;
     use dioxus::fullstack::FullstackContext;
+    use openwok_core::application::orders as order_app;
     use openwok_core::order::OrderStatus;
-    use openwok_core::repo::Repository;
     use openwok_core::types::OrderId;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let oid = OrderId::from_uuid(
@@ -107,9 +105,9 @@ pub async fn transition_order(id: String, status: String) -> ServerFnResult<Orde
         "Cancelled" => OrderStatus::Cancelled,
         _ => return Err(ServerFnError::new(format!("Invalid status: {status}"))),
     };
-    let order = repo
-        .update_order_status(oid, new_status)
+    let order = order_app::transition_order(repo.as_ref(), oid, new_status)
         .await
-        .map_err(|e| ServerFnError::new(e.to_string()))?;
+        .map_err(|e| ServerFnError::new(e.to_string()))?
+        .order;
     Ok(order)
 }

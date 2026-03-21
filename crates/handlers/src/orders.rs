@@ -3,7 +3,8 @@ use std::sync::Arc;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use openwok_core::dispatch::{OrderEvent, auto_dispatch};
+use openwok_core::application::orders as order_app;
+use openwok_core::dispatch::OrderEvent;
 use openwok_core::money::Money;
 use openwok_core::order::{Order, OrderStatus};
 use openwok_core::repo::{CreateOrderItemRequest, CreateOrderRequest, Repository};
@@ -70,7 +71,7 @@ pub async fn create<R: Repository>(
         tip: body.tip,
         local_ops_fee: body.local_ops_fee,
     };
-    repo.create_order(req)
+    order_app::create_order(repo.as_ref(), req)
         .await
         .map(|order| (StatusCode::CREATED, Json(order)))
         .map_err(|e| (repo_error_to_status(&e), e.to_string()))
@@ -81,7 +82,7 @@ pub async fn get<R: Repository>(
     State(repo): State<Arc<R>>,
     Path(id): Path<OrderId>,
 ) -> Result<Json<Order>, StatusCode> {
-    repo.get_order(id)
+    order_app::get_order(repo.as_ref(), id)
         .await
         .map(Json)
         .map_err(|_| StatusCode::NOT_FOUND)
@@ -96,48 +97,21 @@ pub async fn transition<R: Repository>(
     Json(body): Json<TransitionStatus>,
 ) -> Result<Json<Order>, (StatusCode, String)> {
     get_active_user(repo.as_ref(), &auth).await?;
-    let order = repo
-        .update_order_status(id, body.status)
+    let result = order_app::transition_order(repo.as_ref(), id, body.status)
         .await
         .map_err(|e| (repo_error_to_status(&e), e.to_string()))?;
 
     let sender = tx.map(|axum::Extension(s)| s);
-
-    // Broadcast order event via WebSocket channel
     if let Some(ref s) = sender {
-        let _ = s.send(OrderEvent {
-            order_id: order.id.to_string(),
-            status: format!("{:?}", order.status),
-        });
-    }
-
-    // Auto-dispatch: when order reaches ReadyForPickup, assign a courier
-    if order.status == OrderStatus::ReadyForPickup
-        && let Ok(Some(result)) = auto_dispatch(repo.as_ref(), order.id).await
-    {
-        // Transition to InDelivery since courier is assigned
-        let _ = repo
-            .update_order_status(order.id, OrderStatus::InDelivery)
-            .await;
-
-        if let Some(ref s) = sender {
+        for event in &result.events {
             let _ = s.send(OrderEvent {
-                order_id: result.order_id.clone(),
-                status: "CourierAssigned".into(),
+                order_id: event.order_id.clone(),
+                status: event.status.clone(),
             });
-            let _ = s.send(OrderEvent {
-                order_id: result.order_id,
-                status: "InDelivery".into(),
-            });
-        }
-
-        // Return updated order with InDelivery status
-        if let Ok(updated) = repo.get_order(order.id).await {
-            return Ok(Json(updated));
         }
     }
 
-    Ok(Json(order))
+    Ok(Json(result.order))
 }
 
 /// POST /orders/{id}/dispute — any authenticated user can dispute their order

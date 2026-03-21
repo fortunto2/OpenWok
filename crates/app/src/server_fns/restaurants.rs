@@ -9,7 +9,7 @@ pub async fn get_restaurants() -> ServerFnResult<Vec<Restaurant>> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let restaurants = repo
@@ -28,7 +28,7 @@ pub async fn get_restaurant(id: String) -> ServerFnResult<Restaurant> {
     use openwok_core::repo::Repository;
     use openwok_core::types::RestaurantId;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let rid = RestaurantId::from_uuid(

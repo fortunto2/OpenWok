@@ -1,186 +1,106 @@
 # OpenWok
 
-Federated food delivery platform with open-book pricing. $1 federal fee per order.
+OpenWok is a food delivery platform focused on transparent pricing, portable infrastructure, and a path toward self-hosted federation.
 
-## Tech Stack
+## Status
 
-- **Core:** Rust — domain logic, pricing calculator, order state machine
-- **API:** Rust (axum) — REST server
-- **Storage:** In-memory (PostgreSQL planned)
+- Main runtime: `crates/app` + `crates/api`
+- UI: Dioxus 0.7 fullstack with SSR on first load and WASM hydration in the browser
+- API: axum routes mounted into the same runtime under `/api/*`
+- Database: SQLite via `rusqlite`
+- Deploy: Cloudflare Worker entrypoint -> Cloudflare Container -> native Rust server
+- Production URL: `https://openwok.superduperai.co`
 
-## Quick Start
+## What Exists
+
+- Customer flow: `/`, `/restaurants`, `/restaurant/:id`, `/checkout`, `/order/:id`
+- Public economics page: `/economics`
+- Operator console: `/operator`
+- Restaurant owner pages: `/my-restaurants`, `/my-restaurants/:id`, `/onboard-restaurant`
+- Courier pages: `/register-courier`, `/my-deliveries`
+- Auth pages: `/login`, `/auth/callback`
+- External API docs: `/api/docs`
+
+## Repository Layout
+
+```text
+crates/
+  app/               Dioxus fullstack UI and SSR entrypoint
+  api/               external HTTP API mounted into the same runtime
+  auth/              shared Supabase auth crate
+  core/              domain logic, pricing, order state machine, repo traits
+  handlers/          reusable axum handlers used by the API crate
+  frontend/          older SPA path, not the primary runtime
+  stripe-universal/  Stripe integration crate
+
+container-worker.js        Cloudflare Worker entrypoint
+Dockerfile                 runtime image for Cloudflare Containers
+wrangler.containers.jsonc  Cloudflare deploy config
+planning/ROADMAP.md        current execution roadmap
+docs/roadmap-full.md       longer-term product roadmap
+```
+
+## Local Development
 
 ```bash
-# Build & test
-make check           # test + clippy + fmt
+# run checks
+make check
 
-# Run server
-cargo run -p openwok-api   # http://localhost:3000
+# main app: UI + SSR + embedded API
+make dev
+
+# optional API-only process
+make dev-api
 ```
 
-## Workspace
+## Environment
 
-| Crate | Path | Description |
-|-------|------|-------------|
-| openwok-core | crates/core/ | Domain types, Money, PricingBreakdown, Order state machine |
-| openwok-api | crates/api/ | axum REST API with in-memory state |
+Common local variables:
 
-## API Endpoints
-
-```
-GET    /health                 → Health check
-GET    /restaurants            → List restaurants (3 seeded)
-GET    /restaurants/{id}       → Get restaurant
-POST   /restaurants            → Create restaurant
-POST   /orders                 → Create order (returns 6-line pricing)
-GET    /orders/{id}            → Get order
-PATCH  /orders/{id}/status     → Transition order status
-POST   /orders/{id}/assign     → Assign courier
-GET    /couriers               → List available couriers
-POST   /couriers               → Register courier
-PATCH  /couriers/{id}/available → Toggle availability
+```bash
+APP_BASE_URL=http://127.0.0.1:8080
+PUBLIC_APP_URL=http://127.0.0.1:8080
+SUPABASE_URL=...
+SUPABASE_JWT_ISSUER=...
+SUPABASE_ANON_KEY=...
+SUPABASE_GOOGLE_AUTH_ENABLED=true
 ```
 
----
+Notes:
 
-# OpenDelivery (рабочее название)
+- `SUPABASE_JWT_SECRET` is optional legacy fallback. Current auth supports JWKS verification.
+- Email/password auth works with Supabase email provider.
+- Google OAuth can stay enabled in UI and be configured later in Supabase.
 
-OpenDelivery — честный сервис доставки еды с открытой бухгалтерией, фиксированной платой платформы `$1` за заказ и максимально прозрачной отчетностью. Это локально масштабируемый marketplace, который не гонится за сверхприбылью и не прячет экономику: каждый участник видит, куда уходят деньги и за что платит.
+## Deploy
 
-## Коротко о главном
+```bash
+make deploy
+```
 
-- Платформа берет фиксированно `$1` за заказ.
-- Ресторан получает 100% стоимости еды.
-- Курьер получает 100% стоимости доставки и чаевых.
-- Комиссия платежки показывается отдельно.
-- Платформа не удерживает деньги курьера.
-- Код и ключевая логика открыты.
-- Страховые и фрод-риски не ложатся на платформу без отдельной оплаты.
-- Рост — по городам, устойчиво и без "взрывного" масштабирования.
+Current deploy model:
 
-## Для кого этот проект
+- One Docker image
+- One Rust server process
+- One SQLite database file inside the container image
+- One Cloudflare Worker that routes traffic into the container
 
-- Клиентам: прозрачная цена, понятный чек, честная доставка.
-- Ресторанам: полный контроль над экономикой, без скрытых комиссий.
-- Курьерам: честный доход без удержаний и постфактум изменений.
-- Городу и сообществу: открытая отчетность и понятные правила рынка.
+Important:
 
-## Как устроены деньги
+- Do not strip the release server binary used in the container image.
+- Dioxus SSR asset metadata breaks when the binary is stripped, which causes missing CSS in production.
 
-Клиент платит:
+## Architectural Notes
 
-- Еда → 100% ресторану.
-- Доставка → 100% курьеру.
-- Платформа → `$1` фиксировано.
-- Чаевые → 100% курьеру.
-- Комиссия платежки → отдельно и явно в чеке.
+- The browser uses WASM.
+- The server does not run as WASM; it is a native Linux binary.
+- Static assets are still delivered through Cloudflare edge.
+- The current container routing is effectively singleton-based and sleeps after inactivity.
+- This setup is intentionally more portable than a Cloudflare-only Worker backend.
+- The code is already split so UI-specific flows can stay on server functions while external integrations can use `/api/*`.
 
-Принцип: платформа никогда не удерживает деньги курьера.
+## Current Direction
 
-## Как проходит заказ (базовый сценарий)
-
-1. Клиент выбирает ресторан и оформляет заказ.
-2. Оплата проходит через платежного провайдера.
-3. Система сразу показывает прозрачную разбивку платежа.
-4. Ресторан принимает заказ и готовит еду.
-5. Курьер принимает заказ, видя доход до подтверждения.
-6. Доставка подтверждается, клиент получает чек.
-
-## Варианты обработки споров
-
-- Basic (по умолчанию, бесплатно): споры и чарджбеки решает ресторан, платформа не компенсирует.
-- Protection Plan (подписка): платформа собирает доказательства, передает данные в страховую, компенсации выплачивает страховая, не платформа.
-
-## Основные компоненты продукта
-
-- Клиентское приложение (Web/PWA): поиск, меню, заказ, оплата, чаевые, трекинг, чек с прозрачной разбивкой.
-- Кабинет ресторана: меню, статусы заказов, история, отчеты, логи заказов, статус Protection Plan.
-- Курьерское приложение (PWA): онлайн/офлайн, принятие заказов, доход до принятия, маршрут, подтверждение доставки, история доходов.
-- Админ-панель платформы: мониторинг заказов, аналитика, базовый антифрод, блокировки, интеграции со страховкой, публичные отчеты.
-- Публичная бухгалтерия: агрегированные данные по выплатам, комиссиям и возвратам.
-
-## Protection Plan (опционально)
-
-Подписка для ресторанов, которая подключает страховую поддержку споров:
-
-- сбор доказательств (логи, таймлайны, подтверждение доставки);
-- передача данных в страховую компанию;
-- базовый антифрод-анализ;
-- поддержка по чарджбекам.
-
-Компенсации выплачивает страховая, не платформа.
-
-## Минимальная защита экосистемы (обязательная)
-
-Даже без подписки платформа обязана:
-
-- блокировать очевидных мошенников;
-- лимитировать новые аккаунты;
-- логировать подозрительные паттерны;
-- защищать экосистему.
-
-Без расследований и компенсаций.
-
-## Open Source политика
-
-Открыто:
-
-- backend логика заказов;
-- алгоритмы распределения денег;
-- клиентские приложения;
-- отчетность и API-документация.
-
-Закрыто:
-
-- антифрод-правила;
-- API-ключи;
-- персональные данные;
-- административные инструменты.
-
-## MVP ограничения
-
-В MVP не входит:
-
-- рекомендации и акции;
-- подписки клиентов;
-- рейтинги;
-- чат поддержки 24/7;
-- мультистрана.
-
-Критерии успеха MVP:
-
-- 1 город.
-- 10+ ресторанов.
-- 20+ курьеров.
-- 100+ заказов в день.
-- 0 скрытых удержаний.
-- 100% прозрачность.
-
-## Юридические принципы
-
-Платформа — marketplace:
-
-- не работодатель;
-- не страховая;
-- не арбитр.
-
-## Масштабирование
-
-Проект масштабируется локально, по городам, с прозрачной и проверяемой экономикой. Цель — устойчивый рост и доверие, а не агрессивная глобальная экспансия.
-
-## Отчеты и исследования
-
-Ниже — рабочие материалы и исследования, которые уже реализованы:
-
-- Концепция симуляции доставки и рисков: `planning/delivery-simulation/README.md`
-- Концепция симуляции себестоимости: `planning/cost-simulation/README.md`
-- Черновик выбора имени проекта: `planning/naming/README.md`
-- Симуляция доставки (Monte Carlo): `programs/delivery-monte-carlo/README.md`
-- Параметры города для симуляций: `programs/delivery-monte-carlo/CITY_PARAMETERS_GUIDE.md`
-- Заметки к расчетам 180 дней: `programs/delivery-monte-carlo/CALCULATION_NOTES_180D.md`
-- Симуляция себестоимости сервиса: `programs/service-cost-simulation/README.md`
-- Результаты симуляции себестоимости: `programs/service-cost-simulation/RESULTS.md`
-
----
-
-OpenDelivery — это не “победить кого-то на рынке”, а создать узкий, честный, устойчивый сервис доставки, где экономика понятна каждому участнику, а доверие строится на прозрачности.
+- Keep one runtime and one deploy for MVP simplicity.
+- Keep the code split into `app`, `api`, `auth`, and `core` so services can be separated later if needed.
+- Prefer portable Rust/server architecture now, with room for edge caching and federation later.

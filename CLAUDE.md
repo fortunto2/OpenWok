@@ -1,323 +1,161 @@
 # CLAUDE.md — OpenWok
 
-Federated food delivery platform. $1 federal fee + local node operators. Open-book pricing.
+Federated food delivery platform with open-book pricing, a $1 federal fee, and local node operators.
 
-## Concept (from docs/mvp-deck.pdf)
+## Current Direction
 
-- Platform as federation (like US states): Federal Core sets protocol + baseline, Node Operators run local markets
-- $1 Federal Stewardship Fee per order → protocol, security, brand
-- Local Operations Fee → node's actual costs (support, disputes, ops)
-- Processing → pass-through (Stripe 2.9% + $0.30), shown separately
-- Restaurants get 100% food revenue, couriers get 100% delivery + tips
-- MVP: 1 LA node, 10-20 restaurants, 1-2 zones, 60-day timeline
-- Permissioned federation: nodes join after KYB + tech audit
-- Future: sidewalk delivery robots as "delivery agents"
+OpenWok currently prioritizes:
+- one portable Rust/Dioxus fullstack app
+- typed server functions for UI flows
+- a separate external API surface without splitting deploy infrastructure yet
+- self-hostability outside Cloudflare
+- a path toward federation between independently operated nodes
 
-## Tech Stack
+Cloudflare is the current deploy target, not the permanent platform assumption.
 
-- **Core (Rust):** domain logic, order engine, pricing calculator, federation protocol
-- **Fullstack:** Dioxus 0.7 fullstack (SSR + WASM hydration) — `#[server]` functions replace REST API
-- **Database:** SQLite (rusqlite) — same binary, same connection
-- **Frontend:** Dioxus 0.7 components with `use_server_future(server_fn)` — typed, no JSON parsing
-- **Payments:** Stripe Connect (split payments: restaurant + courier + federal + local)
-- **Auth:** Supabase Auth (Google OAuth)
-- **Geo:** zone-based (no PostGIS for MVP)
-- **Deploy:** Docker container → Cloudflare Containers (SSR + data, one image per node)
-- **Legacy:** SPA + REST API (crates/frontend, crates/api, crates/worker) still present, pending Container verification
+## Current Runtime Model
 
-## Federation Stack (Phase 4)
+- Main crate: `crates/app`
+- External API crate: `crates/api`
+- UI: Dioxus 0.7 fullstack
+- First load: SSR
+- Browser interactivity: WASM hydration
+- Server runtime: native Rust binary
+- Database: SQLite via `rusqlite`
+- Production deploy: Cloudflare Worker front door -> Cloudflare Container -> native `openwok-app`
 
-| Крейт | Зачем | Фаза |
-|-------|-------|------|
-| `tonic` + protobuf | Node-to-node RPC, .proto = спецификация протокола | Phase 4 |
-| `cloudevents-sdk` | Стандартный формат событий (CNCF) — OrderCreated, PolicyActivated | Phase 3-4 |
-| `ed25519-dalek` | Подпись событий нодой, верификация без доверия | Phase 4 |
-| `cqrs-es` | Event sourcing для агрегатов (Order, Restaurant) — по необходимости | Future |
-| `openraft` | Consensus для governance голосования — когда нод >3 | Future |
-| `libp2p` (Kademlia) | Автодискавери нод — когда нод >10 | Future |
+Important:
+- Production is not D1-based right now
+- The Worker is only the entrypoint/proxy layer
+- The main application logic does not run as a pure Cloudflare Worker runtime
+- The current deploy is one process that serves both the fullstack app and `/api/*`
 
-Паттерны из MVP deck: Matrix server-to-server + ActivityPub inbox/outbox + CloudEvents.
+## Cloudflare Conclusions
 
-## Repo
+- Static assets and the web bundle are delivered through Cloudflare edge/CDN
+- The current server runtime is centralized in a container, not edge-native compute
+- The current container routing uses a singleton container id
+- `sleepAfter = "10m"` means the container can sleep when idle and cold-start on the next request
+- `max_instances = 3` is configured, but singleton routing means horizontal scaling is effectively not active yet
 
-GitHub: https://github.com/fortunto2/OpenWok
+Important deploy caveat:
+- Do not strip the Linux release binary used for the container image
+- Stripping breaks Dioxus SSR asset metadata and can cause missing CSS in production
+- Deploy commands must keep `CARGO_PROFILE_RELEASE_STRIP=none`
 
-## Key Entities
+## Federation Position
 
-- **Order:** food items, delivery address, zone, pricing breakdown (6 lines)
-- **Restaurant:** menu, zone, acceptance status
-- **Courier/DeliveryAgent:** type (human/robot), zone, availability
-- **Node:** operator info, zones, local fee config, SLA metrics
-- **FederalCore:** protocol version, baseline rules, $1 fee
+The current architecture is intentionally more federation-friendly than a pure Worker-only backend because:
+- it is easier to self-host on Docker, VMs, bare metal, Fly.io, Railway, etc.
+- it avoids hard-locking the main backend model to Cloudflare-specific runtime assumptions
+- it keeps node-to-node federation possible over normal server-to-server HTTP/RPC patterns
 
-## MVP Scope (60 days)
+If the project evolves into a true federation:
+- each city/operator can run its own server instance
+- protocol and federation APIs should remain platform-neutral
+- Cloudflare should stay an optional deployment target, not the only valid runtime
 
-1. Single LA node: catalog, order, payment, delivery, support
-2. Open-book receipt: Food / Delivery / Tip / Federal Fee / Local Ops Fee / Processing
-3. 10-20 restaurants in 1-2 zones
-4. Mixed delivery (self + couriers)
-5. Metrics: on-time, ETA error, repeat rate, $/hour, restaurant savings
-6. Federation-ready: operator console + KYB + baseline logging
+## Repo Structure
 
-## Don't
-
-- Skip writing actual code — every task MUST produce new .rs files or modify existing ones
-- Output <solo:done/> without new commits — if no code was written, it's NOT done
-- Build robot integration — that's wave 2
-- Over-engineer — but DO implement each plan task fully
-
-## Workspace Structure
-
-```
+```text
 crates/
-  core/              — openwok-core: domain types, pricing, order state machine, Repository trait
-  app/               — openwok-app: Dioxus fullstack (SSR + WASM) — THE MAIN CRATE
+  core/              domain types, pricing, order state machine, repository abstractions
+  app/               main Dioxus fullstack app
     src/
-      main.rs          — server entry (axum) + client entry (dioxus::launch)
-      app.rs           — Route enum, AppRoot, Layout, MobileTabBar
-      state.rs         — UserState, CartState, AppMode, PlatformConfig
-      db/              — SQLite repo + migrations (server-only)
-      server_fns/      — #[server] functions: restaurants, orders, couriers, auth, config
-      pages/           — UI components: home, restaurants (more coming)
-  handlers/          — (legacy) shared axum route handlers
-  api/               — (legacy) axum REST server
-  frontend/          — (legacy) Dioxus SPA
-  worker/            — (legacy) Cloudflare Worker
-  stripe-universal/  — stripe-universal: typed Stripe client
-Dockerfile           — multi-stage build for Cloudflare Containers
-wrangler.containers.jsonc — CF Containers config
-migrations/          — SQL migrations (shared)
+      main.rs          server entry + web entry
+      app.rs           routes, layout, top-level app state wiring
+      state.rs         cart, auth, app mode, platform config
+      server_fns/      typed server functions
+      pages/           UI surfaces
+  api/               external HTTP API + Swagger
+    src/
+      lib.rs           API router exposed to the app runtime
+      main.rs          optional standalone API entrypoint
+      db.rs            SQLite migrations and seed data
+      sqlite_repo.rs   repository implementation used by both app and API
+      payments.rs      payment-aware order creation and Stripe webhook
+      state.rs         API state and broadcast wiring
+  frontend/          legacy Dioxus SPA
+  handlers/          shared axum handlers reused by the API crate
+  stripe-universal/  Stripe integration crate
+
+Dockerfile
+container-worker.js
+wrangler.containers.jsonc
 ```
 
-**Fullstack pattern (new):**
-```
-[core: types + Repository trait]  ←  [app: SqliteRepo + #[server] fns + SSR UI]
-   crates/core                        crates/app
-```
-- `#[server]` functions replace REST API — return typed domain objects
-- `use_server_future(server_fn)` in components — no JSON, no API client
-- SSR on first load, WASM hydration for interactivity
+## Main Product Routes
 
-## Run Commands
+- `/` landing page
+- `/restaurants` restaurant list
+- `/restaurant/:id` menu + cart
+- `/checkout` checkout
+- `/order/:id` order tracking
+- `/economics` public economics page
+- `/operator` operator console
+- `/login` and `/auth/callback` auth flow
+- `/my-restaurants` and `/my-restaurants/:id` owner surfaces
+- `/register-courier` and `/my-deliveries` courier surfaces
+
+## Development Commands
 
 ```bash
-make dev                        # Fullstack dev server (SSR + hot reload)
-make dev-api                    # Legacy API server
-make docker-build               # Build Docker image
-make docker-run                 # Run container locally
-make test                       # Run all tests
-make clippy                     # Lint
-make fmt                        # Check formatting
-make check                      # test + clippy + fmt
-make setup-hooks                # Configure pre-commit hooks (fmt + clippy)
+make dev
+make dev-api
+make test
+make clippy
+make fmt
+make check
+make deploy
+make setup-hooks
 ```
 
-## Development Workflow
+Use `make dev` for the main local workflow.
 
-**Frontend (Dioxus — cross-platform):**
-```bash
-cd crates/frontend && dx serve              # Web dev server at http://localhost:8080
-make serve-desktop                           # Desktop app (native window)
-make serve-ios                               # iOS simulator (requires Xcode)
-                                             # MUST run from crates/frontend/ (where Dioxus.toml is)
-                                             # API proxied to http://localhost:3000/api (web)
-                                             # API direct to openwok.superduperai.co (native)
-```
+Notes:
+- `make dev` runs Tailwind watch and `dx serve` for `crates/app`
+- `make dev` is the main path and exposes both UI routes and `/api/*`
+- `make dev-api` is only for running the external API by itself when needed
+- `make deploy` builds the web bundle, builds the Linux server binary, stages the container image, and deploys with Wrangler
 
-**Backend (local axum):**
-```bash
-cargo run -p openwok-api          # Local API server at http://localhost:3000
-```
+## Quality Gates
 
-**Full stack local:**
-```bash
-# Terminal 1:
-cargo run -p openwok-api
-# Terminal 2:
-cd crates/frontend && dx serve
-# Open http://localhost:8080
-```
+- Pre-commit hooks run formatting and clippy
+- Keep `cargo fmt --all` clean
+- Keep `cargo clippy --workspace -- -D warnings` clean
+- Do not leave docs claiming old REST/in-memory/Worker-only architecture as the current main path
 
-**Production (Cloudflare Worker):**
-```bash
-make deploy                       # worker-build + wrangler deploy
-# Live at https://openwok.superduperai.co
-# API: /api/*    Frontend: /* (static SPA from public/)
-```
+## Boundary Rules
 
-**Frontend build for production:**
-```bash
-cd crates/frontend && dx build --platform web --release
-cp -r dist/* ../worker/public/    # Copy WASM bundle to worker static assets
-```
+- `crates/app` owns UI routes, layout, SSR, hydration, and typed server functions
+- `crates/api` owns explicit external HTTP routes, Swagger, webhooks, and integration-facing contracts
+- `crates/core` owns business logic and shared types
+- `crates/handlers` is shared HTTP handler code used by `crates/api`
+- Keep deployment simple unless there is a proven need to split processes
+- Do not collapse external API concerns back into ad-hoc UI server functions
 
-## Visual Testing (Playwright MCP)
+## What To Optimize For
 
-When building or reviewing frontend changes:
-1. Start dev server: `cd crates/frontend && dx serve` (background)
-2. Use Playwright MCP to navigate to `http://localhost:8080`
-3. Take screenshots of key pages: restaurants, menu, cart, checkout, order tracking
-4. Check browser console for errors
-5. Test at mobile viewport (375px) for responsive layout
+When making architecture decisions, optimize for:
+- one coherent fullstack app
+- one Docker image and one runtime for now
+- clear separation between internal UI transport and external API contracts
+- typed data flow between UI and server
+- portability beyond Cloudflare
+- federation-readiness
+- edge caching for public/read-heavy traffic
 
-## API Endpoints
+Do not optimize prematurely for:
+- one runtime per city
+- pure Worker-only execution everywhere
+- Cloudflare-specific rewrites unless they materially simplify the current product
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /api/health | Health check |
-| GET | /api/restaurants | List active restaurants |
-| GET | /api/restaurants/{id} | Get restaurant |
-| POST | /api/restaurants | Create restaurant (auth, auto-promote to RestaurantOwner) |
-| PATCH | /api/restaurants/{id} | Update restaurant info (owner only) |
-| PATCH | /api/restaurants/{id}/active | Toggle active status (owner only) |
-| POST | /api/restaurants/{id}/menu | Add menu item (owner only) |
-| PATCH | /api/menu-items/{id} | Update menu item (owner only) |
-| DELETE | /api/menu-items/{id} | Delete menu item (owner only) |
-| GET | /api/my/restaurants | List current user's restaurants (auth) |
-| POST | /api/orders | Create order + payment, returns checkout URL (auth) |
-| GET | /api/orders/{id} | Get order |
-| PATCH | /api/orders/{id}/status | Transition order status (auth) |
-| POST | /api/orders/{id}/assign | Assign courier to order (auth) |
-| GET | /api/couriers | List available couriers |
-| POST | /api/couriers | Register courier (auth, auto-promote to Courier, links user) |
-| GET | /api/couriers/me | Get current user's courier profile (auth) |
-| PATCH | /api/couriers/{id}/available | Toggle availability (auth) |
-| GET | /api/my/deliveries | List orders assigned to current courier (auth) |
-| GET | /api/my/orders | List orders across all owner's restaurants (auth) |
-| GET | /api/public/economics | Aggregate financials (public, cached 5min) |
-| GET | /api/admin/metrics | Pilot KPIs (order count, on-time rate, revenue) |
-| GET | /api/admin/users | List all users with blocked status (admin) |
-| PATCH | /api/admin/users/{id}/block | Toggle user blocked status (admin) |
-| GET | /api/admin/disputes | List all disputes (admin) |
-| PATCH | /api/admin/disputes/{id}/resolve | Resolve/dismiss dispute (admin) |
-| POST | /api/orders/{id}/dispute | Create dispute on order (auth) |
-| POST | /api/auth/callback | Verify Supabase JWT, create/get user |
-| GET | /api/auth/me | Get current user profile (auth) |
-| POST | /api/webhooks/stripe | Stripe webhook (signature verified) |
-| WS | /api/ws/orders/{id} | Real-time order status updates |
+## Short Practical Summary
 
-## OpenAPI / Swagger
-
-Use `utoipa` for auto-generated OpenAPI docs from Rust code:
-```toml
-# crates/api or crates/worker Cargo.toml
-utoipa = { version = "5", features = ["axum_extras"] }
-utoipa-swagger-ui = { version = "9", features = ["axum"] }
-```
-
-Annotate handlers with `#[utoipa::path(...)]`, serve Swagger UI at `/api/docs`.
-See `libraries.yaml` → `openapi_codegen` → `utoipa` for details.
-
-## Key Documents
-
-- `docs/prd.md` — PRD: vision, phases, what's built, what's next
-- `docs/mvp-deck.pdf` — full MVP concept deck
-- `docs/workflow.md` — TDD policy, commit strategy, verification checkpoints
-- `planning/ROADMAP.md` — 12-month roadmap with decision gates
-- `docs/plan-done/` — completed specs (mvp-core, phase2-frontend, pilot-infra, cf-workers-deploy, repo-abstraction, auth-payments, tailwind-migration, restaurant-onboarding)
-- `docs/plan/admin-tools_20260320/` — active: admin tools (block/unblock + disputes)
-- `docs/evolution.md` — factory evolution log (cross-retro learnings)
-- `docs/retro/` — pipeline retrospectives
-
-## Migrations
-
-| File | Description |
-|------|-------------|
-| `migrations/0001_init.sql` | Initial schema (zones, restaurants, menu_items, couriers, orders, order_items) |
-| `migrations/0002_seed_la.sql` | Seed data: 2 zones, 3 restaurants, 9 menu items |
-| `migrations/0003_pilot_zones.sql` | Add 4 new LA zones (Venice, Santa Monica, Koreatown, Silver Lake) |
-| `migrations/0004_seed_pilot_restaurants.sql` | Seed 15 new restaurants with 80+ menu items across 6 zones |
-| `migrations/0005_order_metrics.sql` | Add `estimated_eta` and `actual_delivery_at` columns to orders |
-| `migrations/0006_auth_users.sql` | Users table + orders.user_id FK |
-| `migrations/0007_payments.sql` | Payments table (Stripe tracking) |
-| `migrations/0008_restaurant_owner.sql` | Restaurant ownership: owner_id, description, address, phone, timestamps |
-| `migrations/0009_courier_user.sql` | Courier user_id FK + dispatch indexes (zone_id+available, courier_id) |
-| `migrations/0010_admin_disputes.sql` | Add `blocked` to users, create `disputes` table |
-
-## Frontend Routes
-
-| Path | Component | Description |
-|------|-----------|-------------|
-| `/` | Home | Landing page |
-| `/restaurants` | RestaurantList | Browse restaurants |
-| `/restaurant/:id` | RestaurantMenu | Menu + cart |
-| `/checkout` | Checkout | Order with 6-line pricing, Stripe redirect |
-| `/order/:id` | OrderTracking | Real-time status timeline + payment badge |
-| `/order/:id/success` | OrderSuccess | Post-payment confirmation |
-| `/operator` | OperatorConsole | Node operator dashboard (Overview + Metrics tabs) |
-| `/economics` | PublicEconomicsPage | Open-book economics transparency page |
-| `/login` | Login | Google OAuth via Supabase |
-| `/auth/callback` | AuthCallback | OAuth callback, stores JWT |
-| `/my-restaurants` | MyRestaurants | Owner's restaurant dashboard |
-| `/my-restaurants/:id` | RestaurantSettings | Restaurant settings (Info/Menu/Orders tabs) |
-| `/onboard-restaurant` | OnboardRestaurant | New restaurant onboarding form |
-| `/register-courier` | RegisterCourier | Courier self-registration (name + zone) |
-| `/my-deliveries` | MyDeliveries | Courier delivery dashboard + Mark Delivered |
-
-## Analytics (PostHog)
-
-PostHog JS snippet loaded in frontend. Events tracked: `restaurant_view`, `add_to_cart`, `checkout_start`, `order_placed`, `frontend_error`. Configure via `window.__POSTHOG_API_KEY__` (EU instance). No-op when key not set.
-
-## Architecture Standards
-
-**Layered architecture (dependencies point inward):**
-```
-[Domain types]  ←  [Use cases / services]  ←  [API handlers]  ←  [Framework (axum)]
-   crates/core         crates/core              crates/api           crates/api
-```
-- Core has ZERO framework deps — pure Rust types + logic
-- API depends on Core, never the reverse
-- New crates (payments, federation) depend on Core, not on API
-
-**Async patterns:**
-- All I/O is async (tokio) — DB queries, HTTP, WebSocket
-- Use `tokio::spawn` for background jobs (dispatch, notifications), not blocking threads
-- Channels (`mpsc`, `broadcast`) for event propagation — not shared mutable state
-- WebSocket: `broadcast::Sender<OrderEvent>` for real-time updates (already exists)
-
-**Event sourcing (for orders):**
-```rust
-// Every state change = append-only event, projections for reads
-pub trait EventStore {
-    async fn append(&self, stream_id: &str, events: &[DomainEvent]) -> Result<()>;
-    async fn load(&self, stream_id: &str) -> Result<Vec<DomainEvent>>;
-}
-// Order state = fold over events, never mutate directly
-```
-
-**Auth & blocked-user enforcement:**
-- All authenticated endpoints MUST call `get_active_user()` (checks `blocked == false`)
-- Do NOT use `get_user_by_supabase_id()` directly in handlers — it skips the blocked check
-- Admin endpoints additionally check `role == NodeOperator`
-
-**Error handling:**
-- Domain errors: typed enums via `thiserror` (OrderError, PaymentError, DispatchError)
-- API errors: map domain errors → HTTP status + JSON body
-- Never `unwrap()` in production code — `?` or explicit error handling
-- Never `panic!` — use `tracing::error!` + return error
-
-**Database (SQLite/D1):**
-- rusqlite locally, Cloudflare D1 in production (both SQLite-compatible)
-- Migrations in `migrations/` directory (D1-compatible SQL)
-- Connection pool via `SqlitePool` wrapper in AppState
-- Transactions for multi-table operations (order + items + pricing)
-
-**Type safety:**
-- Newtype IDs: `RestaurantId(Uuid)`, `OrderId(Uuid)` — no String IDs
-- Money: `Money` newtype over `Decimal` — already done, never use f64 for money
-- Enums for statuses: `OrderStatus`, `CourierKind` — not strings
-- All public types: `Clone + Debug + Serialize + Deserialize`
-
-**Testing:**
-- Unit tests in each module (`#[cfg(test)]`)
-- Integration tests in `tests/` for API endpoints
-- Use `axum::test::TestClient` or direct handler calls for API tests
-- Fixture data in `tests/fixtures/` (JSON files for realistic test data)
-
-## Do
-
-- TDD for all business logic
-- Read docs/mvp-deck.pdf for full context
-- Keep pricing calculator as the core innovation (6-line receipt)
-- Event log for all order state changes (append-only, never delete)
-- Tracing spans on every API handler and service method
+- Use `crates/app` first
+- Treat `crates/api` as the current external API crate, not as dead legacy
+- Assume Cloudflare Containers is the current production runtime
+- Assume static assets are edge-delivered but server compute is container-based
+- Assume the main deploy currently serves both app and API from one process
+- Assume self-hosting and federation are strategic goals
+- Keep docs aligned with this reality

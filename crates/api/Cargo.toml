@@ -21,9 +21,9 @@ utoipa = { workspace = true }
 utoipa-axum = { workspace = true }
 utoipa-swagger-ui = { workspace = true }
 stripe-universal = { path = "../stripe-universal", features = ["reqwest-backend"] }
+superduperai-auth = { workspace = true }
 
 [dev-dependencies]
 tower = "0.5"
 http-body-util = "0.1"
 reqwest = { version = "0.12", features = ["json"] }
-jsonwebtoken = { workspace = true }

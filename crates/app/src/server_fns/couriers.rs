@@ -14,7 +14,7 @@ pub async fn register_courier(
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::{CreateCourierRequest, Repository};
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
     use openwok_core::types::{UserRole, ZoneId};
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
@@ -43,7 +43,7 @@ pub async fn get_courier_me(token: String) -> ServerFnResult<Courier> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let user = crate::server_fns::auth::verify_token_and_get_user(&token, repo.as_ref()).await?;
@@ -63,7 +63,7 @@ pub async fn toggle_availability(courier_id: String, available: bool) -> ServerF
     use openwok_core::repo::Repository;
     use openwok_core::types::CourierId;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let cid = CourierId::from_uuid(
@@ -84,7 +84,7 @@ pub async fn get_my_deliveries(token: String) -> ServerFnResult<Vec<Order>> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let user = crate::server_fns::auth::verify_token_and_get_user(&token, repo.as_ref()).await?;
@@ -107,7 +107,7 @@ pub async fn set_my_availability(token: String, available: bool) -> ServerFnResu
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let user = crate::server_fns::auth::verify_token_and_get_user(&token, repo.as_ref()).await?;
@@ -130,7 +130,7 @@ pub async fn mark_delivery_completed(token: String, order_id: String) -> ServerF
     use openwok_core::repo::Repository;
     use openwok_core::types::OrderId;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let user = crate::server_fns::auth::verify_token_and_get_user(&token, repo.as_ref()).await?;

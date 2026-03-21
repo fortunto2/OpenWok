@@ -1,27 +1,12 @@
+use std::sync::Arc;
+
 use axum::extract::{Extension, FromRequestParts};
 use axum::http::StatusCode;
 use axum::http::request::Parts;
-use jsonwebtoken::{Algorithm, DecodingKey, Validation};
-use serde::{Deserialize, Serialize};
+use superduperai_auth::{AuthClient, AuthError as SharedAuthError, Claims};
 
-/// Configuration for Supabase JWT verification.
-#[derive(Debug, Clone)]
-pub struct JwtConfig {
-    pub secret: String,
-    pub issuer: Option<String>,
-}
-
-/// Supabase JWT claims.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SupabaseClaims {
-    pub sub: String,
-    pub email: Option<String>,
-    pub role: Option<String>,
-    pub exp: u64,
-    pub iat: Option<u64>,
-    pub aud: Option<String>,
-    pub iss: Option<String>,
-}
+pub type JwtConfig = Arc<AuthClient>;
+pub type SupabaseClaims = Claims;
 
 /// Authenticated user extracted from JWT.
 /// Use as an axum extractor on protected routes.
@@ -64,21 +49,17 @@ impl axum::response::IntoResponse for AuthError {
 }
 
 /// Verify a JWT token string and extract claims.
-pub fn verify_jwt(token: &str, config: &JwtConfig) -> Result<SupabaseClaims, AuthError> {
-    let key = DecodingKey::from_secret(config.secret.as_bytes());
-    let mut validation = Validation::new(Algorithm::HS256);
+pub fn verify_jwt(token: &str, auth: &JwtConfig) -> Result<SupabaseClaims, AuthError> {
+    auth.verify_token(token).map_err(map_shared_auth_error)
+}
 
-    if let Some(ref issuer) = config.issuer {
-        validation.set_issuer(&[issuer]);
-    } else {
-        validation.validate_aud = false;
+fn map_shared_auth_error(error: SharedAuthError) -> AuthError {
+    match error {
+        SharedAuthError::MissingAuth => AuthError::MissingHeader,
+        SharedAuthError::TokenExpired => AuthError::InvalidToken("Token expired".into()),
+        SharedAuthError::InvalidToken(message) => AuthError::InvalidToken(message),
+        other => AuthError::InvalidToken(other.to_string()),
     }
-    // Supabase tokens use "authenticated" as audience
-    validation.set_audience(&["authenticated"]);
-
-    jsonwebtoken::decode::<SupabaseClaims>(token, &key, &validation)
-        .map(|data| data.claims)
-        .map_err(|e| AuthError::InvalidToken(e.to_string()))
 }
 
 /// Extract Bearer token from Authorization header value.
@@ -95,8 +76,7 @@ where
     type Rejection = AuthError;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        // Extract JwtConfig from Extension (set by the api/worker layer)
-        let Extension(config) =
+        let Extension(auth) =
             axum::extract::Extension::<JwtConfig>::from_request_parts(parts, state)
                 .await
                 .map_err(|_| AuthError::InvalidToken("JWT config not available".into()))?;
@@ -108,7 +88,7 @@ where
             .ok_or(AuthError::MissingHeader)?;
 
         let token = extract_bearer(auth_header)?;
-        let claims = verify_jwt(token, &config)?;
+        let claims = verify_jwt(token, &auth)?;
 
         Ok(AuthUser {
             supabase_user_id: claims.sub,
@@ -120,13 +100,21 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
     use jsonwebtoken::{EncodingKey, Header};
+    use superduperai_auth::AuthConfig;
 
     fn test_config() -> JwtConfig {
-        JwtConfig {
-            secret: "super-secret-jwt-token-for-testing-only".into(),
-            issuer: None,
-        }
+        Arc::new(AuthClient::new(AuthConfig::server_only(
+            "openwok",
+            "super-secret-jwt-token-for-testing-only",
+        )))
+    }
+
+    fn test_config_with_issuer(issuer: &str) -> JwtConfig {
+        Arc::new(AuthClient::new(
+            AuthConfig::server_only("openwok", "test-secret").with_jwt_issuer(issuer),
+        ))
     }
 
     fn make_token(claims: &SupabaseClaims, secret: &str) -> String {
@@ -139,10 +127,12 @@ mod tests {
             sub: "user-uuid-123".into(),
             email: Some("test@example.com".into()),
             role: Some("authenticated".into()),
-            exp: chrono::Utc::now().timestamp() as u64 + 3600,
-            iat: Some(chrono::Utc::now().timestamp() as u64),
+            exp: chrono::Utc::now().timestamp() + 3600,
+            iat: Some(chrono::Utc::now().timestamp()),
             aud: Some("authenticated".into()),
             iss: None,
+            app_metadata: serde_json::json!({}),
+            user_metadata: serde_json::json!({}),
         }
     }
 
@@ -150,7 +140,7 @@ mod tests {
     fn verify_valid_token() {
         let config = test_config();
         let claims = valid_claims();
-        let token = make_token(&claims, &config.secret);
+        let token = make_token(&claims, "super-secret-jwt-token-for-testing-only");
 
         let result = verify_jwt(&token, &config);
         assert!(result.is_ok());
@@ -163,14 +153,14 @@ mod tests {
     fn verify_expired_token() {
         let config = test_config();
         let mut claims = valid_claims();
-        claims.exp = 1000; // expired long ago
+        claims.exp = 1000;
 
-        let token = make_token(&claims, &config.secret);
+        let token = make_token(&claims, "super-secret-jwt-token-for-testing-only");
         let result = verify_jwt(&token, &config);
         assert!(result.is_err());
         match result {
             Err(AuthError::InvalidToken(msg)) => {
-                assert!(msg.contains("ExpiredSignature"));
+                assert!(msg.contains("Token expired"));
             }
             _ => panic!("expected InvalidToken error"),
         }
@@ -213,26 +203,20 @@ mod tests {
 
     #[test]
     fn verify_with_issuer_mismatch() {
-        let config = JwtConfig {
-            secret: "test-secret".into(),
-            issuer: Some("https://my.supabase.co/auth/v1".into()),
-        };
+        let config = test_config_with_issuer("https://my.supabase.co/auth/v1");
         let mut claims = valid_claims();
         claims.iss = Some("https://wrong-issuer.com".into());
-        let token = make_token(&claims, &config.secret);
+        let token = make_token(&claims, "test-secret");
         let result = verify_jwt(&token, &config);
         assert!(result.is_err());
     }
 
     #[test]
     fn verify_with_issuer_match() {
-        let config = JwtConfig {
-            secret: "test-secret".into(),
-            issuer: Some("https://my.supabase.co/auth/v1".into()),
-        };
+        let config = test_config_with_issuer("https://my.supabase.co/auth/v1");
         let mut claims = valid_claims();
         claims.iss = Some("https://my.supabase.co/auth/v1".into());
-        let token = make_token(&claims, &config.secret);
+        let token = make_token(&claims, "test-secret");
         let result = verify_jwt(&token, &config);
         assert!(result.is_ok());
     }

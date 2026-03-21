@@ -1,3 +1,4 @@
+pub mod application;
 pub mod dispatch;
 pub mod money;
 pub mod order;

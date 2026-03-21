@@ -2,10 +2,8 @@ use axum::Json;
 use axum::body::Bytes;
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
+use openwok_core::application::{orders as order_app, payments as payment_app};
 use openwok_core::money::Money;
-use openwok_core::order::OrderStatus;
-use openwok_core::repo::Repository;
-use openwok_core::types::{CreatePaymentRequest, PaymentStatus, UpdatePaymentStatusRequest};
 use serde::{Deserialize, Serialize};
 
 use openwok_handlers::auth::AuthUser;
@@ -68,27 +66,13 @@ pub async fn create_order_with_payment(
         local_ops_fee: body.local_ops_fee,
     };
 
-    let order = repo
-        .create_order(order_req)
+    let order = order_app::create_order(repo.as_ref(), order_req)
         .await
         .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
 
     let order_id_str = order.id.to_string();
 
-    // Create payment record
-    let payment_req = CreatePaymentRequest {
-        order_id: order.id,
-        stripe_checkout_session_id: None,
-        amount_total: order.pricing.total(),
-        restaurant_amount: order.pricing.food_total,
-        courier_amount: order.pricing.delivery_fee + order.pricing.tip,
-        federal_amount: order.pricing.federal_fee,
-        local_ops_amount: order.pricing.local_ops_fee,
-        processing_amount: order.pricing.processing_fee,
-    };
-
-    let payment = repo
-        .create_payment(payment_req)
+    let payment = payment_app::create_payment_for_order(repo.as_ref(), &order)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
@@ -191,30 +175,13 @@ pub async fn stripe_webhook(
                         )
                     })?;
 
-                // Update payment status
-                let payment = state
-                    .repo
-                    .get_payment_by_order(order_id)
-                    .await
-                    .map_err(|_| (StatusCode::NOT_FOUND, "payment not found".into()))?;
-
-                state
-                    .repo
-                    .update_payment_status(
-                        payment.id,
-                        UpdatePaymentStatusRequest {
-                            status: PaymentStatus::Succeeded,
-                            stripe_payment_intent_id: session.payment_intent,
-                        },
-                    )
-                    .await
-                    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-                // Transition order to Confirmed
-                let _ = state
-                    .repo
-                    .update_order_status(order_id, OrderStatus::Confirmed)
-                    .await;
+                payment_app::mark_payment_succeeded(
+                    state.repo.as_ref(),
+                    order_id,
+                    session.payment_intent,
+                )
+                .await
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
             }
         }
         "checkout.session.expired" => {
@@ -230,29 +197,9 @@ pub async fn stripe_webhook(
                     .map(openwok_core::types::OrderId::from_uuid)
                     .map_err(|_| (StatusCode::BAD_REQUEST, "invalid order_id".into()))?;
 
-                let payment = state
-                    .repo
-                    .get_payment_by_order(order_id)
-                    .await
-                    .map_err(|_| (StatusCode::NOT_FOUND, "payment not found".into()))?;
-
-                state
-                    .repo
-                    .update_payment_status(
-                        payment.id,
-                        UpdatePaymentStatusRequest {
-                            status: PaymentStatus::Failed,
-                            stripe_payment_intent_id: None,
-                        },
-                    )
+                payment_app::mark_payment_failed(state.repo.as_ref(), order_id)
                     .await
                     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-                // Cancel the order
-                let _ = state
-                    .repo
-                    .update_order_status(order_id, OrderStatus::Cancelled)
-                    .await;
             }
         }
         _ => {

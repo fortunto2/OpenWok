@@ -15,13 +15,10 @@ rust_decimal = { workspace = true }
 # Server-only deps (gated by feature)
 axum = { workspace = true, features = ["ws"], optional = true }
 tokio = { workspace = true, optional = true }
-rusqlite = { version = "0.34", features = ["bundled"], optional = true }
 dioxus-cli-config = { version = "0.7", optional = true }
-async-trait = { workspace = true, optional = true }
 tower-http = { version = "0.6", features = ["cors"], optional = true }
-stripe-universal = { path = "../stripe-universal", features = ["reqwest-backend"], optional = true }
-futures-util = { version = "0.3", optional = true }
-jsonwebtoken = { workspace = true, optional = true }
+openwok-api = { path = "../api", optional = true }
+superduperai-auth = { workspace = true, optional = true }
 
 # WASM-only deps
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -36,12 +33,12 @@ server = [
     "dioxus/server",
     "dep:axum",
     "dep:tokio",
-    "dep:rusqlite",
     "dep:dioxus-cli-config",
-    "dep:async-trait",
     "dep:tower-http",
-    "dep:stripe-universal",
-    "dep:futures-util",
-    "dep:jsonwebtoken",
+    "dep:openwok-api",
+    "dep:superduperai-auth",
 ]
 web = ["dioxus/web"]
+
+[dev-dependencies]
+tower = "0.5"

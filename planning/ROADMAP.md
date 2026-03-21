@@ -1,154 +1,84 @@
-# OpenWok / OpenDelivery — Дорожная карта (v1)
+# OpenWok Roadmap
 
-Дата: 8 февраля 2026  
-Горизонт: 12 месяцев (фаза запуска + фаза стабилизации)
+This file tracks the current execution roadmap for the product and codebase.
 
-## 1. Что уже сделано (факт)
+## Principles
 
-### Концепт и принципы
-- Зафиксирован базовый продуктовый манифест: прозрачная модель, открытая бухгалтерия, marketplace-подход.
-- Описаны роли участников, финансовая логика, ограничения MVP и Open Source границы.
+- Keep MVP simple: one runtime, one deploy, one database
+- Keep boundaries clean: `app`, `api`, `auth`, `core`
+- Prefer portable infrastructure over vendor-locked architecture
+- Preserve a path to federation and self-hosting
+- Add tests at architectural boundaries, not only at the domain layer
 
-### Исследования и симуляции
-- Есть ТЗ по симуляции рисков доставки: `planning/delivery-simulation/README.md`.
-- Есть ТЗ по симуляции себестоимости: `planning/cost-simulation/README.md`.
-- Реализован Monte Carlo симулятор доставки: `programs/delivery-monte-carlo/`.
-- Реализован анализатор отчётов доставки: `programs/delivery-monte-carlo/analyze_report.py`.
-- Реализован Monte Carlo симулятор себестоимости: `programs/service-cost-simulation/`.
-- Сохранены отчёты `90d` и `180d` + сценарные отчёты по себестоимости.
+## Current State
 
-### Брендинг и нейминг
-- Выполнен черновой цикл нейминга + первичный скрининг доменов: `planning/naming/README.md`.
-- Текущее имя в артефактах не унифицировано: встречаются `OpenDelivery` и `OpenWok`.
+- Fullstack Dioxus app is the main runtime
+- External API is mounted into the same process under `/api/*`
+- Cloudflare Containers deployment is working on `https://openwok.superduperai.co`
+- Email/password auth works with Supabase
+- Google sign-in UI is present and can be enabled fully once Supabase provider setup is finished
+- Main order flow, checkout, operator pages, economics page, and production assets are restored
 
-## 2. Что показывают текущие цифры (ключевые выводы)
+## Now
 
-### Delivery Monte Carlo (модель с fee = $1)
-- Unit net profit: около `-$1.21` на доставленный заказ.
-- Net margin: около `-112%`.
-- Processor fee ratio vs revenue: около `110%`.
-- Loss probability: `100%`.
-- Negative cash probability (после reserve): `100%`.
-- Источники:  
-  `programs/delivery-monte-carlo/reports/analysis_report.md`  
-  `programs/delivery-monte-carlo/reports/analysis_report_180d.md`
+- Stabilize auth and session flows
+- Clean build warnings and minor runtime rough edges
+- Add more integration tests around auth, checkout, and order lifecycle
+- Keep documentation aligned with actual runtime and deploy model
 
-### Service Cost Simulation
-- Рекомендованный единый фикс (портфельно): `~$3.60` (`sustainable` tier).
-- Диапазон break-even по сценариям: от `~$2.68` (budget) до `~$4.18` (premium).
-- Крупнейшие драйверы затрат: `map_cost` и `payment_fees`.
-- Источники:  
-  `programs/service-cost-simulation/reports/service_cost_report.md`  
-  `programs/service-cost-simulation/RESULTS.md`
+## Next
 
-### Главный конфликт текущей стратегии
-- Манифест фиксирует плату платформы `$1`, но симуляции показывают структурную убыточность при текущих допущениях.
-- Без решения по MoR/эквайрингу/монетизации масштабирование нельзя начинать.
+### 1. Auth and User Flows
 
-## 3. Критические решения до разработки продукта (Decision Gates)
+- Add end-to-end happy-path coverage for signup, confirmation, login, and callback
+- Add password reset flow
+- Add clearer role-aware redirects after sign-in
+- Decide which auth flows stay UI-only and which should be exposed via `/api/v1`
 
-Gate A (финансовая модель):
-- Подтвердить один из вариантов:
-1. Сохранить `$1`, но изменить платежную архитектуру/распределение комиссий.
-2. Перейти на новый fixed fee (рабочий диапазон `$3.35–$3.95`, базово `$3.60`).
-3. Гибридная модель (фикс + процент или подписка для ресторанов).
+### 2. Orders and Operations
 
-Gate B (юридическая и платежная роль):
-- Зафиксировать `merchant of record` и юридическую ответственность в спорах/чарджбеках.
-- Утвердить контрактную схему с рестораном, курьером, страховой.
+- Add integration tests for cart -> checkout -> order -> operator lifecycle
+- Move more orchestration into application services in `crates/core`
+- Remove remaining duplicated or thin infrastructure wrappers where possible
+- Improve operator tooling for order handling and incident visibility
 
-Gate C (бренд и коммуникация):
-- Выбрать единое имя (`OpenWok` или другое), закрепить домен/бренд-архитектуру.
+### 3. API Shape
 
-Без закрытия Gate A/B/C — код MVP не начинать.
+- Keep `/api/*` in the same runtime for now
+- Start defining stable versioned routes under `/api/v1`
+- Keep Swagger/OpenAPI accurate
+- Make external API contracts explicit instead of leaking UI-oriented server function behavior
 
-## 4. Дорожная карта по фазам
+### 4. Data and Infra
 
-## Фаза 0 — Strategic Alignment (9–28 февраля 2026)
-Цель: снять ключевые противоречия и выбрать рабочую модель.
+- Decide whether SQLite remains only for MVP or becomes a migration step toward Postgres later
+- Make DB, cache, and background job assumptions explicit
+- Add a cleaner self-hosted setup story
+- Add basic observability for production debugging
 
-Deliverables:
-- Финальное решение по pricing-модели и публичной формуле тарифа.
-- Документ MoR + риск-раскладка ответственности.
-- Единый бренд-выбор + план trademark/domain проверки.
-- Versioned assumptions для симуляторов (единый baseline config).
+### 5. Offline-First and UX
 
-Критерий выхода:
-- Подписан пакет решений по Gate A/B/C.
+- Improve client-side caching and retry behavior
+- Harden checkout and order tracking for flaky network conditions
+- Expand PWA/offline behavior only after core flows are stable
 
-## Фаза 1 — Data & Risk Foundation (1–31 марта 2026)
-Цель: подготовить пилотные данные и операционный контроль до запуска MVP.
+### 6. Federation Preparation
 
-Deliverables:
-- Единая схема событий заказа и логирования (order lifecycle, dispute/refund/fraud events).
-- Набор риск-метрик и alert thresholds (по примеру `analysis_config.json`).
-- Playbook для Basic vs Protection (что делаем, чего не делаем).
-- Обновлённые симуляции с 3 сценарием чувствительности: optimistic/base/stress.
+- Define the minimum federation protocol and trust model
+- Separate internal UI flows from external node-to-node or partner APIs
+- Keep portable server architecture so another company can run its own node
 
-Критерий выхода:
-- Есть reproducible отчёт с calibrated диапазонами и контролем риска на пилот.
+## Not Doing Right Now
 
-## Фаза 2 — MVP Build (1 апреля – 30 июня 2026)
-Цель: собрать вертикально работающий продукт на 1 город.
+- Splitting into multiple deploys
+- Rebuilding everything as Cloudflare-native Worker-only compute
+- Premature city-by-city runtime sharding
+- Large infrastructure migrations before MVP flows are stable
 
-Обязательный scope:
-- Клиент Web/PWA: заказ, оплата, трекинг, прозрачный чек.
-- Ресторан: принятие/статусы заказа, история, базовые отчёты.
-- Курьер PWA: принятие заказа, маршрут, подтверждение доставки.
-- Админ: мониторинг заказов, блокировки, инциденты.
-- Публичная бухгалтерия (минимальный публичный отчёт).
+## Exit Criteria For The Next Milestone
 
-Критерий выхода:
-- End-to-end flow в staging, с инструментированием всех ключевых событий.
-
-## Фаза 3 — Controlled Pilot (1 июля – 31 августа 2026)
-Цель: реальный пилот в 1 городе с ограниченным объёмом.
-
-Pilot targets:
-- 10+ ресторанов
-- 20+ курьеров
-- 100+ заказов/день (минимум на стабильном отрезке)
-
-Маркетинг и рост (народная реклама):
-- Публичная экономика: открыто показываем доход компании и структуру затрат.
-- Фиксированная плата вместо процента — простое объяснение ценности и честности модели.
-- Принцип открытой компании: «без обмана курьеров, без скрытых комиссий».
-- Программа «курьеры → рестораны»: мотивируем курьеров рассказывать о нас ресторанам.
-- Коммуникация миссии: рост не ради сверхприбыли, а ради достойной оплаты курьеров
-  и справедливых цен для покупателей.
-
-Контрольные KPI:
-- Положительный или близкий к нулю unit net (в рамках допусков пилота).
-- Dispute/fraud/refund rates не выходят за заранее заданные пороги.
-- SLA доставки и доля late-order в допустимых границах.
-
-Критерий выхода:
-- Пилот не уходит в неконтролируемый cash-loss и проходит quality gates.
-
-## Фаза 4 — Stabilization & City Playbook (1 сентября – 30 ноября 2026)
-Цель: закрепить операционную модель и подготовить масштабирование.
-
-Deliverables:
-- City launch playbook (параметры города, риск-профили, лимиты).
-- Версия 2 андеррайтинга Protection Plan.
-- Регламент quarterly fee-review + публичный отчёт по экономике.
-- План запуска города №2.
-
-Критерий выхода:
-- Повторяемая модель запуска и прогнозируемая unit-экономика на новом городе.
-
-## 5. Реестр рисков, которые нужно закрывать параллельно
-
-- Pricing risk: несоответствие `$1` фактической себестоимости.
-- Payment risk: высокая доля процессинга против revenue.
-- Legal risk: незафиксированная роль MoR/ответственность.
-- Fraud risk: рост инцидентов без зрелых защитных политик.
-- Mission drift risk: отклонение от принципа прозрачности под давлением маржи.
-
-## 6. Следующие шаги (ближайшие 14 дней)
-
-1. Утвердить решение по Gate A (pricing) с конкретной цифрой и правилами пересмотра.
-2. Подготовить и зафиксировать MoR/legal memo (Gate B).
-3. Закрыть бренд-гейт: единое имя + проверка домена/товарного знака.
-4. Пересчитать обе симуляции в едином baseline после решений Gate A/B.
-5. Выпустить `Roadmap v1.1` с обновлёнными KPI-порогами на пилот.
+- Auth flows are predictable and tested
+- Checkout and order lifecycle have integration coverage
+- `/api/*` contracts are explicit and documented
+- Production deploy remains simple and repeatable
+- Docs match reality

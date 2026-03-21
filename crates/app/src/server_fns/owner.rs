@@ -91,7 +91,7 @@ pub async fn update_restaurant(
     id: String,
     input: UpdateRestaurantInput,
 ) -> ServerFnResult<Restaurant> {
-    use openwok_core::repo::UpdateRestaurantRequest;
+    use openwok_core::types::UpdateRestaurantRequest;
 
     let (repo, user) = authenticated_repo(&token).await?;
     let restaurant_id = parse_restaurant_id(&id)?;
@@ -157,7 +157,7 @@ pub async fn update_menu_item(
     input: UpdateMenuItemInput,
 ) -> ServerFnResult<MenuItem> {
     use openwok_core::money::Money;
-    use openwok_core::repo::UpdateMenuItemRequest;
+    use openwok_core::types::UpdateMenuItemRequest;
 
     let (repo, user) = authenticated_repo(&token).await?;
     let item_id = parse_menu_item_id(&item_id)?;
@@ -216,7 +216,7 @@ pub async fn update_owned_order_status(
 async fn authenticated_repo(
     token: &str,
 ) -> ServerFnResult<(
-    std::sync::Arc<crate::db::repo::SqliteRepo>,
+    std::sync::Arc<openwok_api::SqliteRepo>,
     openwok_core::types::User,
 )> {
     use std::sync::Arc;
@@ -224,7 +224,7 @@ async fn authenticated_repo(
     use axum::Extension;
     use dioxus::fullstack::FullstackContext;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let user = crate::server_fns::auth::verify_token_and_get_user(token, repo.as_ref()).await?;

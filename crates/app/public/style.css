@@ -81,6 +81,8 @@ a:hover { color: var(--primary-hover); }
     display: inline-block;
     background: var(--primary);
     color: white !important;
+    border: none;
+    cursor: pointer;
     padding: 0.75rem 2rem;
     border-radius: var(--radius);
     font-weight: 600;
@@ -198,6 +200,49 @@ a:hover { color: var(--primary-hover); }
 .checkout-page { max-width: 600px; }
 .checkout-page h1 { margin-bottom: 0.5rem; }
 .checkout-page h2 { margin-bottom: 1rem; color: var(--text-muted); font-size: 1rem; }
+
+.login-page,
+.auth-callback {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.auth-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.secondary-btn {
+    display: inline-block;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.secondary-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.secondary-btn:disabled,
+.cta:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auth-separator {
+    margin: 1.25rem 0 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.success { color: var(--success); }
 
 .checkout-items {
     background: var(--surface);

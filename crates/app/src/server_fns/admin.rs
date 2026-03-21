@@ -10,7 +10,7 @@ pub async fn list_orders() -> ServerFnResult<Vec<Order>> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     repo.list_orders()
@@ -26,7 +26,7 @@ pub async fn assign_courier(order_id: String) -> ServerFnResult<()> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let order_id = parse_order_id(&order_id)?;
@@ -44,7 +44,7 @@ pub async fn transition_order_status(id: String, status: String) -> ServerFnResu
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let order_id = parse_order_id(&id)?;
@@ -62,7 +62,7 @@ pub async fn list_couriers() -> ServerFnResult<Vec<Courier>> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     repo.list_couriers()
@@ -78,7 +78,7 @@ pub async fn list_users() -> ServerFnResult<Vec<User>> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     repo.list_users()
@@ -94,7 +94,7 @@ pub async fn set_user_blocked(user_id: String, blocked: bool) -> ServerFnResult<
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let user_id = parse_user_id(&user_id)?;
@@ -111,7 +111,7 @@ pub async fn list_disputes() -> ServerFnResult<Vec<Dispute>> {
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     repo.list_disputes()
@@ -131,7 +131,7 @@ pub async fn resolve_dispute(
     use dioxus::fullstack::FullstackContext;
     use openwok_core::repo::Repository;
 
-    use crate::db::repo::SqliteRepo;
+    use openwok_api::SqliteRepo;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let dispute_id = parse_dispute_id(&dispute_id)?;
