@@ -16,6 +16,18 @@ use crate::state::{
     AppMode, CartState, PlatformConfig, UserState, clear_jwt_from_storage, get_jwt_from_storage,
 };
 
+#[cfg(target_arch = "wasm32")]
+const SW_REGISTER: &str = r#"
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function(e) {
+        console.warn('SW registration failed:', e);
+    });
+}
+"#;
+
+#[cfg(not(target_arch = "wasm32"))]
+const SW_REGISTER: &str = "";
+
 #[derive(Clone, Debug, PartialEq, Routable)]
 #[rustfmt::skip]
 pub enum Route {
@@ -95,6 +107,7 @@ pub fn App() -> Element {
 
     rsx! {
         document::Script { {POSTHOG_SNIPPET} }
+        document::Script { {SW_REGISTER} }
         ErrorBoundary {
             handle_error: |errors: ErrorContext| {
                 let error_text = format!("{errors:?}");
