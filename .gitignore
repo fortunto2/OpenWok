@@ -6,6 +6,11 @@ node_modules/
 dist/
 .next/
 .playwright-mcp/
+.solo/
+.wrangler/
+playwright-report/
+test-results/
+tmp/
 *.db-shm
 *.db-wal
 crates/frontend/data/
