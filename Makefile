@@ -1,4 +1,4 @@
-.PHONY: test clippy fmt check dev dev-app dev-api dev-legacy docker-build setup-hooks help
+.PHONY: test clippy fmt check dev dev-app dev-api dev-legacy docker-build docker-run deploy deploy-fly setup-hooks help
 
 DX := $(HOME)/.cargo/bin/dx
 
@@ -26,6 +26,17 @@ docker-build:
 
 docker-run:
 	docker run --rm -p 3000:3000 -v openwok-data:/app/data openwok
+
+# ── Deploy ───────────────────────────────────────────────────────
+
+deploy:
+	wrangler deploy --config wrangler.containers.jsonc
+
+deploy-fly:
+	fly deploy --remote-only
+
+bundle:
+	cd crates/app && $(DX) bundle --web
 
 # ── Legacy (SPA + API, kept until Container deploy verified) ─────
 
