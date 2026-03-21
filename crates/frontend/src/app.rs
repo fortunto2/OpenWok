@@ -18,7 +18,7 @@ use crate::state::{
 
 #[cfg(target_arch = "wasm32")]
 const SW_REGISTER: &str = r#"
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
     navigator.serviceWorker.register('/sw.js').catch(function(e) {
         console.warn('SW registration failed:', e);
     });
