@@ -19,7 +19,7 @@ dev-app:
 	cd crates/app && $(DX) serve
 
 dev:
-	cd crates/app && $(DX) serve
+	cd crates/app && npm run tailwind:watch & cd crates/app && $(DX) serve
 
 docker-build:
 	docker build --platform linux/amd64 -t openwok .
@@ -36,6 +36,7 @@ deploy-fly:
 	fly deploy --remote-only
 
 bundle:
+	cd crates/app && npm install && npm run tailwind:build
 	cd crates/app && $(DX) bundle --web
 
 # ── Legacy (SPA + API, kept until Container deploy verified) ─────

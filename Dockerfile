@@ -12,9 +12,12 @@ ENV PATH="/.cargo/bin:$PATH"
 # WASM target for client build
 RUN rustup target add wasm32-unknown-unknown
 
+# Install Node.js for Tailwind
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
+
 # Copy source and build
 COPY . .
-RUN cd crates/app && dx bundle --web
+RUN cd crates/app && npm install && npm run tailwind:build && dx bundle --web
 
 # Minimal runtime
 FROM debian:bookworm-slim AS runtime
