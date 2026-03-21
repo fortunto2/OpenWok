@@ -1,1 +1,13 @@
-{"name": "openwok-app", "version": "0.1.0", "private": true, "scripts": {"tailwind:watch": "npx @tailwindcss/cli -i input.css -o assets/tailwind.css --watch", "tailwind:build": "npx @tailwindcss/cli -i input.css -o assets/tailwind.css --minify"}, "dependencies": {"@tailwindcss/cli": "^4.2.2", "tailwindcss": "^4.2.2"}}
+{
+  "name": "openwok-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "tailwind:watch": "npx @tailwindcss/cli -i input.css -o public/tailwind.css --watch",
+    "tailwind:build": "npx @tailwindcss/cli -i input.css -o public/tailwind.css --minify"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.2.2",
+    "tailwindcss": "^4.2.2"
+  }
+}

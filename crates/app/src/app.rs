@@ -64,8 +64,8 @@ fn Layout() -> Element {
     let user_state = use_context::<Signal<UserState>>();
 
     rsx! {
-        document::Link { rel: "stylesheet", href: asset!("/assets/tailwind.css") }
-        document::Link { rel: "stylesheet", href: asset!("/assets/style.css") }
+        document::Link { rel: "stylesheet", href: asset!("/public/tailwind.css") }
+        document::Link { rel: "stylesheet", href: asset!("/public/style.css") }
         header { class: "header",
             nav { class: "nav",
                 Link { to: Route::Home {}, class: "logo", "OpenWok" }
