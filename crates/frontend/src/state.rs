@@ -64,6 +64,15 @@ pub fn clear_jwt_from_storage() {
     }
 }
 
+// --- App mode (Customer / Courier) ---
+
+#[derive(Clone, Debug, Default, PartialEq)]
+pub enum AppMode {
+    #[default]
+    Customer,
+    Courier,
+}
+
 // --- Platform config (fetched from API) ---
 
 #[derive(Clone, PartialEq)]

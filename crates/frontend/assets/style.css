@@ -536,3 +536,77 @@ a:hover { color: var(--primary-hover); }
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* ====== Mobile Bottom Tab Bar ====== */
+.bottom-tabs {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 0.25rem 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    z-index: 100;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.4rem 0.75rem;
+    min-height: 48px;
+    min-width: 48px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    cursor: pointer;
+    text-decoration: none;
+    justify-content: center;
+}
+
+.tab:hover, .tab.active {
+    color: var(--primary);
+}
+
+.tab-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.tab-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.tab.mode-switch {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Show bottom tabs on mobile, hide desktop header */
+@media (max-width: 640px) {
+    .bottom-tabs {
+        display: flex;
+    }
+
+    .content {
+        padding-bottom: calc(70px + env(safe-area-inset-bottom, 0));
+    }
+
+    /* Larger touch targets for mobile */
+    .cta, .place-order-btn, .checkout-btn, button[type="submit"] {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+
+    input, select, textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+}
