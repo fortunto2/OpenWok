@@ -11,6 +11,7 @@ pub async fn register_courier(name: String, zone_id: String) -> ServerFnResult<C
     use openwok_core::repo::{CreateCourierRequest, Repository};
 
     use crate::db::repo::SqliteRepo;
+    use openwok_core::types::ZoneId;
 
     let Extension(repo) = FullstackContext::extract::<Extension<Arc<SqliteRepo>>, _>().await?;
     let zid = ZoneId::from_uuid(

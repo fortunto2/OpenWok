@@ -26,16 +26,16 @@ Merge 5 крейтов в 2 (core + app). Заменить REST API на `#[serv
 Заменить REST API endpoints на `#[server_fn]`. Поэтапно: restaurants, orders, couriers, auth, config.
 
 ### Tasks
-- [ ] Task 2.1: Create `crates/app/src/server_fns/restaurants.rs` — `#[server] get_restaurants()`, `#[server] get_restaurant(id)`. Access SQLite via axum extractor. Return typed `Vec<Restaurant>` / `Restaurant` directly (no JSON parsing)
-- [ ] Task 2.2: Create `crates/app/src/server_fns/orders.rs` — `#[server] create_order(...)`, `#[server] get_order(id)`, `#[server] transition_order(id, status)`, `#[server] get_my_deliveries()`. Include Stripe payment logic from `crates/api/src/payments.rs`
-- [ ] Task 2.3: Create `crates/app/src/server_fns/couriers.rs` — `#[server] register_courier(...)`, `#[server] get_courier_me()`, `#[server] toggle_availability(...)`, `#[server] get_my_orders()`
-- [ ] Task 2.4: Create `crates/app/src/server_fns/auth.rs` — `#[server] auth_callback(token)`, `#[server] get_me()`. JWT verification from `crates/handlers/src/auth.rs`
-- [ ] Task 2.5: Create `crates/app/src/server_fns/config.rs` — `#[server] get_config()` returns PlatformConfig. `#[server] get_economics()`, `#[server] get_admin_metrics()`
+- [x] Task 2.1: Create `crates/app/src/server_fns/restaurants.rs`  <!-- sha:834e060 --> — `#[server] get_restaurants()`, `#[server] get_restaurant(id)`. Access SQLite via axum extractor. Return typed `Vec<Restaurant>` / `Restaurant` directly (no JSON parsing)
+- [x] Task 2.2: Create `crates/app/src/server_fns/orders.rs`  <!-- sha:7a43097 -->
+- [x] Task 2.3: Create `crates/app/src/server_fns/couriers.rs`  <!-- sha:7a43097 -->
+- [x] Task 2.4: Create `crates/app/src/server_fns/auth.rs`  <!-- sha:7a43097 -->
+- [x] Task 2.5: Create `crates/app/src/server_fns/config.rs`  <!-- sha:7a43097 -->
 
 ### Verification
-- [ ] Server functions callable from client components
-- [ ] Type safety: Restaurant/Order/Courier returned directly, no JSON parsing
-- [ ] Auth works: JWT verification in server functions
+- [x] Server functions callable from client components
+- [x] Type safety: Restaurant/Order/Courier returned directly, no JSON parsing
+- [x] Auth works: JWT verification in server functions
 
 ## Phase 3: Migrate UI Components
 Перенести RSX из frontend, заменить `cached_get`/`api_get` на `use_server_future(server_fn)`.
