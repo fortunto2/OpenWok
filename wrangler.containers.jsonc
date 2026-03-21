@@ -1,19 +1,29 @@
 {
   "name": "openwok",
   "compatibility_date": "2024-12-01",
-
-  // Thin Worker routes all traffic to the Container
   "main": "container-worker.js",
 
-  // Cloudflare Containers config
   "containers": [
     {
       "class_name": "OpenWokNode",
       "image": "./Dockerfile",
-      "max_instances": 3,
-      // Sleep after 10 minutes of inactivity to save costs
-      "sleep_after": "10m",
-      "default_port": 3000
+      "max_instances": 3
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "OPENWOK_NODE",
+        "class_name": "OpenWokNode"
+      }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["OpenWokNode"]
     }
   ],
 
