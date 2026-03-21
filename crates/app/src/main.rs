@@ -26,7 +26,8 @@ async fn main() {
 
     let router = axum::Router::new()
         .serve_dioxus_application(ServeConfig::new(), app::AppRoot)
-        .layer(axum::Extension(repo));
+        .layer(axum::Extension(repo))
+        .layer(tower_http::cors::CorsLayer::permissive());
 
     let router = router.into_make_service();
     let listener = tokio::net::TcpListener::bind(address).await.unwrap();
