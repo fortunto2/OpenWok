@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use openwok_core::money::Money;
-use openwok_core::types::Restaurant;
 use reqwest::Client;
 use rust_decimal::Decimal;
 
@@ -31,6 +30,27 @@ fn client() -> Client {
 
 pub fn auth_header() -> Option<String> {
     get_jwt_from_storage().map(|jwt| format!("Bearer {jwt}"))
+}
+
+/// Fetch from API with automatic cache: try API → cache raw JSON → parse.
+/// On failure → load from cache. One function, zero boilerplate.
+pub async fn cached_get<T: serde::de::DeserializeOwned>(
+    path: &str,
+    store: &dyn crate::local_db::LocalStore,
+    cache_key: &str,
+) -> Result<T, String> {
+    // Try API first
+    if let Ok(raw) = api_get::<serde_json::Value>(path).await {
+        store.set(cache_key, &raw);
+        if let Ok(parsed) = serde_json::from_value::<T>(raw) {
+            return Ok(parsed);
+        }
+    }
+    // Fallback to cache
+    store
+        .get(cache_key)
+        .and_then(|v| serde_json::from_value::<T>(v).ok())
+        .ok_or_else(|| "Offline — no cached data".to_string())
 }
 
 pub async fn api_get<T: serde::de::DeserializeOwned>(path: &str) -> Result<T, String> {
@@ -120,14 +140,6 @@ pub async fn api_get_text(path: &str) -> Result<String, String> {
 }
 
 // --- Data fetchers ---
-
-pub async fn fetch_restaurants() -> Result<Vec<Restaurant>, String> {
-    api_get("/restaurants").await
-}
-
-pub async fn fetch_restaurant(id: String) -> Result<Restaurant, String> {
-    api_get(&format!("/restaurants/{id}")).await
-}
 
 pub async fn place_order(body: String) -> Result<(String, Option<String>), String> {
     let result: serde_json::Value = api_post_json("/orders", &body).await?;

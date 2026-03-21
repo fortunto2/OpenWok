@@ -115,45 +115,38 @@ pub fn RegisterCourier() -> Element {
 
 #[component]
 pub fn MyDeliveries() -> Element {
-    let user_state = use_context::<Signal<UserState>>();
     let store = use_context::<Store>();
     let mut refresh = use_signal(|| 0u32);
     let online = platform::is_online();
     let pending = sync::pending_count(store.as_ref());
 
-    // Cache-first: show cached data instantly, update from API if online + authed
+    // Cache-first via cached_get
     let store_c = store.clone();
     let courier = use_resource(move || {
-        let jwt = user_state.read().jwt.clone();
         let store = store_c.clone();
         async move {
-            let cached = store.get("courier_profile");
-            if jwt.is_some()
-                && let Ok(c) = api_get::<serde_json::Value>("/couriers/me").await
-            {
-                store.set("courier_profile", &c);
-                return Some(c);
-            }
-            cached
+            crate::api::cached_get::<serde_json::Value>(
+                "/couriers/me",
+                store.as_ref(),
+                "courier_profile",
+            )
+            .await
+            .ok()
         }
     });
 
     let store_d = store.clone();
     let deliveries = use_resource(move || {
         let _ = refresh();
-        let jwt = user_state.read().jwt.clone();
         let store = store_d.clone();
         async move {
-            let cached: Option<Vec<serde_json::Value>> = store
-                .get("deliveries")
-                .and_then(|v| serde_json::from_value(v).ok());
-            if jwt.is_some()
-                && let Ok(d) = api_get::<Vec<serde_json::Value>>("/my/deliveries").await
-            {
-                store.set("deliveries", &serde_json::to_value(&d).unwrap_or_default());
-                return Some(d);
-            }
-            cached
+            crate::api::cached_get::<Vec<serde_json::Value>>(
+                "/my/deliveries",
+                store.as_ref(),
+                "deliveries",
+            )
+            .await
+            .ok()
         }
     });
 
