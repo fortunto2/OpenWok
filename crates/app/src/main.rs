@@ -4,6 +4,7 @@ use dioxus::prelude::*;
 
 #[cfg(feature = "server")]
 mod db;
+mod server_fns;
 
 #[cfg(feature = "server")]
 #[tokio::main]
