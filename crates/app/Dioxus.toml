@@ -1,0 +1,15 @@
+[application]
+name = "openwok"
+asset_dir = "assets"
+
+[web.app]
+title = "OpenWok — Fair Food Delivery"
+
+[web.watcher]
+reload_html = true
+watch_path = ["src"]
+index_on_404 = true
+
+[bundle]
+identifier = "co.superduperai.openwok"
+publisher = "SuperDuperAI"
