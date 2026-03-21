@@ -1,4 +1,6 @@
 [application]
+# Disable hot-reload in prod to avoid ws connection error
+hot_reload = false
 name = "openwok"
 asset_dir = "assets"
 
