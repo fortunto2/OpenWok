@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 
 use crate::api::{api_get, api_patch_json, register_courier};
 use crate::app::Route;
-use crate::local_db;
+use crate::local_db::Store;
 use crate::platform;
 use crate::state::UserState;
 use crate::sync;
@@ -116,40 +116,43 @@ pub fn RegisterCourier() -> Element {
 #[component]
 pub fn MyDeliveries() -> Element {
     let user_state = use_context::<Signal<UserState>>();
+    let store = use_context::<Store>();
     let mut refresh = use_signal(|| 0u32);
     let online = platform::is_online();
-    let pending = sync::pending_count();
+    let pending = sync::pending_count(store.as_ref());
 
     // Load from cache first, then API
+    let store_c = store.clone();
     let courier = use_resource(move || {
         let jwt = user_state.read().jwt.clone();
+        let store = store_c.clone();
         async move {
             let _jwt = jwt?;
-            // Try API first, fall back to cache
             match api_get::<serde_json::Value>("/couriers/me").await {
                 Ok(c) => {
-                    local_db::set("courier_profile", &c);
+                    store.set("courier_profile", &c);
                     Some(c)
                 }
-                Err(_) => local_db::get("courier_profile"),
+                Err(_) => store.get("courier_profile"),
             }
         }
     });
 
+    let store_d = store.clone();
     let deliveries = use_resource(move || {
         let _ = refresh();
         let jwt = user_state.read().jwt.clone();
+        let store = store_d.clone();
         async move {
             let _jwt = jwt?;
             match api_get::<Vec<serde_json::Value>>("/my/deliveries").await {
                 Ok(d) => {
-                    local_db::set("deliveries", &serde_json::to_value(&d).unwrap_or_default());
+                    store.set("deliveries", &serde_json::to_value(&d).unwrap_or_default());
                     Some(d)
                 }
-                Err(_) => {
-                    // Offline fallback: load from cache
-                    local_db::get("deliveries").and_then(|v| serde_json::from_value(v).ok())
-                }
+                Err(_) => store
+                    .get("deliveries")
+                    .and_then(|v| serde_json::from_value(v).ok()),
             }
         }
     });
@@ -216,16 +219,16 @@ pub fn MyDeliveries() -> Element {
                                                         class: "cta",
                                                         onclick: move |_| {
                                                             let oid = oid.clone();
+                                                            let store = use_context::<Store>();
                                                             spawn(async move {
                                                                 if platform::is_online() {
-                                                                    // Online: call API directly
                                                                     let _ = api_patch_json(
                                                                         &format!("/orders/{oid}/status"),
                                                                         &serde_json::json!({"status": "Delivered"}),
                                                                     ).await;
                                                                 } else {
-                                                                    // Offline: queue for later sync
                                                                     sync::queue_action(
+                                                                        store.as_ref(),
                                                                         "mark_delivered",
                                                                         serde_json::json!({"order_id": oid}),
                                                                     );

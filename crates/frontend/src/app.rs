@@ -61,6 +61,7 @@ pub fn App() -> Element {
     });
     use_context_provider(|| Signal::new(PlatformConfig::default()));
     use_context_provider(|| Signal::new(AppMode::default()));
+    use_context_provider(crate::local_db::create_store);
 
     // Fetch config from API on startup
     let mut config = use_context::<Signal<PlatformConfig>>();
@@ -78,16 +79,17 @@ pub fn App() -> Element {
     });
 
     // Background sync loop: pull deliveries + push pending every 15s
-    use_future(|| async {
-        loop {
-            if crate::platform::is_online() {
-                let pushed = crate::sync::push_pending().await;
-                if pushed > 0 {
-                    // Synced {pushed} pending actions
+    let store = use_context::<crate::local_db::Store>();
+    use_future(move || {
+        let store = store.clone();
+        async move {
+            loop {
+                if crate::platform::is_online() {
+                    crate::sync::push_pending(store.as_ref()).await;
+                    crate::sync::pull_deliveries(store.as_ref()).await;
                 }
-                crate::sync::pull_deliveries().await;
+                crate::platform::sleep_ms(15_000).await;
             }
-            crate::platform::sleep_ms(15_000).await;
         }
     });
 
