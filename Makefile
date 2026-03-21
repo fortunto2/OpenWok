@@ -1,7 +1,6 @@
-.PHONY: test clippy fmt check build-frontend build-worker deploy dev serve-desktop serve-ios setup-hooks help
+.PHONY: test clippy fmt check dev dev-app dev-api dev-legacy docker-build setup-hooks help
 
 DX := $(HOME)/.cargo/bin/dx
-DX_OUT := $(HOME)/.cargo-target/dx/openwok-frontend/release/web/public
 
 test:
 	cargo test --workspace
@@ -14,45 +13,27 @@ fmt:
 
 check: test clippy fmt
 
-tailwind:
-	cd crates/frontend && npx @tailwindcss/cli -i ./input.css -o ./assets/tailwind.css
+# ── Fullstack (new) ──────────────────────────────────────────────
 
-tailwind-watch:
-	cd crates/frontend && npx @tailwindcss/cli -i ./input.css -o ./assets/tailwind.css --watch
-
-build-frontend: tailwind
-	cd crates/frontend && $(DX) build --platform web --release
-	rm -rf public/*
-	cp -r $(DX_OUT)/* public/
-
-build-worker:
-	cd crates/worker && worker-build --release
-
-build: build-frontend build-worker
-
-deploy: build
-	wrangler deploy
+dev-app:
+	cd crates/app && $(DX) serve
 
 dev:
-	wrangler dev
+	cd crates/app && $(DX) serve
 
-dev-frontend:
-	cd crates/frontend && $(DX) serve --platform web
+docker-build:
+	docker build --platform linux/amd64 -t openwok .
+
+docker-run:
+	docker run --rm -p 3000:3000 -v openwok-data:/app/data openwok
+
+# ── Legacy (SPA + API, kept until Container deploy verified) ─────
 
 dev-api:
 	DATABASE_PATH=data/openwok.db cargo run -p openwok-api
 
-dev-full:
-	@echo "Starting API (port 3030) and Frontend (port 8080)..."
-	@DATABASE_PATH=data/openwok.db cargo run -p openwok-api &
-	@sleep 2 && cd crates/frontend && $(DX) serve --platform web
-	@trap 'kill %1' EXIT
-
-serve-desktop:
-	cd crates/frontend && $(DX) serve --platform desktop
-
-serve-ios:
-	cd crates/frontend && $(DX) serve --platform ios
+dev-legacy:
+	cd crates/frontend && $(DX) serve --platform web
 
 setup-hooks:
 	git config core.hooksPath .githooks

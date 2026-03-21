@@ -16,13 +16,14 @@ Federated food delivery platform. $1 federal fee + local node operators. Open-bo
 ## Tech Stack
 
 - **Core (Rust):** domain logic, order engine, pricing calculator, federation protocol
-- **Runtime:** Single Cloudflare Worker = API (worker-rs, `/api/*`) + static assets (Dioxus WASM SPA, `/*`)
-- **Database:** SQLite (rusqlite) locally, Cloudflare D1 in production — migrated from in-memory HashMap
-- **Frontend:** Dioxus 0.6 web SPA (WASM) — uses reqwest for API calls, compiled with `dx build --platform web`
+- **Fullstack:** Dioxus 0.7 fullstack (SSR + WASM hydration) — `#[server]` functions replace REST API
+- **Database:** SQLite (rusqlite) — same binary, same connection
+- **Frontend:** Dioxus 0.7 components with `use_server_future(server_fn)` — typed, no JSON parsing
 - **Payments:** Stripe Connect (split payments: restaurant + courier + federal + local)
 - **Auth:** Supabase Auth (Google OAuth)
 - **Geo:** zone-based (no PostGIS for MVP)
-- **Deploy:** `dx build --platform web --release` → `wrangler deploy` (one Worker, one domain, zero CORS)
+- **Deploy:** Docker container → Cloudflare Containers (SSR + data, one image per node)
+- **Legacy:** SPA + REST API (crates/frontend, crates/api, crates/worker) still present, pending Container verification
 
 ## Federation Stack (Phase 4)
 
@@ -70,41 +71,40 @@ GitHub: https://github.com/fortunto2/OpenWok
 ```
 crates/
   core/              — openwok-core: domain types, pricing, order state machine, Repository trait
-  handlers/          — openwok-handlers: shared axum route handlers generic over Repository
-  api/               — openwok-api: axum REST server with SqliteRepo + WebSocket + Stripe payments
-  frontend/          — openwok-frontend: Dioxus web SPA (14 routes, modular)
+  app/               — openwok-app: Dioxus fullstack (SSR + WASM) — THE MAIN CRATE
     src/
-      main.rs          — mod declarations + fn main (~10 lines)
-      app.rs           — Route enum, App, Layout
-      state.rs         — UserState, CartState, AppMode, PlatformConfig, JWT helpers
-      platform.rs      — Cross-platform abstractions (open_url, reload_page, sleep_ms, is_online)
-      local_db.rs      — Offline cache: localStorage (WASM) / JSON files (native)
-      sync.rs          — Sync engine: pull (API→cache), push (outbox→API)
-      analytics.rs     — PostHog capture helpers
-      api.rs           — API client, data fetchers, helpers
-      pages/           — 8 page modules (home, auth, restaurants, checkout, order, economics, operator, owner, courier)
-  worker/            — openwok-worker: Cloudflare Worker with D1Repo (standalone workspace)
-  stripe-universal/  — stripe-universal: typed Stripe client (reqwest native + worker::Fetch wasm32)
-migrations/          — D1-compatible SQL migrations (shared with rusqlite)
+      main.rs          — server entry (axum) + client entry (dioxus::launch)
+      app.rs           — Route enum, AppRoot, Layout, MobileTabBar
+      state.rs         — UserState, CartState, AppMode, PlatformConfig
+      db/              — SQLite repo + migrations (server-only)
+      server_fns/      — #[server] functions: restaurants, orders, couriers, auth, config
+      pages/           — UI components: home, restaurants (more coming)
+  handlers/          — (legacy) shared axum route handlers
+  api/               — (legacy) axum REST server
+  frontend/          — (legacy) Dioxus SPA
+  worker/            — (legacy) Cloudflare Worker
+  stripe-universal/  — stripe-universal: typed Stripe client
+Dockerfile           — multi-stage build for Cloudflare Containers
+wrangler.containers.jsonc — CF Containers config
+migrations/          — SQL migrations (shared)
 ```
 
-**Repository pattern:**
+**Fullstack pattern (new):**
 ```
-[Repository trait]  ←  [handlers crate]  ←  [api: SqliteRepo]
-   crates/core          crates/handlers      crates/api
-                                         ←  [worker: D1Repo]
-                                             crates/worker
+[core: types + Repository trait]  ←  [app: SqliteRepo + #[server] fns + SSR UI]
+   crates/core                        crates/app
 ```
-- `Repository` trait in core defines async data access methods
-- `handlers` crate has axum handlers generic over `R: Repository`
-- `api` uses SqliteRepo (implements Repository) + handlers crate
-- `worker` uses D1Repo (same method signatures, can't impl trait due to !Send D1Database) + worker::Router
+- `#[server]` functions replace REST API — return typed domain objects
+- `use_server_future(server_fn)` in components — no JSON, no API client
+- SSR on first load, WASM hydration for interactivity
 
 ## Run Commands
 
 ```bash
-cargo run -p openwok-api       # Start server on http://localhost:3000/api
-DATABASE_PATH=data/openwok.db cargo run -p openwok-api  # With custom DB path
+make dev                        # Fullstack dev server (SSR + hot reload)
+make dev-api                    # Legacy API server
+make docker-build               # Build Docker image
+make docker-run                 # Run container locally
 make test                       # Run all tests
 make clippy                     # Lint
 make fmt                        # Check formatting
