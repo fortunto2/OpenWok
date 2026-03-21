@@ -23,7 +23,7 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_classes": ["OpenWokNode"]
+      "new_sqlite_classes": ["OpenWokNode"]
     }
   ],
 
