@@ -2,11 +2,22 @@
 
 use dioxus::prelude::*;
 
-use crate::api::fetch_economics;
+use crate::local_db::Store;
 
 #[component]
 pub fn PublicEconomicsPage() -> Element {
-    let economics = use_resource(fetch_economics);
+    let store = use_context::<Store>();
+    let economics = use_resource(move || {
+        let store = store.clone();
+        async move {
+            crate::api::cached_get::<serde_json::Value>(
+                "/public/economics",
+                store.as_ref(),
+                "economics",
+            )
+            .await
+        }
+    });
 
     rsx! {
         div { class: "economics-page",

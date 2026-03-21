@@ -2,8 +2,8 @@
 
 use dioxus::prelude::*;
 
-use crate::api::fetch_order;
 use crate::app::Route;
+use crate::local_db::Store;
 
 const ORDER_TIMELINE: &[&str] = &[
     "Created",
@@ -31,11 +31,20 @@ pub fn OrderSuccess(id: String) -> Element {
 
 #[component]
 pub fn OrderTracking(id: String) -> Element {
+    let store = use_context::<Store>();
     let mut refresh = use_signal(|| 0u32);
     let order = use_resource(move || {
         let _ = refresh();
         let id = id.clone();
-        async move { fetch_order(id).await }
+        let store = store.clone();
+        async move {
+            crate::api::cached_get::<serde_json::Value>(
+                &format!("/orders/{id}"),
+                store.as_ref(),
+                &format!("order_{id}"),
+            )
+            .await
+        }
     });
 
     match &*order.read_unchecked() {

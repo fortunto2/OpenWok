@@ -2,22 +2,44 @@
 
 use dioxus::prelude::*;
 
-use crate::api::{
-    assign_courier, fetch_admin_disputes, fetch_admin_metrics, fetch_admin_users, fetch_all_orders,
-    fetch_dashboard, resolve_dispute, toggle_user_blocked, transition_order,
-};
+use crate::api::{assign_courier, resolve_dispute, toggle_user_blocked, transition_order};
+use crate::local_db::Store;
 
 #[component]
 pub fn OperatorConsole() -> Element {
+    let store = use_context::<Store>();
     let mut refresh = use_signal(|| 0u32);
     let mut active_tab = use_signal(|| "overview".to_string());
+    let store_d = store.clone();
     let dashboard = use_resource(move || {
         let _ = refresh();
-        fetch_dashboard()
+        let store = store_d.clone();
+        async move {
+            crate::api::cached_get::<serde_json::Value>("/restaurants", store.as_ref(), "dashboard")
+                .await
+                .map(|restaurants| {
+                    let couriers = serde_json::Value::Array(vec![]);
+                    serde_json::json!({
+                        "restaurant_count": restaurants.as_array().map(|a| a.len()).unwrap_or(0),
+                        "couriers_online": 0,
+                        "restaurants": restaurants,
+                        "couriers": couriers,
+                    })
+                })
+        }
     });
+    let store_o = store.clone();
     let orders = use_resource(move || {
         let _ = refresh();
-        fetch_all_orders()
+        let store = store_o.clone();
+        async move {
+            crate::api::cached_get::<Vec<serde_json::Value>>(
+                "/orders",
+                store.as_ref(),
+                "all_orders",
+            )
+            .await
+        }
     });
 
     let dashboard_data = dashboard.read_unchecked();
@@ -178,7 +200,18 @@ pub fn OperatorConsole() -> Element {
 
 #[component]
 fn MetricsPanel() -> Element {
-    let metrics = use_resource(fetch_admin_metrics);
+    let store = use_context::<Store>();
+    let metrics = use_resource(move || {
+        let store = store.clone();
+        async move {
+            crate::api::cached_get::<serde_json::Value>(
+                "/admin/metrics",
+                store.as_ref(),
+                "admin_metrics",
+            )
+            .await
+        }
+    });
 
     match &*metrics.read_unchecked() {
         Some(Ok(data)) => {
@@ -278,9 +311,18 @@ fn MetricsPanel() -> Element {
 
 #[component]
 fn UsersPanel(refresh: Signal<u32>) -> Element {
+    let store = use_context::<Store>();
     let users = use_resource(move || {
         let _ = refresh();
-        fetch_admin_users()
+        let store = store.clone();
+        async move {
+            crate::api::cached_get::<Vec<serde_json::Value>>(
+                "/admin/users",
+                store.as_ref(),
+                "admin_users",
+            )
+            .await
+        }
     });
 
     match &*users.read_unchecked() {
@@ -356,9 +398,18 @@ fn UsersPanel(refresh: Signal<u32>) -> Element {
 
 #[component]
 fn DisputesPanel(refresh: Signal<u32>) -> Element {
+    let store = use_context::<Store>();
     let disputes = use_resource(move || {
         let _ = refresh();
-        fetch_admin_disputes()
+        let store = store.clone();
+        async move {
+            crate::api::cached_get::<Vec<serde_json::Value>>(
+                "/admin/disputes",
+                store.as_ref(),
+                "admin_disputes",
+            )
+            .await
+        }
     });
 
     match &*disputes.read_unchecked() {

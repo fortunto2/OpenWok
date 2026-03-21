@@ -151,35 +151,8 @@ pub async fn place_order(body: String) -> Result<(String, Option<String>), Strin
     Ok((order_id, checkout_url))
 }
 
-pub async fn fetch_order(id: String) -> Result<serde_json::Value, String> {
-    api_get(&format!("/orders/{id}")).await
-}
-
-pub async fn fetch_dashboard() -> Result<serde_json::Value, String> {
-    let restaurants: Vec<serde_json::Value> = api_get("/restaurants").await?;
-    let couriers: Vec<serde_json::Value> = api_get("/couriers").await?;
-    Ok(serde_json::json!({
-        "restaurant_count": restaurants.len(),
-        "couriers_online": couriers.len(),
-        "restaurants": restaurants,
-        "couriers": couriers,
-    }))
-}
-
-pub async fn fetch_economics() -> Result<serde_json::Value, String> {
-    api_get("/public/economics").await
-}
-
-pub async fn fetch_admin_metrics() -> Result<serde_json::Value, String> {
-    api_get("/admin/metrics").await
-}
-
 pub async fn fetch_my_orders() -> Result<Vec<serde_json::Value>, String> {
     api_get("/my/orders").await
-}
-
-pub async fn fetch_all_orders() -> Result<Vec<serde_json::Value>, String> {
-    api_get("/orders").await
 }
 
 pub async fn assign_courier(order_id: String) -> Result<serde_json::Value, String> {
@@ -196,20 +169,12 @@ pub async fn transition_order(order_id: String, status: String) -> Result<(), St
 
 // --- Admin ---
 
-pub async fn fetch_admin_users() -> Result<Vec<serde_json::Value>, String> {
-    api_get("/admin/users").await
-}
-
 pub async fn toggle_user_blocked(user_id: &str, blocked: bool) -> Result<(), String> {
     api_patch_json(
         &format!("/admin/users/{user_id}/block"),
         &serde_json::json!({ "blocked": blocked }),
     )
     .await
-}
-
-pub async fn fetch_admin_disputes() -> Result<Vec<serde_json::Value>, String> {
-    api_get("/admin/disputes").await
 }
 
 pub async fn resolve_dispute(
