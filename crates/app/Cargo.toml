@@ -1,0 +1,44 @@
+[package]
+name = "openwok-app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+openwok-core = { path = "../core" }
+dioxus = { version = "0.7", features = ["fullstack", "router"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+rust_decimal = { workspace = true }
+
+# WASM-only deps
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { workspace = true, features = ["js"] }
+
+# Server-only deps (gated by feature)
+axum = { workspace = true, features = ["ws"], optional = true }
+tokio = { workspace = true, optional = true }
+rusqlite = { version = "0.34", features = ["bundled"], optional = true }
+dioxus-cli-config = { version = "0.7", optional = true }
+async-trait = { workspace = true, optional = true }
+tower-http = { version = "0.6", features = ["cors"], optional = true }
+stripe-universal = { path = "../stripe-universal", features = ["reqwest-backend"], optional = true }
+futures-util = { version = "0.3", optional = true }
+jsonwebtoken = { workspace = true, optional = true }
+
+[features]
+default = []
+server = [
+    "dioxus/server",
+    "dep:axum",
+    "dep:tokio",
+    "dep:rusqlite",
+    "dep:dioxus-cli-config",
+    "dep:async-trait",
+    "dep:tower-http",
+    "dep:stripe-universal",
+    "dep:futures-util",
+    "dep:jsonwebtoken",
+]
+web = ["dioxus/web"]
