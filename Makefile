@@ -37,15 +37,15 @@ dev:
 	wrangler dev
 
 dev-frontend:
-	cd crates/frontend && $(DX) serve
+	cd crates/frontend && $(DX) serve --platform web
 
 dev-api:
-	cargo run -p openwok-api
+	DATABASE_PATH=data/openwok.db cargo run -p openwok-api
 
 dev-full:
-	@echo "Starting API (port 3000) and Frontend (port 8080)..."
-	@cargo run -p openwok-api &
-	@sleep 2 && cd crates/frontend && $(DX) serve
+	@echo "Starting API (port 3030) and Frontend (port 8080)..."
+	@DATABASE_PATH=data/openwok.db cargo run -p openwok-api &
+	@sleep 2 && cd crates/frontend && $(DX) serve --platform web
 	@trap 'kill %1' EXIT
 
 serve-desktop:
