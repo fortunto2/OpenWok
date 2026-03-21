@@ -28,4 +28,4 @@ gloo-timers = { version = "0.3", features = ["futures"] }
 open = "5"
 dirs = "6"
 tokio = { version = "1", features = ["time"] }
-# rusqlite not needed — native uses file-based JSON cache via dirs crate
+rusqlite = { version = "0.34", features = ["bundled"] }
