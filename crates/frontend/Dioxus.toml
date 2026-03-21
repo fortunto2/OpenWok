@@ -1,5 +1,6 @@
 [application]
 name = "openwok"
+asset_dir = "assets"
 
 [web.app]
 title = "OpenWok — Fair Food Delivery"
@@ -16,3 +17,8 @@ style = []
 [[web.proxy]]
 # Proxy API calls to local axum server during development
 backend = "http://localhost:3030/api/"
+
+[bundle]
+identifier = "co.superduperai.openwok"
+publisher = "SuperDuperAI"
+icon = ["public/icon-192.png"]

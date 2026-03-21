@@ -76,7 +76,8 @@ crates/
     src/
       main.rs          — mod declarations + fn main (~10 lines)
       app.rs           — Route enum, App, Layout
-      state.rs         — UserState, CartState, JWT helpers
+      state.rs         — UserState, CartState, AppMode, PlatformConfig, JWT helpers
+      platform.rs      — Cross-platform abstractions (open_url, reload_page, sleep_ms)
       analytics.rs     — PostHog capture helpers
       api.rs           — API client, data fetchers, helpers
       pages/           — 8 page modules (home, auth, restaurants, checkout, order, economics, operator, owner, courier)
@@ -111,11 +112,14 @@ make setup-hooks                # Configure pre-commit hooks (fmt + clippy)
 
 ## Development Workflow
 
-**Frontend (Dioxus SPA):**
+**Frontend (Dioxus — cross-platform):**
 ```bash
-cd crates/frontend && dx serve    # Dev server with hot-reload at http://localhost:8080
-                                  # MUST run from crates/frontend/ (where Dioxus.toml is)
-                                  # API proxied to http://localhost:3000/api
+cd crates/frontend && dx serve              # Web dev server at http://localhost:8080
+make serve-desktop                           # Desktop app (native window)
+make serve-ios                               # iOS simulator (requires Xcode)
+                                             # MUST run from crates/frontend/ (where Dioxus.toml is)
+                                             # API proxied to http://localhost:3000/api (web)
+                                             # API direct to openwok.superduperai.co (native)
 ```
 
 **Backend (local axum):**

@@ -1,4 +1,4 @@
-.PHONY: test clippy fmt check build-frontend build-worker deploy dev setup-hooks help
+.PHONY: test clippy fmt check build-frontend build-worker deploy dev serve-desktop serve-ios setup-hooks help
 
 DX := $(HOME)/.cargo/bin/dx
 DX_OUT := $(HOME)/.cargo-target/dx/openwok-frontend/release/web/public
@@ -47,6 +47,12 @@ dev-full:
 	@cargo run -p openwok-api &
 	@sleep 2 && cd crates/frontend && $(DX) serve
 	@trap 'kill %1' EXIT
+
+serve-desktop:
+	cd crates/frontend && $(DX) serve --platform desktop
+
+serve-ios:
+	cd crates/frontend && $(DX) serve --platform ios
 
 setup-hooks:
 	git config core.hooksPath .githooks

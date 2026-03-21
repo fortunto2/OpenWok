@@ -106,7 +106,7 @@ Production-ready for controlled pilot.
 
 **Tasks:**
 1. Restaurant onboarding flow (sign up → menu upload → go live)
-2. Courier PWA (accept order, route, confirm delivery)
+2. Cross-platform Dioxus app (web + mobile) (accept order, route, confirm delivery)
 3. ~~Real restaurant data (10-20 LA restaurants, 1-2 zones)~~ **Done** — `pilot-infra_20260320`: 18 restaurants, 80+ items, 6 zones
 4. ~~Admin tools: view metrics~~ **Done** — `GET /api/admin/metrics` + operator console Metrics tab. Block/dispute still needs auth.
 5. ~~Public economics page (open-book: total orders, total fees, breakdown)~~ **Done** — `/economics` route + `GET /api/public/economics`

@@ -1,4 +1,4 @@
-# Implementation Plan: OpenWok Mobile App (Dioxus Native)
+# Implementation Plan: Cross-Platform Frontend + Config Externalization
 
 **Track ID:** courier-mobile_20260321
 **Spec:** [spec.md](./spec.md)
@@ -7,126 +7,124 @@
 
 ## Overview
 
-Создаём `crates/mobile/` — единое Dioxus-приложение для iOS с двумя режимами (customer / courier). Портируем UI-логику из web-frontend, заменяя web-only deps на cross-platform аналоги. 5 фаз, 15 задач.
+Рефакторинг `crates/frontend/` в cross-platform Dioxus-приложение. Заменяем web-only deps на кроссплатформенные, выносим захардкоженные конфиги в API. 6 фаз, 14 задач.
 
-## Phase 1: Scaffold & Hello World
-Создать крейт, настроить Dioxus для mobile, запустить на iOS симуляторе.
+## Phase 1: Replace gloo-net with reqwest
+Механическая замена HTTP-клиента. reqwest работает на WASM (browser fetch) и native (TLS).
 
 ### Tasks
-- [x] Task 1.1: Create `crates/mobile/Cargo.toml` <!-- sha:73ffd7a --> — deps: `dioxus = { version = "0.7", features = ["router"] }`, `reqwest = { version = "0.12", features = ["json", "rustls-tls"] }`, `openwok-core = { path = "../core" }`, `serde`, `serde_json`, `dirs` (JWT storage), `open` (system browser for OAuth). No `gloo-net`, `web-sys`, `js-sys`, `wasm-bindgen`
-- [x] Task 1.2: Create `crates/mobile/Dioxus.toml` <!-- sha:73ffd7a --> — `[application]` name = "openwok-mobile", `[bundle]` identifier = "co.superduperai.openwok", icons
-- [x] Task 1.3: Add `"crates/mobile"` to workspace `members` in root `Cargo.toml`. Create `crates/mobile/src/main.rs` <!-- sha:73ffd7a --> — minimal Dioxus app with "OpenWok" text
-- [x] Task 1.4: Install iOS toolchains (`rustup target add aarch64-apple-ios aarch64-apple-ios-sim`) <!-- sha:73ffd7a --> — targets installed. `dx serve --ios` blocked by missing Xcode.app (only CommandLineTools installed). Dev via desktop mode.
+- [x] Task 1.1: Update `crates/frontend/Cargo.toml` <!-- sha:205270c --> — gloo-net → reqwest, cfg-guarded web-only deps, added dirs/open/tokio for native
+- [x] Task 1.2: Rewrite `crates/frontend/src/api.rs` <!-- sha:205270c --> — reqwest::Client-based API, added api_post_raw, api_delete, owner/courier helpers
+- [x] Task 1.3: Replace direct `gloo_net::Request` calls <!-- sha:205270c --> — courier.rs and owner.rs now use crate::api::* helpers
 
 ### Verification
-- [x] `cargo build -p openwok-mobile` succeeds
-- [ ] `dx serve --ios` shows hello world in iOS simulator — BLOCKED: needs Xcode.app install
+- [x] `cargo build -p openwok-frontend --target wasm32-unknown-unknown` succeeds
+- [ ] `dx serve --web` (from `crates/frontend/`) works as before
+- [x] All existing tests pass (107)
 
-## Phase 2: Shared Infrastructure
-API client, auth, storage — cross-platform foundation.
+## Phase 2: Abstract platform-specific code <!-- checkpoint:205270c -->
+Replace `web_sys::window()` calls with cfg-guarded or platform-agnostic alternatives.
 
 ### Tasks
-- [x] Task 2.1: Create shared modules <!-- sha:510563e --> — `config.rs` (API_BASE = `"https://openwok.superduperai.co/api"`, Supabase URL/key), `storage.rs` (JWT file persistence via `directories::ProjectDirs`), `state.rs` (UserState signal + AppMode enum {Customer, Courier})
-- [x] Task 2.2: Create `api.rs` <!-- sha:7724b4b --> — `reqwest::Client`-based: `api_get<T>`, `api_post_json<T>`, `api_patch_json`. Same function signatures as web `api.rs`, but reqwest. Include data fetchers: `fetch_restaurants`, `fetch_restaurant`, `place_order`, `fetch_order`, `fetch_courier_me`, `fetch_my_deliveries`
-- [x] Task 2.3: Create `auth.rs` <!-- sha:8540c1d --> — Supabase Google OAuth: build auth URL → `open::that(url)` (system browser) → handle deep link callback `openwok://auth/callback?access_token=...` → store JWT via storage.rs. Login/Logout via Dioxus signals
+- [x] Task 2.1: Abstract storage in `state.rs` <!-- sha:205270c --> — cfg(wasm32) web_sys localStorage, cfg(!wasm32) file-based dirs crate
+- [x] Task 2.2: Replace `web_sys::window()` calls <!-- sha:205270c --> — platform.rs: open_url(), reload_page(), sleep_ms(). Used in checkout.rs, owner.rs, courier.rs, app.rs
+- [x] Task 2.3: cfg-guard analytics <!-- sha:205270c --> — PostHog no-op on native, POSTHOG_SNIPPET empty on native
+- [x] Task 2.4: Abstract auth <!-- sha:205270c --> — cfg-guarded OAuth URL + callback hash parsing
 
 ### Verification
-- [ ] API client fetches `GET /api/restaurants` from production and returns data
-- [ ] JWT save/load round-trips correctly
-- [ ] OAuth URL opens in system browser
+- [x] `cargo build -p openwok-frontend` (native target) succeeds
+- [ ] `dx serve --web` still works without regressions
+- [x] All tests pass (107)
 
-## Phase 3: Customer Mode UI
-Рестораны → меню → корзина → чекаут → трекинг. Портируем из web frontend, адаптируя под mobile.
+## Phase 3: Externalize hardcoded configs
+Цены из API, конфиги из environment.
 
 ### Tasks
-- [x] Task 3.1: Create `app.rs` <!-- sha:1773d10 --> — Route enum (9 routes), App component with auth guard, Layout with mobile bottom tab bar (Restaurants / Orders / Profile), mode switcher (Customer ↔ Courier) in profile/settings. No desktop nav-links header
-- [~] Task 3.2: Create customer pages — `pages/restaurants.rs` (RestaurantList + RestaurantMenu + CartPanel, adapted from web), `pages/checkout.rs` (6-line pricing breakdown, Stripe redirect via system browser), `pages/order.rs` (OrderTracking with status timeline). Port RSX from `crates/frontend/src/pages/`, replace `gloo_net::Request` with `crate::api::*` calls, remove `web_sys` references
-- [ ] Task 3.3: Create `assets/style.css` — mobile-first CSS: safe area insets (`env(safe-area-inset-*)`), 48px+ touch targets, bottom tab bar, full-width cards, sticky headers, large buttons (56px CTA), no desktop-only styles
+- [x] Task 3.1: Add `GET /api/config` <!-- sha:326d650 --> endpoint in `crates/handlers/` — returns `{ "delivery_fee": "5.00", "local_ops_fee": "2.50", "federal_fee": "1.00", "api_version": "1" }`. Read from Node config in DB (fallback to defaults). Add to router in both api and worker crates
+- [x] Task 3.2: Frontend fetches config <!-- sha:c5125c1 --> — `api_get("/config")` on app init, store in context signal. `pages/checkout.rs` reads fees from config context instead of hardcoded `Money::from("5.00")`. `API_BASE`: on wasm `"/api"`, on native configurable (env or compile-time const)
 
 ### Verification
-- [ ] Restaurant list loads and displays on iOS simulator
-- [ ] Can browse menu, add to cart, see pricing breakdown
-- [ ] Checkout redirects to Stripe (system browser)
-- [ ] Order tracking shows status timeline
+- [ ] `GET /api/config` returns JSON with fees
+- [ ] Checkout page shows fees from API, not hardcoded values
+- [ ] Changing fees in DB/config changes what frontend displays
 
-## Phase 4: Courier Mode UI
-Регистрация + дашборд с toggle/mark delivered + auto-refresh.
+## Phase 4: Mobile UI additions
+Bottom tab bar, mode switcher, mobile-responsive CSS.
 
 ### Tasks
-- [ ] Task 4.1: Create courier pages — `pages/courier.rs`: RegisterCourier (name + zone dropdown, 44px+ inputs, full-width submit), MyDeliveries (availability toggle as large switch, active delivery card with 56px "Mark Delivered" button, delivery history cards). Port from `crates/frontend/src/pages/courier.rs`, replace API calls
-- [ ] Task 4.2: Add auto-refresh — poll `GET /api/my/deliveries` every 15s when courier is available (`use_future` with `tokio::time::sleep`). Add pull-to-refresh pattern. Loading/error states with retry buttons
-- [ ] Task 4.3: Build release — `dx bundle --platform ios`, verify .app on simulator, document TestFlight upload steps
+- [~] Task 4.1: Add mobile layout in `app.rs` — bottom tab bar (Restaurants / Cart / Deliveries / Profile), mode switcher (Customer ↔ Courier). `AppMode` enum in state.rs. Show/hide tabs based on mode. Coexists with existing desktop header (can show both or cfg-switch)
+- [ ] Task 4.2: Mobile CSS in `assets/style.css` — safe area insets (`env(safe-area-inset-*)`), 48px+ touch targets, bottom tab bar styling, full-width cards on small screens, large CTA buttons (56px). `@media (max-width: 640px)` for responsive
 
 ### Verification
-- [ ] Courier registration works from mobile
-- [ ] Availability toggle calls API and updates UI
-- [ ] "Mark Delivered" transitions order status
-- [ ] New deliveries appear within 15s
-- [ ] `dx bundle --platform ios` produces valid .app
+- [ ] Bottom tabs visible and functional
+- [ ] Mode switcher toggles between Customer/Courier views
+- [ ] Touch targets 48px+ on mobile viewport
 
-## Phase 5: Cleanup & Docs
-Удалить PWA-артефакты, обновить документацию.
+## Phase 5: Multi-platform build config
+Dioxus.toml и Cargo.toml для мультиплатформенной сборки.
 
 ### Tasks
-- [ ] Task 5.1: Remove PWA artifacts — delete `crates/frontend/public/manifest.json`, delete `docs/plan/courier-pwa_20260321/` directory
-- [ ] Task 5.2: Update docs — `docs/prd.md`: replace "Courier PWA" → "OpenWok Mobile (Dioxus native)" in Phase 7. CLAUDE.md: add `crates/mobile/` to workspace structure, add mobile build commands. `planning/ROADMAP.md`: replace PWA references
-- [ ] Task 5.3: Run `make check` — all tests pass, clippy clean, fmt clean. Verify web frontend still builds (`dx build --platform web` from `crates/frontend/`)
+- [ ] Task 5.1: Update `crates/frontend/Dioxus.toml` — add `[bundle]` section (identifier, icons), verify `dx serve --desktop` launches desktop window with working app
+- [ ] Task 5.2: Add Makefile targets — `make serve-desktop` (`cd crates/frontend && dx serve --desktop`), `make serve-mobile` (`cd crates/frontend && dx serve --ios`). Document in CLAUDE.md
+
+### Verification
+- [ ] `dx serve --desktop` opens desktop window with working app
+- [ ] `dx serve --web` still works as before
+
+## Phase 6: Cleanup & Docs
+
+### Tasks
+- [ ] Task 6.1: Remove PWA artifacts — delete `crates/frontend/public/manifest.json`, `crates/frontend/public/sw.js`, PWA icon files, remove manifest/SW references from `index.html`. Delete `docs/plan/courier-pwa_20260321/`
+- [ ] Task 6.2: Update docs — CLAUDE.md: add multi-platform build commands, update workspace structure. `docs/prd.md`: replace "Courier PWA" → "Cross-platform Dioxus app". Run `make check`
 
 ### Verification
 - [ ] No PWA files remain
-- [ ] CLAUDE.md and PRD reflect mobile app
+- [ ] CLAUDE.md and PRD updated
 - [ ] `make check` passes
-- [ ] Web frontend unaffected
+- [ ] Web frontend works as before
 
 ## Final Verification
 - [ ] All acceptance criteria from spec met
 - [ ] Tests pass
 - [ ] Linter clean
-- [ ] Both builds succeed: web frontend + mobile app
+- [ ] Web build works (`dx serve --web`)
+- [ ] Desktop build works (`dx serve --desktop`)
 - [ ] Documentation up to date
-- [ ] Mobile app runs on iOS simulator with both modes
 
 ## Context Handoff
 _Summary for /build to load at session start — keeps context compact._
 
 ### Session Intent
-Build a unified Dioxus native mobile app (iOS) with customer and courier modes, replacing the PWA approach.
+Refactor existing frontend from web-only to cross-platform Dioxus app. Replace web-only deps, externalize hardcoded configs.
 
 ### Key Files
-- `crates/mobile/Cargo.toml` — NEW: dioxus 0.7, reqwest, openwok-core, directories, open
-- `crates/mobile/Dioxus.toml` — NEW: bundle config, iOS URL scheme
-- `crates/mobile/src/main.rs` — NEW: entry point
-- `crates/mobile/src/app.rs` — NEW: Route enum (9 routes), App, Layout with bottom tabs, mode switcher
-- `crates/mobile/src/api.rs` — NEW: reqwest-based API client (port from web api.rs)
-- `crates/mobile/src/auth.rs` — NEW: Supabase OAuth + deep link callback
-- `crates/mobile/src/storage.rs` — NEW: file-based JWT persistence
-- `crates/mobile/src/config.rs` — NEW: API_BASE, Supabase config
-- `crates/mobile/src/state.rs` — NEW: UserState, CartState, AppMode
-- `crates/mobile/src/pages/restaurants.rs` — NEW: RestaurantList + RestaurantMenu (port from web)
-- `crates/mobile/src/pages/checkout.rs` — NEW: Checkout with pricing (port from web)
-- `crates/mobile/src/pages/order.rs` — NEW: OrderTracking (port from web)
-- `crates/mobile/src/pages/courier.rs` — NEW: RegisterCourier + MyDeliveries (port from web)
-- `crates/mobile/assets/style.css` — NEW: mobile-first CSS
-- `Cargo.toml` — add mobile to workspace members
-- `crates/frontend/public/manifest.json` — DELETE
-- `docs/plan/courier-pwa_20260321/` — DELETE
+- `crates/frontend/Cargo.toml` — MODIFY: gloo-net → reqwest, conditional deps
+- `crates/frontend/Dioxus.toml` — MODIFY: add bundle config
+- `crates/frontend/src/api.rs` — REWRITE: gloo_net → reqwest
+- `crates/frontend/src/state.rs` — MODIFY: cfg-guarded storage
+- `crates/frontend/src/analytics.rs` — MODIFY: cfg-guard PostHog
+- `crates/frontend/src/app.rs` — MODIFY: add bottom tabs, mode switcher, config context
+- `crates/frontend/src/pages/auth.rs` — MODIFY: cfg-guard web_sys usage
+- `crates/frontend/src/pages/checkout.rs` — MODIFY: fees from config, open::that for Stripe
+- `crates/frontend/src/pages/courier.rs` — MODIFY: use api.rs helpers, signal refresh
+- `crates/frontend/src/pages/owner.rs` — MODIFY: use api.rs helpers, signal refresh
+- `crates/frontend/assets/style.css` — MODIFY: add mobile CSS
+- `crates/handlers/src/lib.rs` — MODIFY: add /api/config route
+- `crates/api/src/main.rs` — MODIFY: register /api/config
 
 ### Decisions Made
-- **Одно приложение, два режима** — Customer ↔ Courier переключатель. На пилоте курьеры = клиенты. Один апп, один логин.
-- **Отдельный крейт `crates/mobile/`** — web frontend (`crates/frontend/`) остаётся. У них разные deps: web = gloo-net + web-sys, mobile = reqwest + directories. Общий код — `openwok-core` types.
-- **Портирование, не шаринг UI** — RSX копируем и адаптируем (заменяем API calls, убираем web_sys). Не пытаемся делать shared UI crate — это over-engineering на данном этапе.
-- **9 из 15 роутов** — пропускаем desktop-only: operator, economics, my-restaurants (owner), onboard-restaurant, restaurant-settings, admin. Operator/admin/owner = веб.
-- **Bottom tab bar** — мобильная навигация вместо desktop header. Tabs: Restaurants, Orders, Profile/Settings.
-- **System browser OAuth** — Google рекомендует, безопаснее embedded WebView. Deep link для callback.
-- **iOS first** — macOS dev, toolchain ready. Android — follow-up track.
+- **Один крейт, два таргета** — не копируем код. `dx serve --web` и `dx serve --desktop` из одного крейта
+- **reqwest everywhere** — работает на WASM (browser fetch) и native (TLS). Единый HTTP-клиент
+- **cfg guards по target_arch** — `wasm32` для web-specific, native для file-based storage
+- **Цены из API** — `GET /api/config` вместо хардкода. Node operator может менять fees
+- **Bottom tabs для mobile** — CSS responsive, показываем на маленьких экранах
+- **PostHog no-op на native** — JS snippet не работает. Native SDK — отдельный трек
 
 ### Risks
-- **Deep link auth** — iOS URL scheme нужно тестировать с Supabase redirect URL. Fallback: QR-код логин или manual token.
-- **Dioxus 0.7 mobile maturity** — WebView rendering может иметь edge cases. Тестировать каждый экран.
-- **CORS** — mobile origin ≠ web origin. Может потребоваться `Access-Control-Allow-Origin: *` на Worker.
-- **Stripe checkout on mobile** — redirect в system browser для оплаты, return URL через deep link. Нужно тестировать полный flow.
-- **openwok-core на ARM64** — чистый Rust, должно компилироваться, но verify.
-- **Размер бинаря** — reqwest + rustls может добавить мегабайты. Мониторить.
+- **reqwest на WASM** — работает, но может быть чуть больше bundle size чем gloo-net. Мониторить
+- **uuid `js` feature** — нужен на WASM для crypto random, не нужен на native. Conditional в Cargo.toml
+- **dx serve --desktop** — Dioxus desktop использует Tao/Wry WebView. Может требовать GTK на Linux
+- **Существующий worker crate** — не трогаем. Worker собирается отдельно с D1Repo
 
 ---
 _Generated by /plan. Tasks marked [~] in progress and [x] complete by /build._
