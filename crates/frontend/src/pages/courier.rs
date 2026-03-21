@@ -4,7 +4,10 @@ use dioxus::prelude::*;
 
 use crate::api::{api_get, api_patch_json, register_courier};
 use crate::app::Route;
+use crate::local_db;
+use crate::platform;
 use crate::state::UserState;
+use crate::sync;
 
 #[component]
 pub fn RegisterCourier() -> Element {
@@ -114,12 +117,22 @@ pub fn RegisterCourier() -> Element {
 pub fn MyDeliveries() -> Element {
     let user_state = use_context::<Signal<UserState>>();
     let mut refresh = use_signal(|| 0u32);
+    let online = platform::is_online();
+    let pending = sync::pending_count();
 
+    // Load from cache first, then API
     let courier = use_resource(move || {
         let jwt = user_state.read().jwt.clone();
         async move {
             let _jwt = jwt?;
-            api_get::<serde_json::Value>("/couriers/me").await.ok()
+            // Try API first, fall back to cache
+            match api_get::<serde_json::Value>("/couriers/me").await {
+                Ok(c) => {
+                    local_db::set("courier_profile", &c);
+                    Some(c)
+                }
+                Err(_) => local_db::get("courier_profile"),
+            }
         }
     });
 
@@ -128,15 +141,30 @@ pub fn MyDeliveries() -> Element {
         let jwt = user_state.read().jwt.clone();
         async move {
             let _jwt = jwt?;
-            api_get::<Vec<serde_json::Value>>("/my/deliveries")
-                .await
-                .ok()
+            match api_get::<Vec<serde_json::Value>>("/my/deliveries").await {
+                Ok(d) => {
+                    local_db::set("deliveries", &serde_json::to_value(&d).unwrap_or_default());
+                    Some(d)
+                }
+                Err(_) => {
+                    // Offline fallback: load from cache
+                    local_db::get("deliveries").and_then(|v| serde_json::from_value(v).ok())
+                }
+            }
         }
     });
 
     rsx! {
         div { class: "page my-restaurants",
             h1 { "My Deliveries" }
+
+            // Connectivity + pending indicator
+            if !online {
+                div { class: "offline-badge", "Offline" }
+            }
+            if pending > 0 {
+                div { class: "pending-badge", "{pending} pending sync" }
+            }
 
             match &*courier.read() {
                 Some(Some(c)) => rsx! {
@@ -189,10 +217,19 @@ pub fn MyDeliveries() -> Element {
                                                         onclick: move |_| {
                                                             let oid = oid.clone();
                                                             spawn(async move {
-                                                                let _ = api_patch_json(
-                                                                    &format!("/orders/{oid}/status"),
-                                                                    &serde_json::json!({"status": "Delivered"}),
-                                                                ).await;
+                                                                if platform::is_online() {
+                                                                    // Online: call API directly
+                                                                    let _ = api_patch_json(
+                                                                        &format!("/orders/{oid}/status"),
+                                                                        &serde_json::json!({"status": "Delivered"}),
+                                                                    ).await;
+                                                                } else {
+                                                                    // Offline: queue for later sync
+                                                                    sync::queue_action(
+                                                                        "mark_delivered",
+                                                                        serde_json::json!({"order_id": oid}),
+                                                                    );
+                                                                }
                                                                 refresh += 1;
                                                             });
                                                         },

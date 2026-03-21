@@ -589,6 +589,30 @@ a:hover { color: var(--primary-hover); }
     font-weight: 600;
 }
 
+/* ====== Offline indicators ====== */
+.offline-badge {
+    display: inline-block;
+    background: #ef4444;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.pending-badge {
+    display: inline-block;
+    background: #f59e0b;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    margin-left: 0.5rem;
+}
+
 /* Show bottom tabs on mobile, hide desktop header */
 @media (max-width: 640px) {
     .bottom-tabs {

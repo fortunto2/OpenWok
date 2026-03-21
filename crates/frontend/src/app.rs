@@ -77,6 +77,20 @@ pub fn App() -> Element {
         });
     });
 
+    // Background sync loop: pull deliveries + push pending every 15s
+    use_future(|| async {
+        loop {
+            if crate::platform::is_online() {
+                let pushed = crate::sync::push_pending().await;
+                if pushed > 0 {
+                    // Synced {pushed} pending actions
+                }
+                crate::sync::pull_deliveries().await;
+            }
+            crate::platform::sleep_ms(15_000).await;
+        }
+    });
+
     rsx! {
         document::Script { {POSTHOG_SNIPPET} }
         ErrorBoundary {
