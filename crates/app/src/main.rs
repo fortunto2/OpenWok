@@ -13,7 +13,7 @@ mod db;
 async fn main() {
     use std::sync::Arc;
 
-    use dioxus_server::DioxusRouterExt;
+    use dioxus::prelude::{DioxusRouterExt, ServeConfig};
     use tokio::sync::Mutex;
 
     let address = dioxus::cli_config::fullstack_address_or_localhost();
@@ -25,7 +25,7 @@ async fn main() {
     let repo = Arc::new(db::repo::SqliteRepo::new(Arc::new(Mutex::new(conn))));
 
     let router = axum::Router::new()
-        .serve_dioxus_application(dioxus_server::ServeConfig::new(), app::AppRoot)
+        .serve_dioxus_application(ServeConfig::new(), app::AppRoot)
         .layer(axum::Extension(repo));
 
     let router = router.into_make_service();
