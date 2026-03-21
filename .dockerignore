@@ -1,0 +1,11 @@
+target/
+.git/
+.gitignore
+.env
+*.md
+docs/
+.solo/
+.playwright-mcp/
+data/
+node_modules/
+.DS_Store
