@@ -121,20 +121,20 @@ pub fn MyDeliveries() -> Element {
     let online = platform::is_online();
     let pending = sync::pending_count(store.as_ref());
 
-    // Load from cache first, then API
+    // Cache-first: show cached data instantly, update from API if online + authed
     let store_c = store.clone();
     let courier = use_resource(move || {
         let jwt = user_state.read().jwt.clone();
         let store = store_c.clone();
         async move {
-            let _jwt = jwt?;
-            match api_get::<serde_json::Value>("/couriers/me").await {
-                Ok(c) => {
-                    store.set("courier_profile", &c);
-                    Some(c)
-                }
-                Err(_) => store.get("courier_profile"),
+            let cached = store.get("courier_profile");
+            if jwt.is_some()
+                && let Ok(c) = api_get::<serde_json::Value>("/couriers/me").await
+            {
+                store.set("courier_profile", &c);
+                return Some(c);
             }
+            cached
         }
     });
 
@@ -144,16 +144,16 @@ pub fn MyDeliveries() -> Element {
         let jwt = user_state.read().jwt.clone();
         let store = store_d.clone();
         async move {
-            let _jwt = jwt?;
-            match api_get::<Vec<serde_json::Value>>("/my/deliveries").await {
-                Ok(d) => {
-                    store.set("deliveries", &serde_json::to_value(&d).unwrap_or_default());
-                    Some(d)
-                }
-                Err(_) => store
-                    .get("deliveries")
-                    .and_then(|v| serde_json::from_value(v).ok()),
+            let cached: Option<Vec<serde_json::Value>> = store
+                .get("deliveries")
+                .and_then(|v| serde_json::from_value(v).ok());
+            if jwt.is_some()
+                && let Ok(d) = api_get::<Vec<serde_json::Value>>("/my/deliveries").await
+            {
+                store.set("deliveries", &serde_json::to_value(&d).unwrap_or_default());
+                return Some(d);
             }
+            cached
         }
     });
 
