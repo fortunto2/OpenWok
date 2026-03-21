@@ -12,7 +12,9 @@ use crate::pages::operator::OperatorConsole;
 use crate::pages::order::{OrderSuccess, OrderTracking};
 use crate::pages::owner::{MyRestaurants, OnboardRestaurant, RestaurantSettings};
 use crate::pages::restaurants::{RestaurantList, RestaurantMenu};
-use crate::state::{CartState, UserState, clear_jwt_from_storage, get_jwt_from_storage};
+use crate::state::{
+    CartState, PlatformConfig, UserState, clear_jwt_from_storage, get_jwt_from_storage,
+};
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 #[rustfmt::skip]
@@ -57,6 +59,23 @@ pub fn App() -> Element {
         let jwt = get_jwt_from_storage();
         Signal::new(UserState { jwt, email: None })
     });
+    use_context_provider(|| Signal::new(PlatformConfig::default()));
+
+    // Fetch config from API on startup
+    let mut config = use_context::<Signal<PlatformConfig>>();
+    use_effect(move || {
+        spawn(async move {
+            if let Ok(data) = crate::api::fetch_config().await {
+                config.set(PlatformConfig {
+                    delivery_fee: data["delivery_fee"].as_str().unwrap_or("5.00").into(),
+                    local_ops_fee: data["local_ops_fee"].as_str().unwrap_or("2.50").into(),
+                    federal_fee: data["federal_fee"].as_str().unwrap_or("1.00").into(),
+                    default_tip: data["default_tip"].as_str().unwrap_or("3.00").into(),
+                });
+            }
+        });
+    });
+
     rsx! {
         document::Script { {POSTHOG_SNIPPET} }
         ErrorBoundary {

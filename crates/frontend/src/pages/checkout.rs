@@ -8,13 +8,18 @@ use rust_decimal::Decimal;
 use crate::analytics::posthog_capture;
 use crate::api::{cart_total, place_order};
 use crate::app::Route;
-use crate::state::CartState;
+use crate::state::{CartState, PlatformConfig};
 
 #[component]
 pub fn Checkout() -> Element {
     let mut cart = use_context::<Signal<CartState>>();
+    let platform_config = use_context::<Signal<PlatformConfig>>();
     let mut address = use_signal(String::new);
-    let mut tip_input = use_signal(|| "3.00".to_string());
+    let config = platform_config.read();
+    let mut tip_input = use_signal({
+        let default_tip = config.default_tip.clone();
+        move || default_tip
+    });
     let mut order_error = use_signal(|| None::<String>);
     let mut placing = use_signal(|| false);
     let nav = use_navigator();
@@ -32,8 +37,8 @@ pub fn Checkout() -> Element {
     posthog_capture("checkout_start");
 
     let food_total = cart_total(&state.items);
-    let delivery_fee = Money::from("5.00");
-    let local_ops_fee = Money::from("2.50");
+    let delivery_fee = Money::from(config.delivery_fee.as_str());
+    let local_ops_fee = Money::from(config.local_ops_fee.as_str());
     let tip = Money::from(tip_input.read().as_str());
     let pricing = calculate_pricing(food_total, delivery_fee, tip, local_ops_fee);
     let grand_total = pricing.total();
@@ -148,6 +153,9 @@ pub fn Checkout() -> Element {
                     let zid = zone_id.clone();
                     let items_json = order_items.clone();
                     let tip_val = tip_input.read().clone();
+                    let cfg = platform_config.read();
+                    let del_fee = cfg.delivery_fee.clone();
+                    let ops_fee = cfg.local_ops_fee.clone();
                     async move {
                         placing.set(true);
                         let body = serde_json::json!({
@@ -155,9 +163,9 @@ pub fn Checkout() -> Element {
                             "items": items_json,
                             "customer_address": addr,
                             "zone_id": zid,
-                            "delivery_fee": "5.00",
+                            "delivery_fee": del_fee,
                             "tip": tip_val,
-                            "local_ops_fee": "2.50",
+                            "local_ops_fee": ops_fee,
                         });
                         match place_order(body.to_string()).await {
                             Ok((order_id, checkout_url)) => {

@@ -7,7 +7,12 @@ use rust_decimal::Decimal;
 
 use crate::state::{CartItem, get_jwt_from_storage};
 
+/// On WASM: relative path (same-origin). On native: absolute URL.
+#[cfg(target_arch = "wasm32")]
 pub const API_BASE: &str = "/api";
+
+#[cfg(not(target_arch = "wasm32"))]
+pub const API_BASE: &str = "https://openwok.superduperai.co/api";
 
 fn client() -> Client {
     Client::new()
@@ -248,6 +253,12 @@ pub async fn delete_menu_item(item_id: &str) -> Result<(), String> {
 
 pub async fn register_courier(body: &serde_json::Value) -> Result<serde_json::Value, String> {
     api_post_json("/couriers", &body.to_string()).await
+}
+
+// --- Config ---
+
+pub async fn fetch_config() -> Result<serde_json::Value, String> {
+    api_get("/config").await
 }
 
 // --- Helpers ---

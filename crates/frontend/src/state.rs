@@ -64,6 +64,27 @@ pub fn clear_jwt_from_storage() {
     }
 }
 
+// --- Platform config (fetched from API) ---
+
+#[derive(Clone, PartialEq)]
+pub struct PlatformConfig {
+    pub delivery_fee: String,
+    pub local_ops_fee: String,
+    pub federal_fee: String,
+    pub default_tip: String,
+}
+
+impl Default for PlatformConfig {
+    fn default() -> Self {
+        Self {
+            delivery_fee: "5.00".into(),
+            local_ops_fee: "2.50".into(),
+            federal_fee: "1.00".into(),
+            default_tip: "3.00".into(),
+        }
+    }
+}
+
 // --- Cart state ---
 
 #[derive(Clone, PartialEq)]
