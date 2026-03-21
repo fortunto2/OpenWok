@@ -4,3 +4,7 @@ target/
 .DS_Store
 node_modules/
 .next/
+.playwright-mcp/
+*.db-shm
+*.db-wal
+crates/frontend/data/

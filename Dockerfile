@@ -31,17 +31,3 @@ EXPOSE 3000
 
 WORKDIR /app
 ENTRYPOINT ["/app/openwok-app"]
-S runtime
-
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /app/target/dx/openwok-app/release/web/ /app/
-
-ENV PORT=3000
-ENV IP=0.0.0.0
-ENV DATABASE_PATH=/app/data/openwok.db
-
-EXPOSE 3000
-
-WORKDIR /app
-ENTRYPOINT ["/app/openwok-app"]

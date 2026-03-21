@@ -147,7 +147,7 @@ fn extract_auth(req: &Request, env: &Env) -> Result<(String, Option<String>)> {
     let secret = env
         .secret("SUPABASE_JWT_SECRET")
         .map(|s| s.to_string())
-        .unwrap_or_else(|_| "super-secret-jwt-token-for-testing-only".into());
+        .map_err(|_| Error::RustError("SUPABASE_JWT_SECRET not configured".into()))?;
 
     let auth_header = req
         .headers()

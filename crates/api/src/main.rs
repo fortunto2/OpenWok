@@ -8,12 +8,16 @@ mod ws;
 use std::sync::Arc;
 
 use axum::Router;
+use axum::http::{
+    HeaderValue, Method,
+    header::{AUTHORIZATION, CONTENT_TYPE},
+};
 use axum::routing::{any, post};
 use openwok_handlers::auth::JwtConfig;
 use sqlite_repo::SqliteRepo;
 use state::AppState;
 use tokio::sync::Mutex;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -46,8 +50,12 @@ struct ApiDoc;
 
 pub fn app(state: AppState) -> Router {
     let jwt_config = JwtConfig {
-        secret: std::env::var("SUPABASE_JWT_SECRET")
-            .unwrap_or_else(|_| "super-secret-jwt-token-for-testing-only".into()),
+        secret: std::env::var("SUPABASE_JWT_SECRET").unwrap_or_else(|_| {
+            #[cfg(test)]
+            return "super-secret-jwt-token-for-testing-only".into();
+            #[cfg(not(test))]
+            panic!("SUPABASE_JWT_SECRET must be set in production")
+        }),
         issuer: std::env::var("SUPABASE_JWT_ISSUER").ok(),
     };
 
@@ -80,9 +88,22 @@ pub fn app(state: AppState) -> Router {
         .layer(axum::Extension(order_events_tx));
 
     let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+        .allow_origin([
+            "https://openwok.superduperai.co"
+                .parse::<HeaderValue>()
+                .unwrap(),
+            "http://localhost:8080".parse::<HeaderValue>().unwrap(),
+            "http://localhost:3000".parse::<HeaderValue>().unwrap(),
+            "http://localhost:3030".parse::<HeaderValue>().unwrap(),
+        ])
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PATCH,
+            Method::DELETE,
+            Method::OPTIONS,
+        ])
+        .allow_headers([AUTHORIZATION, CONTENT_TYPE]);
 
     Router::new()
         .merge(SwaggerUi::new("/api/docs").url("/api/openapi.json", openapi))

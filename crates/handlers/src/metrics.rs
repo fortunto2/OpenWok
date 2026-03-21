@@ -2,11 +2,18 @@ use std::sync::Arc;
 
 use axum::Json;
 use axum::extract::State;
+use axum::http::StatusCode;
 use openwok_core::repo::{AdminMetrics, Repository};
 
+use crate::auth::AuthUser;
+
 #[utoipa::path(get, path = "/admin/metrics", tag = "metrics")]
-pub async fn get<R: Repository>(State(repo): State<Arc<R>>) -> Json<AdminMetrics> {
-    Json(repo.get_metrics().await.unwrap_or(AdminMetrics {
+pub async fn get<R: Repository>(
+    auth: AuthUser,
+    State(repo): State<Arc<R>>,
+) -> Result<Json<AdminMetrics>, (StatusCode, String)> {
+    crate::admin::get_active_user(repo.as_ref(), &auth).await?;
+    Ok(Json(repo.get_metrics().await.unwrap_or(AdminMetrics {
         order_count: 0,
         orders_by_status: Default::default(),
         on_time_delivery_rate: 0.0,
@@ -23,5 +30,5 @@ pub async fn get<R: Repository>(State(repo): State<Arc<R>>) -> Json<AdminMetrics
             total: 0,
         },
         orders_by_zone: Default::default(),
-    }))
+    })))
 }

@@ -94,8 +94,15 @@ pub async fn create_order_with_payment(
 
     // Try to create Stripe Checkout Session
     let checkout_url = if let Some(ref stripe) = state.stripe_client {
+        let allowed_origins = [
+            "https://openwok.superduperai.co",
+            "http://localhost:8080",
+            "http://localhost:3000",
+            "http://localhost:3030",
+        ];
         let origin = body
             .origin_url
+            .filter(|u| allowed_origins.iter().any(|a| u.starts_with(a)))
             .unwrap_or_else(|| "https://openwok.superduperai.co".into());
         let success_url = format!("{origin}/order/{order_id_str}/success");
         let cancel_url = format!("{origin}/checkout");

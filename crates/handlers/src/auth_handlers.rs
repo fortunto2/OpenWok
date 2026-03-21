@@ -65,8 +65,6 @@ pub async fn me<R: Repository>(
     State(repo): State<Arc<R>>,
     auth: AuthUser,
 ) -> Result<Json<User>, (StatusCode, String)> {
-    repo.get_user_by_supabase_id(&auth.supabase_user_id)
-        .await
-        .map(Json)
-        .map_err(|_| (StatusCode::NOT_FOUND, "user not found".into()))
+    let user = crate::admin::get_active_user(repo.as_ref(), &auth).await?;
+    Ok(Json(user))
 }
